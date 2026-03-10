@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil Pembaca — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#ff6b6b;--coral2:#ff4757;
+  --lav:#a78bfa;--lav2:#7c3aed;
+  --mint:#06d6a0;--sun:#ffd166;
+  --sky:#38bdf8;--pink:#f472b6;
+  --ink:#1a1a2e;--soft:#6b7a9e;
+  --muted:#94a3b8;--border:#e2e8f7;
+  --off:#f8faff;--white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:60px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px rgba(26,26,46,0.05);}
+.nav-logo{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;color:var(--coral);text-decoration:none;}
+.nav-logo em{color:var(--lav);font-style:normal;}
+
+/* BANNER */
+.profile-banner{height:180px;background:linear-gradient(135deg,#0f0f1e 0%,#1a2040 40%,#0f1e2a 100%);position:relative;overflow:hidden;}
+.banner-stars{position:absolute;inset:0;}
+.bstar{position:absolute;border-radius:50%;background:white;animation:twinkle 3s infinite;}
+@keyframes twinkle{0%,100%{opacity:0.2;}50%{opacity:1;}}
+
+/* PROFILE WRAP */
+.profile-wrap{max-width:900px;margin:0 auto;padding:0 1.5rem 5rem;}
+
+/* PROFILE CARD */
+.profile-card{background:white;border:1.5px solid var(--border);border-radius:24px;padding:0 2rem 2rem;margin-top:-60px;position:relative;z-index:2;box-shadow:0 8px 40px rgba(26,26,46,0.08);margin-bottom:1.5rem;}
+.avatar-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+.avatar-wrap{margin-top:-40px;}
+.reader-avatar{width:110px;height:110px;border-radius:28px;background:linear-gradient(135deg,#bfdbfe,#c7d2fe,#ddd6fe);display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:4px solid white;box-shadow:0 8px 24px rgba(26,26,46,0.12);}
+.avatar-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.aa-btn{padding:8px 16px;border-radius:10px;border:1.5px solid var(--border);background:white;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:0.2s;color:var(--soft);}
+.aa-btn:hover{border-color:var(--lav);color:var(--lav);}
+
+.reader-name{font-family:'Baloo 2',cursive;font-size:1.7rem;font-weight:800;color:var(--ink);margin-bottom:2px;}
+.reader-handle{font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;}
+.reader-bio{font-size:0.88rem;color:var(--soft);line-height:1.7;max-width:580px;margin-bottom:1.5rem;}
+
+/* STATS ROW */
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.stat-pill{background:var(--off);border:1.5px solid var(--border);border-radius:14px;padding:10px 18px;text-align:center;}
+.sp-val{display:block;font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:var(--ink);}
+.sp-label{font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* DOMPET */
+.dompet-mini{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.dm-item{background:var(--off);border:1.5px solid var(--border);border-radius:14px;padding:10px 20px;display:flex;align-items:center;gap:8px;}
+.dm-val{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;}
+.dm-label{font-size:0.72rem;color:var(--muted);font-weight:700;}
+
+/* LIBRARY */
+.section-card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;}
+.sec-title{font-family:'Baloo 2',cursive;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:1rem;}
+.library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+.lib-card{border-radius:14px;border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:0.2s;}
+.lib-card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(26,26,46,0.08);}
+.lc-cover{height:80px;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+.lc-body{padding:8px 10px;}
+.lc-title{font-size:0.72rem;font-weight:800;color:var(--ink);margin-bottom:2px;line-height:1.2;}
+.lc-cat{font-size:0.62rem;color:var(--muted);}
+.empty-lib{text-align:center;padding:2rem;color:var(--muted);font-size:0.82rem;}
+
+/* BECOME WRITER CTA */
+.become-writer-cta{
+  background:linear-gradient(135deg,#1a1a2e 0%,#2d1b69 50%,#1a1a2e 100%);
+  border-radius:24px;padding:2.5rem 2rem;text-align:center;
+  position:relative;overflow:hidden;margin-bottom:1.5rem;
+  border:1px solid rgba(167,139,250,0.3);
+}
+.bwc-glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,0.15),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.bwc-stars{position:absolute;inset:0;pointer-events:none;}
+.bwc-icon{font-size:3rem;margin-bottom:0.8rem;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.bwc-title{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;color:white;margin-bottom:0.5rem;position:relative;}
+.bwc-title span{color:var(--sun);}
+.bwc-sub{font-size:0.88rem;color:rgba(255,255,255,0.7);margin-bottom:1.5rem;line-height:1.6;max-width:500px;margin-left:auto;margin-right:auto;position:relative;}
+.bwc-perks{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.8rem;position:relative;}
+.bwc-perk{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px 16px;font-size:0.78rem;color:rgba(255,255,255,0.9);font-weight:700;}
+.bwc-btn{
+  background:linear-gradient(135deg,var(--sun),#f59e0b);
+  color:#1a1a2e;padding:14px 40px;border-radius:16px;border:none;
+  font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;
+  cursor:pointer;transition:0.3s;position:relative;
+  box-shadow:0 8px 24px rgba(255,209,102,0.4);
+}
+.bwc-btn:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(255,209,102,0.5);}
+.bwc-note{font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:0.8rem;position:relative;}
+
+/* LOGOUT */
+.btn-logout{padding:8px 20px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--coral);font-weight:700;cursor:pointer;transition:0.2s;font-family:'Nunito',sans-serif;font-size:0.82rem;}
+.btn-logout:hover{background:var(--coral);color:white;border-color:var(--coral);}
+
+/* MODAL JADI PENULIS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:999;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:white;border-radius:28px;padding:2.5rem 2rem;width:100%;max-width:500px;position:relative;animation:modalIn 0.3s ease;}
+@keyframes modalIn{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);}
+.modal-icon{font-size:3rem;text-align:center;display:block;margin-bottom:1rem;}
+.modal-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:0.5rem;}
+.modal-sub{font-size:0.85rem;color:var(--soft);text-align:center;margin-bottom:1.5rem;line-height:1.6;}
+.syarat-list{background:var(--off);border-radius:16px;padding:1.2rem;margin-bottom:1.5rem;}
+.syarat-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:0.82rem;color:var(--ink);}
+.syarat-item:last-child{margin-bottom:0;}
+.syarat-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+.agree-row{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;cursor:pointer;}
+.agree-row input{width:18px;height:18px;accent-color:var(--lav);cursor:pointer;}
+.agree-label{font-size:0.82rem;color:var(--soft);line-height:1.5;}
+.modal-confirm-btn{width:100%;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;cursor:pointer;transition:0.2s;}
+.modal-confirm-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.modal-confirm-btn:not(:disabled):hover{opacity:0.9;}
+.modal-msg{font-size:0.78rem;text-align:center;margin-top:8px;min-height:18px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Nex<em>Storia</em> 🌏</a>
+  <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
+</nav>
+
+<div class="profile-banner">
+  <div class="banner-stars" id="banner-stars"></div>
+</div>
+
+<div class="profile-wrap">
+
+  <!-- PROFILE CARD -->
+  <div class="profile-card">
+    <div class="avatar-row">
+      <div class="avatar-wrap">
+        <div class="reader-avatar" id="p-avatar">👦</div>
+      </div>
+      <div class="avatar-actions">
+        <button class="aa-btn" onclick="openEditModal()">✏️ Edit Profil</button>
+      </div>
+    </div>
+
+    <h1 class="reader-name" id="p-name">---</h1>
+    <div class="reader-handle" id="p-handle">@---</div>
+    <div class="reader-bio" id="p-bio">Selamat datang ke NexStoria!</div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-pill"><span class="sp-val" id="stat-baca">0</span><span class="sp-label">Buku Dibaca</span></div>
+      <div class="stat-pill"><span class="sp-val" id="stat-selesai">0</span><span class="sp-label">Selesai</span></div>
+      <div class="stat-pill"><span class="sp-val" id="stat-ikuti">0</span><span class="sp-label">Penulis Diikuti</span></div>
+    </div>
+
+    <!-- DOMPET -->
+    <div class="dompet-mini">
+      <div class="dm-item"><span style="font-size:1.3rem">⭐</span><div><span class="dm-val" style="color:var(--lav)" id="d-stars">0</span><div class="dm-label">Bintang</div></div></div>
+      <div class="dm-item"><span style="font-size:1.3rem">💎</span><div><span class="dm-val" style="color:#f59e0b" id="d-coins">0</span><div class="dm-label">NexCoins</div></div></div>
+    </div>
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="section-card">
+    <div class="sec-title">📚 Library Pembacaan</div>
+    <div class="library-grid" id="library-grid">
+      <div class="empty-lib" style="grid-column:1/-1">
+        <div style="font-size:2.5rem;margin-bottom:8px">📖</div>
+        <div style="font-weight:800;margin-bottom:4px">Library kosong</div>
+        <div>Mula baca cerita untuk simpan di sini!</div>
+        <a href="nexstoria-explore.html" style="color:var(--coral);font-weight:800;text-decoration:none;display:inline-block;margin-top:10px;font-size:0.85rem;">Terokai Cerita →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- BECOME WRITER CTA -->
+  <div class="become-writer-cta" id="become-writer-section">
+    <div class="bwc-glow"></div>
+    <div class="bwc-stars" id="bwc-stars"></div>
+    <span class="bwc-icon">✍️</span>
+    <h2 class="bwc-title">Sudah Banyak Membaca?<br>Kini Masa untuk <span>Bercerita!</span></h2>
+    <p class="bwc-sub">Kongsi imaginasi kamu kepada ribuan pembaca dari seluruh dunia. AI NexStoria akan terjemahkan cerita kamu ke 13+ bahasa secara automatik!</p>
+    <div class="bwc-perks">
+      <span class="bwc-perk">🌍 Pembaca Seluruh Dunia</span>
+      <span class="bwc-perk">🤖 AI Terjemahan Automatik</span>
+      <span class="bwc-perk">⭐ Kumpul Bintang dari Peminat</span>
+      <span class="bwc-perk">💎 Jana Pendapatan</span>
+    </div>
+    <button class="bwc-btn" onclick="openWriterModal()">🚀 Daftar Jadi Penulis NexStoria!</button>
+    <p class="bwc-note">Percuma selamanya · Tiada komisen · Kamu pemilik cerita</p>
+  </div>
+
+</div>
+
+<!-- MODAL JADI PENULIS -->
+<div class="modal-overlay" id="writerModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeWriterModal()">✕</button>
+    <span class="modal-icon">✍️</span>
+    <div class="modal-title">Ikrar Penulis NexStoria</div>
+    <div class="modal-sub">Dengan mendaftar sebagai Penulis, kamu berjanji untuk menjadi sebahagian dari komuniti kreatif yang positif.</div>
+
+    <div class="syarat-list">
+      <div class="syarat-item"><span class="syarat-icon">📖</span><span>Saya akan menulis cerita yang selamat, positif dan sesuai untuk kanak-kanak.</span></div>
+      <div class="syarat-item"><span class="syarat-icon">🤝</span><span>Saya menghormati penulis lain dan tidak menyalin karya mereka.</span></div>
+      <div class="syarat-item"><span class="syarat-icon">🌟</span><span>Saya akan memberikan bintang kepada penulis lain yang saya kagumi.</span></div>
+      <div class="syarat-item"><span class="syarat-icon">🇲🇾</span><span>Saya bersetuju dengan Terma & Syarat NexStoria Malaysia.</span></div>
+    </div>
+
+    <label class="agree-row">
+      <input type="checkbox" id="agree-check" onchange="toggleConfirmBtn()">
+      <span class="agree-label">Ya, saya faham dan bersetuju dengan semua syarat di atas. Saya bersedia untuk memulakan perjalanan sebagai Penulis NexStoria!</span>
+    </label>
+
+    <button class="modal-confirm-btn" id="confirm-writer-btn" disabled onclick="becomeWriter()">✍️ Setuju & Jadi Penulis Sekarang!</button>
+    <div class="modal-msg" id="writer-modal-msg"></div>
+  </div>
+</div>
+
+<!-- MODAL EDIT PROFIL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('open')">✕</button>
+    <div class="modal-title" style="margin-bottom:1.2rem;">✏️ Edit Profil</div>
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.78rem;font-weight:800;color:var(--soft);display:block;margin-bottom:5px;">Nama Paparan</label>
+      <input id="edit-name" type="text" style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;" maxlength="40">
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.78rem;font-weight:800;color:var(--soft);display:block;margin-bottom:5px;">Username</label>
+      <input id="edit-username" type="text" style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;" maxlength="30">
+    </div>
+    <div style="margin-bottom:1.2rem;">
+      <label style="font-size:0.78rem;font-weight:800;color:var(--soft);display:block;margin-bottom:5px;">Bio</label>
+      <textarea id="edit-bio" style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;resize:vertical;min-height:80px;" maxlength="160"></textarea>
+    </div>
+    <button onclick="saveProfile()" style="width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;cursor:pointer;" id="save-edit-btn">💾 Simpan</button>
+    <div id="edit-msg" style="font-size:0.78rem;text-align:center;margin-top:8px;min-height:18px;"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Generate bintang banner
+function genStars(containerId, count) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'bstar';
+    const size = Math.random() * 3 + 1;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${Math.random()*2+2}s;`;
+    el.appendChild(s);
+  }
+}
+genStars('banner-stars', 50);
+genStars('bwc-stars', 30);
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'nexstoria-login.html'; return; }
+
+  const user = session.user;
+  const meta = user.user_metadata || {};
+
+  // Semak jika dah jadi penulis — redirect
+  const { data: p } = await sb.from('profiles').select('*').eq('id', user.id).single();
+
+  if (p?.role === 'writer') {
+    window.location.href = 'nexstoria-author-profile.html';
+    return;
+  }
+
+  // Papar maklumat
+  const name = p?.full_name || meta.full_name || user.email.split('@')[0];
+  const username = p?.username || user.email.split('@')[0];
+
+  document.getElementById('p-name').textContent = name;
+  document.getElementById('p-handle').textContent = '@' + username;
+  document.getElementById('p-bio').textContent = p?.bio || 'Selamat datang ke NexStoria!';
+  document.getElementById('p-avatar').textContent = name[0]?.toUpperCase() || '👦';
+  document.getElementById('d-stars').textContent = p?.stars || 0;
+  document.getElementById('d-coins').textContent = p?.coins || 0;
+  document.title = name + ' — Profil Pembaca NexStoria';
+
+  // Load library
+  const { data: progress } = await sb.from('reading_progress')
+    .select('*, stories(title, emoji, category)')
+    .eq('user_id', user.id)
+    .limit(12);
+
+  document.getElementById('stat-baca').textContent = progress?.length || 0;
+  document.getElementById('stat-selesai').textContent = progress?.filter(r => r.completed).length || 0;
+
+  const { count: followCount } = await sb.from('follows').select('*', {count:'exact',head:true}).eq('follower_id', user.id);
+  document.getElementById('stat-ikuti').textContent = followCount || 0;
+
+  if (progress && progress.length > 0) {
+    const grid = document.getElementById('library-grid');
+    grid.innerHTML = '';
+    const covColors = {'Haiwan':'#d1fae5','Sains':'#bfdbfe','Dongeng':'#e9d5ff','Teladan':'#fde68a','Misteri':'#faf5ff','default':'#f0f9ff'};
+    progress.forEach(r => {
+      const s = r.stories;
+      if (!s) return;
+      const bg = covColors[s.category] || covColors.default;
+      grid.innerHTML += `<div class="lib-card"><div class="lc-cover" style="background:${bg}">${s.emoji||'📖'}</div><div class="lc-body"><div class="lc-title">${s.title}</div><div class="lc-cat">${s.category||''}</div></div></div>`;
+    });
+  }
+}
+
+// JADI PENULIS
+function openWriterModal() { document.getElementById('writerModal').classList.add('open'); }
+function closeWriterModal() { document.getElementById('writerModal').classList.remove('open'); }
+
+function toggleConfirmBtn() {
+  document.getElementById('confirm-writer-btn').disabled = !document.getElementById('agree-check').checked;
+}
+
+async function becomeWriter() {
+  const btn = document.getElementById('confirm-writer-btn');
+  const msg = document.getElementById('writer-modal-msg');
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'nexstoria-login.html'; return; }
+
+  const { error } = await sb.from('profiles').update({
+    role: 'writer',
+    writer_since: new Date().toISOString()
+  }).eq('id', session.user.id);
+
+  if (error) {
+    msg.style.color = 'var(--coral)';
+    msg.textContent = '❌ Ralat: ' + error.message;
+    btn.disabled = false;
+    btn.textContent = '✍️ Setuju & Jadi Penulis Sekarang!';
+    return;
+  }
+
+  // Level up animation
+  msg.style.color = 'var(--mint)';
+  msg.textContent = '🎉 Tahniah! Kamu kini seorang Penulis NexStoria!';
+
+  setTimeout(() => {
+    window.location.href = 'nexstoria-author-profile.html';
+  }, 2000);
+}
+
+// EDIT PROFIL
+function openEditModal() {
+  document.getElementById('edit-name').value = document.getElementById('p-name').textContent;
+  document.getElementById('edit-username').value = document.getElementById('p-handle').textContent.replace('@','');
+  document.getElementById('edit-bio').value = document.getElementById('p-bio').textContent;
+  document.getElementById('editModal').classList.add('open');
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('save-edit-btn');
+  const msg = document.getElementById('edit-msg');
+  const name = document.getElementById('edit-name').value.trim();
+  const username = document.getElementById('edit-username').value.trim();
+  const bio = document.getElementById('edit-bio').value.trim();
+
+  if (!name) { msg.style.color='var(--coral)'; msg.textContent='⚠️ Nama tidak boleh kosong.'; return; }
+  btn.textContent = 'Menyimpan...'; btn.disabled = true;
+
+  const { data: { session } } = await sb.auth.getSession();
+  const { error } = await sb.from('profiles').update({ full_name:name, username:username||null, bio:bio||null }).eq('id', session.user.id);
+
+  if (error) { msg.style.color='var(--coral)'; msg.textContent='❌ '+error.message; }
+  else {
+    document.getElementById('p-name').textContent = name;
+    document.getElementById('p-handle').textContent = '@' + (username || session.user.email.split('@')[0]);
+    document.getElementById('p-bio').textContent = bio || 'Selamat datang ke NexStoria!';
+    document.getElementById('p-avatar').textContent = name[0]?.toUpperCase();
+    msg.style.color='var(--mint)'; msg.textContent='✅ Profil dikemaskini!';
+    setTimeout(() => document.getElementById('editModal').classList.remove('open'), 1200);
+  }
+  btn.textContent = '💾 Simpan'; btn.disabled = false;
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'nexstoria-login.html';
+}
+
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
+
+init();
+</script>
+</body>
+</html>
