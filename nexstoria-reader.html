@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baca Cerita — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1a2e;--ink2:#2d2d4e;
+  --off:#f8faff;--white:#fff;
+  --coral:#ff6b6b;--coral2:#ff4444;
+  --lav:#a78bfa;--lav2:#7c3aed;--lav3:#ede9fe;
+  --mint:#06d6a0;--mint2:#059669;--mint3:#d1fae5;
+  --sun:#ffd166;--sun2:#f59e0b;--sun3:#fef3c7;
+  --sky:#38bdf8;--sky2:#0284c7;--sky3:#e0f2fe;
+  --pink:#f472b6;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --soft:#64748b;--muted:#94a3b8;
+  --radius:16px;
+  --panel-max:680px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--ink);color:var(--white);min-height:100vh;overflow-x:hidden;}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:56px;padding:0 16px;
+  display:flex;align-items:center;gap:12px;
+  background:rgba(26,26,46,.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  transition:.3s;
+}
+.topbar.hidden{transform:translateY(-100%);}
+.tb-back{width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;}
+.tb-back:hover{background:rgba(255,255,255,.15);}
+.tb-info{flex:1;min-width:0;}
+.tb-title{font-family:'Baloo 2';font-size:14px;font-weight:800;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-meta{font-size:11px;color:var(--muted);font-weight:600;}
+.tb-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tb-btn{width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;position:relative;}
+.tb-btn:hover{background:rgba(255,255,255,.15);}
+.tb-btn.active{background:rgba(255,107,107,.2);color:var(--coral);}
+.tb-btn.bookmarked{background:rgba(255,209,102,.2);color:var(--sun);}
+
+/* ── FONT SIZE PANEL ── */
+.font-panel{
+  position:fixed;top:59px;left:0;right:0;z-index:197;
+  background:rgba(26,26,46,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:8px 16px;
+  display:flex;align-items:center;gap:10px;
+  transform:translateY(-100%);opacity:0;
+  transition:.3s cubic-bezier(.175,.885,.32,1.275);
+  pointer-events:none;
+}
+.font-panel.show{transform:translateY(0);opacity:1;pointer-events:all;}
+.font-panel-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+.font-size-btn{width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.7);font-weight:800;cursor:pointer;transition:.2s;font-family:'Nunito';display:flex;align-items:center;justify-content:center;}
+.font-size-btn:hover{border-color:var(--lav);color:var(--lav);}
+.font-size-display{font-size:13px;font-weight:800;color:rgba(255,255,255,.6);min-width:36px;text-align:center;}
+
+/* ── PROGRESS BAR ── */
+.read-progress{position:fixed;top:56px;left:0;right:0;z-index:199;height:3px;background:rgba(255,255,255,.06);}
+.read-progress-fill{height:100%;background:linear-gradient(90deg,var(--coral),var(--lav));width:0%;transition:width .1s linear;border-radius:0 2px 2px 0;}
+
+/* ── LANG SWITCHER ── */
+.lang-bar{
+  position:fixed;top:59px;left:0;right:0;z-index:198;
+  background:rgba(26,26,46,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:8px 16px;
+  display:flex;align-items:center;gap:8px;
+  transform:translateY(-100%);opacity:0;
+  transition:.3s cubic-bezier(.175,.885,.32,1.275);
+  pointer-events:none;
+}
+.lang-bar.show{transform:translateY(0);opacity:1;pointer-events:all;}
+.lang-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+.lang-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.lang-chip{padding:5px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:11px;font-weight:800;cursor:pointer;transition:.2s;font-family:'Nunito';}
+.lang-chip:hover{border-color:var(--lav);color:var(--lav);}
+.lang-chip.active{background:var(--lav);color:white;border-color:var(--lav);}
+.lang-chip.translating{animation:pulse-chip .8s infinite;}
+@keyframes pulse-chip{0%,100%{opacity:1;}50%{opacity:.4;}}
+.lang-ai-badge{margin-left:auto;font-size:10px;font-weight:800;color:var(--lav);background:rgba(167,139,250,.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(167,139,250,.2);flex-shrink:0;}
+
+/* ── MAIN CONTENT ── */
+.reader-wrap{
+  max-width:var(--panel-max);
+  margin:0 auto;
+  padding-top:59px; /* topbar */
+}
+
+/* ── COVER SECTION ── */
+.story-cover{
+  position:relative;
+  min-height:420px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  overflow:hidden;
+}
+.cover-bg{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,#1a1a2e,#2d1b69);
+  display:flex;align-items:center;justify-content:center;
+}
+.cover-bg img{width:100%;height:100%;object-fit:cover;}
+.cover-bg-emoji{font-size:120px;opacity:.25;filter:blur(2px);}
+.cover-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 20%,rgba(26,26,46,.95) 85%,var(--ink) 100%);}
+.cover-content{position:relative;z-index:1;padding:24px 20px 20px;}
+.cover-cat{display:inline-flex;align-items:center;gap:5px;background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.3);color:var(--lav);font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;}
+.cover-title{font-family:'Baloo 2';font-size:28px;font-weight:900;color:var(--white);line-height:1.15;margin-bottom:8px;}
+.cover-synopsis{font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:14px;}
+.cover-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.cv-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);}
+.cover-author{display:flex;align-items:center;gap:8px;}
+.ca-ava{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ca-name{font-size:12px;font-weight:800;color:rgba(255,255,255,.75);}
+.ca-role{font-size:10px;color:var(--muted);}
+
+/* ── DIVIDER ── */
+.panel-divider{height:1px;background:rgba(255,255,255,.05);margin:0;}
+
+/* ── PANELS ── */
+.panels-container{background:var(--ink);}
+.panel{
+  max-width:var(--panel-max);
+  margin:0 auto;
+  padding:20px 16px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  position:relative;
+  opacity:0;transform:translateY(24px);
+  transition:opacity .5s ease,transform .5s ease;
+}
+.panel.visible{opacity:1;transform:translateY(0);}
+.panel-num{
+  position:absolute;top:20px;left:16px;
+  width:22px;height:22px;border-radius:6px;
+  background:rgba(255,255,255,.05);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;color:var(--muted);
+}
+.panel-img{
+  width:100%;border-radius:14px;
+  margin-bottom:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  display:block;
+}
+.panel-img-placeholder{
+  width:100%;height:200px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(6,214,160,.08));
+  border:1px dashed rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;margin-bottom:14px;
+}
+.panel-text{
+  font-family:'Lora',serif;
+  font-size:15px;line-height:1.85;
+  color:rgba(255,255,255,.85);
+  padding:0 4px;
+}
+.panel-text.dialog{
+  font-style:italic;
+  color:rgba(255,209,102,.9);
+  border-left:3px solid var(--sun);
+  padding-left:14px;
+  margin-left:4px;
+}
+.panel-text.action{
+  font-family:'Baloo 2';
+  font-size:16px;font-weight:700;
+  color:rgba(255,107,107,.9);
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.panel-text.narration{
+  font-size:13px;
+  color:rgba(255,255,255,.5);
+  font-style:italic;
+  text-align:center;
+}
+
+/* ── AUDIO PLAYER ── */
+.audio-player{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;padding:10px 14px;
+  margin-top:12px;
+}
+.ap-play{width:34px;height:34px;border-radius:50%;border:none;background:var(--lav);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;}
+.ap-play:hover{background:var(--lav2);transform:scale(1.05);}
+.ap-play.playing{background:var(--coral);}
+.ap-info{flex:1;min-width:0;}
+.ap-name{font-size:11px;font-weight:800;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ap-progress{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:5px;cursor:pointer;overflow:hidden;}
+.ap-progress-fill{height:100%;background:var(--lav);border-radius:2px;width:0%;transition:width .1s;}
+.ap-time{font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+
+/* ── MORAL PANEL ── */
+.moral-panel{
+  max-width:var(--panel-max);margin:0 auto;
+  padding:24px 20px;
+}
+.moral-card{
+  background:linear-gradient(135deg,rgba(255,209,102,.08),rgba(255,107,107,.06));
+  border:1px solid rgba(255,209,102,.2);
+  border-radius:20px;padding:24px;
+  text-align:center;
+}
+.moral-icon{font-size:2.5rem;margin-bottom:10px;}
+.moral-title{font-family:'Baloo 2';font-size:16px;font-weight:800;color:var(--sun);margin-bottom:8px;}
+.moral-text{font-family:'Lora',serif;font-size:14px;line-height:1.7;color:rgba(255,255,255,.75);font-style:italic;}
+
+/* ── REACTION BAR ── */
+.reaction-bar{
+  position:sticky;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(26,26,46,.96);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,.06);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+}
+.rb-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.08);
+  background:transparent;color:rgba(255,255,255,.5);
+  font-family:'Nunito';font-size:11px;font-weight:800;cursor:pointer;transition:.2s;
+  flex:1;
+}
+.rb-btn:hover{background:rgba(255,255,255,.05);}
+.rb-btn .rb-icon{font-size:18px;transition:.3s;}
+.rb-btn.liked{border-color:rgba(255,107,107,.3);color:var(--coral);}
+.rb-btn.liked .rb-icon{animation:heartPop .35s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes heartPop{0%{transform:scale(1);}50%{transform:scale(1.5);}100%{transform:scale(1);}}
+.rb-btn.saved{border-color:rgba(255,209,102,.3);color:var(--sun);}
+.rb-share{flex:none;padding:8px 18px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--coral),var(--lav));color:white;font-family:'Nunito';font-size:12px;font-weight:800;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.rb-share:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(167,139,250,.3);}
+
+/* ── END CARD ── */
+.end-card{
+  max-width:var(--panel-max);margin:0 auto;
+  padding:32px 20px 100px;
+  text-align:center;
+}
+.ec-emoji{font-size:3rem;margin-bottom:12px;}
+.ec-title{font-family:'Baloo 2';font-size:20px;font-weight:800;color:var(--white);margin-bottom:6px;}
+.ec-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+.ec-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.ec-btn{padding:10px 22px;border-radius:12px;font-family:'Nunito';font-size:13px;font-weight:800;cursor:pointer;transition:.2s;text-decoration:none;border:none;}
+.ec-btn.primary{background:linear-gradient(135deg,var(--coral),var(--lav));color:white;}
+.ec-btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(167,139,250,.3);}
+.ec-btn.ghost{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
+.ec-btn.ghost:hover{background:rgba(255,255,255,.1);}
+
+/* ── RELATED STORIES ── */
+.related-section{max-width:var(--panel-max);margin:0 auto;padding:0 16px 24px;}
+.rs-title{font-family:'Baloo 2';font-size:15px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.related-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.related-card{border-radius:14px;overflow:hidden;cursor:pointer;transition:.2s;text-decoration:none;display:block;}
+.related-card:hover{transform:translateY(-3px);}
+.rc-cover{height:80px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
+.rc-body{padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);border-top:none;border-radius:0 0 14px 14px;}
+.rc-title{font-size:12px;font-weight:800;color:rgba(255,255,255,.8);line-height:1.3;margin-bottom:3px;}
+.rc-cat{font-size:10px;color:var(--muted);font-weight:600;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(26,26,46,.98);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:10px 18px;font-size:13px;font-weight:700;
+  color:var(--white);white-space:nowrap;opacity:0;transition:.3s;z-index:999;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── SHARE MODAL ── */
+.share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.share-overlay.open{display:flex;}
+.share-sheet{
+  background:#1e1e38;border-radius:24px 24px 0 0;
+  padding:24px 20px 36px;width:100%;max-width:var(--panel-max);
+  animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ss-handle{width:36px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:0 auto 20px;}
+.ss-title{font-family:'Baloo 2';font-size:16px;font-weight:800;color:var(--white);margin-bottom:16px;text-align:center;}
+.ss-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.ss-btn{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:.2s;}
+.ss-btn:hover{transform:translateY(-2px);}
+.ss-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.ss-label{font-size:10px;font-weight:800;color:var(--muted);}
+.ss-url{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;}
+.ss-url-text{flex:1;font-size:11px;color:var(--muted);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ss-copy{padding:5px 12px;border-radius:8px;border:none;background:var(--lav);color:white;font-size:11px;font-weight:800;cursor:pointer;font-family:'Nunito';}
+.ss-close{width:100%;margin-top:12px;padding:12px;border-radius:12px;border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-family:'Nunito';font-size:13px;font-weight:800;cursor:pointer;}
+
+/* ── LOADING ── */
+.loading-screen{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+}
+.loading-emoji{font-size:3rem;animation:bounce .6s infinite alternate;}
+@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-12px);}}
+.loading-text{font-family:'Baloo 2';font-size:16px;font-weight:800;color:rgba(255,255,255,.6);}
+
+/* ── NOT FOUND ── */
+.not-found{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
+.nf-icon{font-size:4rem;margin-bottom:16px;}
+.nf-title{font-family:'Baloo 2';font-size:24px;font-weight:800;color:var(--coral);margin-bottom:8px;}
+.nf-sub{font-size:14px;color:var(--muted);margin-bottom:24px;}
+.nf-btn{padding:11px 24px;border-radius:12px;background:var(--coral);color:white;font-family:'Nunito';font-size:13px;font-weight:800;text-decoration:none;border:none;cursor:pointer;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar" id="topbar">
+  <button class="tb-back" onclick="history.back()">←</button>
+  <div class="tb-info">
+    <div class="tb-title" id="tb-title">Memuatkan…</div>
+    <div class="tb-meta" id="tb-meta"></div>
+  </div>
+  <div class="tb-actions">
+    <button class="tb-btn" id="btn-fontsize" onclick="toggleFontPanel()" title="Saiz Teks">A</button>
+    <button class="tb-btn" id="btn-lang" onclick="toggleLangBar()" title="Tukar Bahasa">🌐</button>
+    <button class="tb-btn" id="btn-bookmark" onclick="toggleBookmark()" title="Simpan">🔖</button>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="read-progress"><div class="read-progress-fill" id="progress-fill"></div></div>
+
+<!-- FONT SIZE PANEL -->
+<div class="font-panel" id="font-panel">
+  <span class="font-panel-label">Saiz Teks</span>
+  <button class="font-size-btn" onclick="changeFontSize(-1)" title="Kecilkan">A−</button>
+  <span class="font-size-display" id="font-size-display">15</span>
+  <button class="font-size-btn" onclick="changeFontSize(1)" title="Besarkan">A+</button>
+</div>
+
+<!-- LANGUAGE BAR -->
+<div class="lang-bar" id="lang-bar">
+  <div class="lang-label">Bahasa</div>
+  <div class="lang-chips" id="lang-chips">
+    <button class="lang-chip active" data-lang="ms" onclick="switchLang('ms',this)">🇲🇾 Melayu</button>
+    <button class="lang-chip" data-lang="en" onclick="switchLang('en',this)">🇬🇧 English</button>
+    <button class="lang-chip" data-lang="zh" onclick="switchLang('zh',this)">🇨🇳 中文</button>
+    <button class="lang-chip" data-lang="ta" onclick="switchLang('ta',this)">🇮🇳 தமிழ்</button>
+  </div>
+  <div class="lang-ai-badge">✨ AI Translate</div>
+</div>
+
+<!-- MAIN -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-emoji">📖</div>
+  <div class="loading-text">Memuatkan cerita…</div>
+</div>
+
+<div id="not-found" class="not-found" style="display:none;">
+  <div class="nf-icon">😕</div>
+  <div class="nf-title">Cerita Tidak Dijumpai</div>
+  <div class="nf-sub">Cerita ini mungkin telah dipadam atau belum diterbitkan.</div>
+  <a href="nexstoria-explore.html" class="nf-btn">← Kembali Explore</a>
+</div>
+
+<div id="reader-main" style="display:none;">
+  <div class="reader-wrap">
+
+    <!-- COVER -->
+    <div class="story-cover" id="story-cover">
+      <div class="cover-bg" id="cover-bg">
+        <div class="cover-bg-emoji" id="cover-emoji-bg"></div>
+      </div>
+      <div class="cover-overlay"></div>
+      <div class="cover-content">
+        <div class="cover-cat" id="cover-cat"></div>
+        <div class="cover-title" id="cover-title"></div>
+        <div class="cover-synopsis" id="cover-synopsis"></div>
+        <div class="cover-badges" id="cover-badges"></div>
+        <div class="cover-author" id="cover-author"></div>
+      </div>
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <!-- PANELS -->
+    <div class="panels-container" id="panels-container"></div>
+
+    <!-- MORAL -->
+    <div class="moral-panel" id="moral-panel" style="display:none;">
+      <div class="moral-card">
+        <div class="moral-icon">✨</div>
+        <div class="moral-title">Pengajaran Cerita</div>
+        <div class="moral-text" id="moral-text"></div>
+      </div>
+    </div>
+
+    <!-- END CARD -->
+    <div class="end-card" id="end-card" style="display:none;">
+      <div class="ec-emoji">🎉</div>
+      <div class="ec-title">Tamat! Cerita selesai dibaca.</div>
+      <div class="ec-sub">Suka cerita ini? Berikan bintang kepada penulisnya!</div>
+      <div class="ec-actions">
+        <button class="ec-btn primary" onclick="toggleLike()">❤️ Suka Cerita Ini</button>
+        <a href="nexstoria-explore.html" class="ec-btn ghost">🌍 Explore Lagi</a>
+      </div>
+    </div>
+
+    <!-- RELATED -->
+    <div class="related-section" id="related-section" style="display:none;">
+      <div class="rs-title">📚 Cerita Lain Yang Mungkin Anda Suka</div>
+      <div class="related-grid" id="related-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- REACTION BAR -->
+  <div class="reaction-bar">
+    <button class="rb-btn" id="rb-like" onclick="toggleLike()">
+      <span class="rb-icon">🤍</span>
+      <span id="like-count">0</span>
+    </button>
+    <button class="rb-btn" id="rb-bookmark" onclick="toggleBookmark()">
+      <span class="rb-icon">🔖</span>
+      <span>Simpan</span>
+    </button>
+    <button class="rb-share" onclick="openShare()">
+      ↗ Kongsi
+    </button>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="share-overlay" id="share-overlay" onclick="if(event.target===this)closeShare()">
+  <div class="share-sheet">
+    <div class="ss-handle"></div>
+    <div class="ss-title">Kongsi Cerita Ini</div>
+    <div class="ss-grid">
+      <div class="ss-btn" onclick="shareWhatsapp()">
+        <div class="ss-icon" style="background:rgba(37,211,102,.15);color:#25d366">💬</div>
+        <div class="ss-label">WhatsApp</div>
+      </div>
+      <div class="ss-btn" onclick="shareTelegram()">
+        <div class="ss-icon" style="background:rgba(36,161,222,.15);color:#24a1de">✈️</div>
+        <div class="ss-label">Telegram</div>
+      </div>
+      <div class="ss-btn" onclick="shareTwitter()">
+        <div class="ss-icon" style="background:rgba(29,161,242,.15);color:#1da1f2">🐦</div>
+        <div class="ss-label">Twitter/X</div>
+      </div>
+      <div class="ss-btn" onclick="copyLink()">
+        <div class="ss-icon" style="background:rgba(167,139,250,.15);color:var(--lav)">🔗</div>
+        <div class="ss-label">Salin Link</div>
+      </div>
+    </div>
+    <div class="ss-url">
+      <div class="ss-url-text" id="share-url"></div>
+      <button class="ss-copy" onclick="copyLink()">Salin</button>
+    </div>
+    <button class="ss-close" onclick="closeShare()">Tutup</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── STATE ── */
+let story = null;
+let currentUser = null;
+let isLiked = false;
+let isBookmarked = false;
+let currentLang = 'ms';
+let translationCache = {};
+let originalPanels = [];
+let audioElements = {};
+let currentAudio = null;
+let topbarVisible = true;
+let lastScrollY = 0;
+
+/* ── INIT ── */
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const storyId = params.get('id');
+  if (!storyId) { showNotFound(); return; }
+
+  // Auth check (optional — boleh baca tanpa log masuk)
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    checkUserInteractions(storyId);
+  }
+
+  await loadStory(storyId);
+})();
+
+/* ── LOAD STORY ── */
+async function loadStory(id) {
+  const { data: s, error } = await sb.from('stories')
+    .select('*, profiles:author_id(full_name, username, role)')
+    .eq('id', id)
+    .eq('status', 'published')
+    .single();
+
+  if (error || !s) { showNotFound(); return; }
+  story = s;
+  originalPanels = s.panels || [];
+
+  // Kemaskini reads_count
+  sb.from('stories').update({ reads_count: (s.reads_count || 0) + 1 }).eq('id', id).then(() => {});
+
+  renderStory(s);
+  loadRelated(s.category, s.id);
+
+  // Scroll listener
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Intersection observer untuk panel fade-in
+  observePanels();
+}
+
+/* ── RENDER STORY ── */
+function renderStory(s) {
+  document.title = `${s.title} — NexStoria`;
+
+  // Topbar
+  document.getElementById('tb-title').textContent = s.title;
+  document.getElementById('tb-meta').textContent = `${s.category || ''} · ${s.age_group || ''} thn`;
+
+  // Cover
+  const covBgs = {
+    'Haiwan':'linear-gradient(135deg,#d1fae5,#065f46)',
+    'Sains':'linear-gradient(135deg,#dbeafe,#1e3a8a)',
+    'Dongeng':'linear-gradient(135deg,#ede9fe,#4c1d95)',
+    'Misteri':'linear-gradient(135deg,#1f2937,#374151)',
+    'Teladan':'linear-gradient(135deg,#fef3c7,#92400e)',
+    'Wira':'linear-gradient(135deg,#fee2e2,#991b1b)',
+    'Alam':'linear-gradient(135deg,#ecfdf5,#166534)',
+  };
+  const bg = covBgs[s.category] || 'linear-gradient(135deg,#1a1a2e,#2d1b69)';
+  if (s.cover_url) {
+    document.getElementById('cover-bg').innerHTML = `<img src="${s.cover_url}" onerror="this.parentElement.style.background='${bg}'">`;
+  } else {
+    document.getElementById('cover-bg').style.background = bg;
+    document.getElementById('cover-emoji-bg').textContent = s.emoji || s.cover_emoji || '📖';
+  }
+  document.getElementById('cover-cat').textContent = `📂 ${s.category || 'Umum'}`;
+  document.getElementById('cover-title').textContent = s.title;
+  document.getElementById('cover-synopsis').textContent = s.synopsis || '';
+
+  const diffLabel = { easy:'Mudah', medium:'Sederhana', hard:'Mencabar', mudah:'Mudah', sederhana:'Sederhana', mencabar:'Mencabar' };
+  document.getElementById('cover-badges').innerHTML = [
+    s.age_group ? `<span class="cv-badge">🎯 ${s.age_group} thn</span>` : '',
+    s.difficulty ? `<span class="cv-badge">📊 ${diffLabel[s.difficulty]||s.difficulty}</span>` : '',
+    s.language ? `<span class="cv-badge">🌐 ${s.language.toUpperCase()}</span>` : '',
+    originalPanels.length ? `<span class="cv-badge">🎬 ${originalPanels.length} panel</span>` : '',
+  ].join('');
+
+  const author = s.profiles;
+  const authorColors = ['#ff6b6b','#a78bfa','#06d6a0','#ffd166','#38bdf8'];
+  const authorColor = authorColors[Math.floor(Math.random()*authorColors.length)];
+  document.getElementById('cover-author').innerHTML = author ? `
+    <div class="ca-ava" style="background:${authorColor}">${(author.full_name||author.username||'P')[0].toUpperCase()}</div>
+    <div>
+      <div class="ca-name">${author.full_name || author.username || 'Penulis'}</div>
+      <div class="ca-role">${author.role === 'admin' ? '👑 Admin' : '✍️ Penulis'}</div>
+    </div>
+  ` : '';
+
+  // Lang chips — tunjuk hanya bahasa yang ada
+  updateLangChips(s);
+
+  // Render panels
+  renderPanels(originalPanels);
+
+  // Moral
+  if (s.moral_lesson) {
+    document.getElementById('moral-text').textContent = s.moral_lesson;
+    document.getElementById('moral-panel').style.display = 'block';
+  }
+
+  // Like count
+  document.getElementById('like-count').textContent = s.likes_count || 0;
+
+  // Share URL
+  document.getElementById('share-url').textContent = window.location.href;
+
+  // Tunjuk end card & related
+  document.getElementById('end-card').style.display = 'block';
+
+  // Sembunyi loading, tunjuk reader
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('reader-main').style.display = 'block';
+}
+
+/* ── RENDER PANELS ── */
+function renderPanels(panelsData) {
+  const container = document.getElementById('panels-container');
+  container.innerHTML = '';
+
+  if (!panelsData?.length) {
+    container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:14px;">Tiada panel dalam cerita ini.</div>`;
+    document.getElementById('end-card').style.display = 'block';
+    return;
+  }
+
+  panelsData.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'panel';
+    div.id = `panel-${i}`;
+
+    const imgHTML = p.imageUrl
+      ? `<img class="panel-img" src="${p.imageUrl}" loading="lazy" onerror="this.parentElement.querySelector('.panel-img-placeholder')&&(this.remove())||true">`
+      : '';
+
+    const textClass = p.type === 'dialog' ? 'panel-text dialog'
+      : p.type === 'action' ? 'panel-text action'
+      : p.type === 'narration' ? 'panel-text narration'
+      : 'panel-text';
+
+    const textHTML = p.text
+      ? `<div class="${textClass}" id="panel-text-${i}">${p.text.replace(/\n/g,'<br>')}</div>`
+      : '';
+
+    const audioHTML = p.audioUrl ? buildAudioPlayer(p.audioUrl, p.audioName || `Audio Panel ${i+1}`, i) : '';
+
+    div.innerHTML = `
+      <div class="panel-num">${i+1}</div>
+      ${imgHTML}
+      ${textHTML}
+      ${audioHTML}
+    `;
+    container.appendChild(div);
+  });
+
+  // Guna saiz font yang disimpan
+  applyFontSize(currentFontSize);
+}
+
+/* ── AUDIO PLAYER ── */
+function buildAudioPlayer(url, name, idx) {
+  return `
+    <div class="audio-player" id="ap-${idx}">
+      <button class="ap-play" id="ap-btn-${idx}" onclick="toggleAudio(${idx},'${url}')">▶</button>
+      <div class="ap-info">
+        <div class="ap-name">${name}</div>
+        <div class="ap-progress" onclick="seekAudio(event,${idx})">
+          <div class="ap-progress-fill" id="ap-fill-${idx}"></div>
+        </div>
+      </div>
+      <div class="ap-time" id="ap-time-${idx}">0:00</div>
+    </div>
+  `;
+}
+
+function toggleAudio(idx, url) {
+  const btn = document.getElementById(`ap-btn-${idx}`);
+  if (!audioElements[idx]) {
+    audioElements[idx] = new Audio(url);
+    audioElements[idx].addEventListener('timeupdate', () => updateAudioProgress(idx));
+    audioElements[idx].addEventListener('ended', () => {
+      btn.textContent = '▶';
+      btn.classList.remove('playing');
+      document.getElementById(`ap-fill-${idx}`).style.width = '0%';
+      document.getElementById(`ap-time-${idx}`).textContent = '0:00';
+    });
+  }
+  const audio = audioElements[idx];
+  if (audio.paused) {
+    if (currentAudio && currentAudio !== audio) {
+      currentAudio.pause();
+      document.querySelectorAll('.ap-play.playing').forEach(b => { b.textContent='▶'; b.classList.remove('playing'); });
+    }
+    audio.play();
+    btn.textContent = '⏸';
+    btn.classList.add('playing');
+    currentAudio = audio;
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+    btn.classList.remove('playing');
+  }
+}
+
+function updateAudioProgress(idx) {
+  const audio = audioElements[idx];
+  if (!audio) return;
+  const pct = (audio.currentTime / audio.duration) * 100 || 0;
+  const fill = document.getElementById(`ap-fill-${idx}`);
+  const time = document.getElementById(`ap-time-${idx}`);
+  if (fill) fill.style.width = pct + '%';
+  if (time) {
+    const mins = Math.floor(audio.currentTime / 60);
+    const secs = Math.floor(audio.currentTime % 60).toString().padStart(2,'0');
+    time.textContent = `${mins}:${secs}`;
+  }
+}
+
+function seekAudio(e, idx) {
+  const audio = audioElements[idx];
+  if (!audio) return;
+  const bar = e.currentTarget;
+  const pct = e.offsetX / bar.offsetWidth;
+  audio.currentTime = pct * audio.duration;
+}
+
+/* ── LANG SWITCHER ── */
+function updateLangChips(s) {
+  const available = ['ms'];
+  if (s.translation_lang?.length) available.push(...s.translation_lang);
+  // Sentiasa boleh translate ke EN
+  if (!available.includes('en')) available.push('en');
+
+  const labels = { ms:'🇲🇾 Melayu', en:'🇬🇧 English', zh:'🇨🇳 中文', ta:'🇮🇳 தமிழ்', ar:'🇸🇦 عربي' };
+  document.getElementById('lang-chips').innerHTML = available.map(l =>
+    `<button class="lang-chip${l===currentLang?' active':''}" data-lang="${l}" onclick="switchLang('${l}',this)">${labels[l]||l}</button>`
+  ).join('');
+}
+
+function toggleLangBar() {
+  document.getElementById('font-panel').classList.remove('show');
+  document.getElementById('lang-bar').classList.toggle('show');
+}
+
+/* ── FONT SIZE CONTROL ── */
+let currentFontSize = parseInt(localStorage.getItem('nex_fontsize') || '15');
+const MIN_FONT = 12;
+const MAX_FONT = 22;
+
+function applyFontSize(size) {
+  currentFontSize = Math.min(MAX_FONT, Math.max(MIN_FONT, size));
+  document.querySelectorAll('.panel-text').forEach(el => {
+    el.style.fontSize = currentFontSize + 'px';
+  });
+  document.getElementById('font-size-display').textContent = currentFontSize;
+  localStorage.setItem('nex_fontsize', currentFontSize);
+}
+
+function changeFontSize(delta) {
+  applyFontSize(currentFontSize + delta);
+}
+
+function toggleFontPanel() {
+  document.getElementById('lang-bar').classList.remove('show');
+  document.getElementById('font-panel').classList.toggle('show');
+}
+
+async function switchLang(lang, btn) {
+  if (lang === currentLang) { toggleLangBar(); return; }
+
+  document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active','translating');
+
+  if (lang === 'ms') {
+    // Balik ke asal
+    renderPanels(originalPanels);
+    if (story.moral_lesson) document.getElementById('moral-text').textContent = story.moral_lesson;
+    currentLang = 'ms';
+    btn.classList.remove('translating');
+    toggleLangBar();
+    observePanels();
+    return;
+  }
+
+  // Semak cache
+  if (translationCache[lang]) {
+    renderPanels(translationCache[lang]);
+    currentLang = lang;
+    btn.classList.remove('translating');
+    toggleLangBar();
+    observePanels();
+    showToast(`✅ Diterjemah ke ${btn.textContent}`);
+    return;
+  }
+
+  showToast('🤖 AI sedang menterjemah…');
+
+  try {
+    const translated = await translatePanels(originalPanels, lang);
+    translationCache[lang] = translated;
+    renderPanels(translated);
+    currentLang = lang;
+    showToast(`✅ Terjemahan selesai!`);
+  } catch(e) {
+    showToast('❌ Gagal terjemah. Cuba lagi.');
+    document.querySelector('.lang-chip[data-lang="ms"]')?.classList.add('active');
+  }
+
+  btn.classList.remove('translating');
+  toggleLangBar();
+  observePanels();
+}
+
+async function translatePanels(panels, targetLang) {
+  const langNames = { en:'English', zh:'Mandarin Chinese', ta:'Tamil', ar:'Arabic' };
+  const langName = langNames[targetLang] || targetLang;
+
+  const textsToTranslate = panels.map((p, i) => `Panel ${i+1}: ${p.text || ''}`).join('\n\n');
+  if (!textsToTranslate.trim()) return panels;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: `You are a children's story translator. Translate the given story panels to ${langName}. 
+Keep the tone child-friendly and warm. Return ONLY a JSON array of translated texts in order, like: ["text1","text2","text3"]. No markdown, no explanation.`,
+      messages: [{ role: 'user', content: `Translate these story panels to ${langName}:\n\n${textsToTranslate}` }]
+    })
+  });
+
+  const data = await response.json();
+  const raw = data.content?.[0]?.text || '[]';
+  const cleanRaw = raw.replace(/```json|```/g,'').trim();
+  const translatedTexts = JSON.parse(cleanRaw);
+
+  return panels.map((p, i) => ({
+    ...p,
+    text: translatedTexts[i] || p.text
+  }));
+}
+
+/* ── LIKE ── */
+async function toggleLike() {
+  if (!currentUser) { showToast('🔐 Log masuk untuk suka cerita ini'); return; }
+
+  const btn = document.getElementById('rb-like');
+  const countEl = document.getElementById('like-count');
+  const tbBtn = document.getElementById('btn-bookmark');
+
+  if (isLiked) {
+    await sb.from('story_likes').delete().eq('user_id', currentUser.id).eq('story_id', story.id);
+    await sb.from('stories').update({ likes_count: Math.max(0, (story.likes_count||0)-1) }).eq('id', story.id);
+    isLiked = false;
+    story.likes_count = Math.max(0, (story.likes_count||0)-1);
+    btn.classList.remove('liked');
+    btn.querySelector('.rb-icon').textContent = '🤍';
+    countEl.textContent = story.likes_count;
+    showToast('💔 Batal suka');
+  } else {
+    await sb.from('story_likes').insert({ user_id: currentUser.id, story_id: story.id });
+    await sb.from('stories').update({ likes_count: (story.likes_count||0)+1 }).eq('id', story.id);
+    isLiked = true;
+    story.likes_count = (story.likes_count||0)+1;
+    btn.classList.add('liked');
+    btn.querySelector('.rb-icon').textContent = '❤️';
+    countEl.textContent = story.likes_count;
+    showToast('❤️ Anda menyukai cerita ini!');
+  }
+}
+
+/* ── BOOKMARK ── */
+async function toggleBookmark() {
+  if (!currentUser) { showToast('🔐 Log masuk untuk simpan cerita'); return; }
+
+  const rbBtn = document.getElementById('rb-bookmark');
+  const tbBtn = document.getElementById('btn-bookmark');
+
+  if (isBookmarked) {
+    await sb.from('bookmarks').delete().eq('user_id', currentUser.id).eq('story_id', story.id);
+    isBookmarked = false;
+    rbBtn.classList.remove('saved');
+    rbBtn.querySelector('.rb-icon').textContent = '🔖';
+    tbBtn.classList.remove('bookmarked');
+    showToast('🗂️ Dikeluarkan dari simpanan');
+  } else {
+    await sb.from('bookmarks').insert({ user_id: currentUser.id, story_id: story.id });
+    isBookmarked = true;
+    rbBtn.classList.add('saved');
+    rbBtn.querySelector('.rb-icon').textContent = '🔖';
+    tbBtn.classList.add('bookmarked');
+    showToast('🔖 Cerita disimpan!');
+  }
+}
+
+/* ── CHECK USER INTERACTIONS ── */
+async function checkUserInteractions(storyId) {
+  const [likeRes, bookRes] = await Promise.all([
+    sb.from('story_likes').select('id').eq('user_id', currentUser.id).eq('story_id', storyId).maybeSingle(),
+    sb.from('bookmarks').select('id').eq('user_id', currentUser.id).eq('story_id', storyId).maybeSingle(),
+  ]);
+  if (likeRes.data) {
+    isLiked = true;
+    document.getElementById('rb-like')?.classList.add('liked');
+    const icon = document.getElementById('rb-like')?.querySelector('.rb-icon');
+    if (icon) icon.textContent = '❤️';
+  }
+  if (bookRes.data) {
+    isBookmarked = true;
+    document.getElementById('rb-bookmark')?.classList.add('saved');
+    document.getElementById('btn-bookmark')?.classList.add('bookmarked');
+  }
+}
+
+/* ── SHARE ── */
+function openShare() { document.getElementById('share-overlay').classList.add('open'); }
+function closeShare() { document.getElementById('share-overlay').classList.remove('open'); }
+function shareWhatsapp() { window.open(`https://wa.me/?text=${encodeURIComponent(`📖 Baca cerita "${story?.title}" di NexStoria!\n${window.location.href}`)}`, '_blank'); }
+function shareTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(`📖 ${story?.title} — NexStoria`)}`, '_blank'); }
+function shareTwitter() { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`📖 Baca "${story?.title}" di NexStoria Malaysia! 🌏\n${window.location.href}`)}`, '_blank'); }
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    showToast('🔗 Pautan disalin!');
+    closeShare();
+  });
+}
+
+/* ── RELATED STORIES ── */
+async function loadRelated(category, excludeId) {
+  const { data } = await sb.from('stories')
+    .select('id,title,emoji,category,age_group,cover_url')
+    .eq('status','published')
+    .eq('category', category)
+    .neq('id', excludeId)
+    .limit(4);
+
+  if (!data?.length) return;
+
+  const covBgs = {
+    'Haiwan':'linear-gradient(135deg,#d1fae5,#065f46)',
+    'Sains':'linear-gradient(135deg,#dbeafe,#1e3a8a)',
+    'Dongeng':'linear-gradient(135deg,#ede9fe,#4c1d95)',
+    'Misteri':'linear-gradient(135deg,#1f2937,#374151)',
+    'Teladan':'linear-gradient(135deg,#fef3c7,#92400e)',
+    'Wira':'linear-gradient(135deg,#fee2e2,#991b1b)',
+    'Alam':'linear-gradient(135deg,#ecfdf5,#166534)',
+  };
+
+  document.getElementById('related-grid').innerHTML = data.map(s => `
+    <a class="related-card" href="nexstoria-reader.html?id=${s.id}">
+      <div class="rc-cover" style="background:${covBgs[s.category]||'linear-gradient(135deg,#1a1a2e,#2d1b69)'}">
+        ${s.cover_url ? `<img src="${s.cover_url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : s.emoji||'📖'}
+      </div>
+      <div class="rc-body">
+        <div class="rc-title">${s.title}</div>
+        <div class="rc-cat">${s.category} · ${s.age_group||'—'} thn</div>
+      </div>
+    </a>
+  `).join('');
+
+  document.getElementById('related-section').style.display = 'block';
+}
+
+/* ── SCROLL HANDLING ── */
+function onScroll() {
+  const y = window.scrollY;
+  const max = document.body.scrollHeight - window.innerHeight;
+  const pct = max > 0 ? (y / max) * 100 : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Auto-hide topbar on scroll down
+  if (y > lastScrollY + 10 && y > 100) {
+    if (topbarVisible) {
+      document.getElementById('topbar').classList.add('hidden');
+      topbarVisible = false;
+    }
+  } else if (y < lastScrollY - 5) {
+    if (!topbarVisible) {
+      document.getElementById('topbar').classList.remove('hidden');
+      topbarVisible = true;
+    }
+  }
+  lastScrollY = y;
+
+  // Show end card when near bottom
+  if (pct > 85) {
+    document.getElementById('end-card').style.display = 'block';
+  }
+}
+
+/* ── PANEL FADE IN (IntersectionObserver) ── */
+function observePanels() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.panel').forEach(p => observer.observe(p));
+}
+
+/* ── HELPERS ── */
+function showNotFound() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('not-found').style.display = 'flex';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
