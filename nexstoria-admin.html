@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Notifikasi NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lav:#a78bfa;--lav2:#7c3aed;
+  --coral:#ff6b6b;--mint:#06d6a0;
+  --sun:#ffd166;--sky:#38bdf8;
+  --ink:#1a1a2e;--soft:#6b7a9e;--muted:#94a3b8;
+  --border:#e2e8f7;--off:#f8faff;--white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);min-height:100vh;}
+
+/* NAV */
+nav{background:linear-gradient(135deg,#1e1e38,#2d2b55);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.nav-logo{font-family:'Baloo 2';font-size:18px;font-weight:900;color:white;text-decoration:none;}
+.nav-logo em{color:var(--lav);font-style:normal;}
+.nav-badge{background:var(--coral);color:white;font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px;margin-left:8px;}
+.nav-back{font-size:12px;font-weight:800;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);border:none;border-radius:8px;padding:6px 14px;cursor:pointer;text-decoration:none;}
+
+/* LAYOUT */
+.admin-wrap{max-width:960px;margin:0 auto;padding:28px 20px;display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;}
+@media(max-width:700px){.admin-wrap{grid-template-columns:1fr;}}
+
+/* CARDS */
+.card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;}
+.card-title{font-family:'Baloo 2';font-size:16px;font-weight:800;color:var(--ink);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title span{font-size:18px;}
+
+/* FORM */
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block;}
+.form-label .req{color:var(--coral);}
+.form-input,.form-textarea,.form-select{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito';font-size:13px;color:var(--ink);outline:none;transition:.2s;background:white;}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--lav);}
+.form-textarea{resize:vertical;min-height:100px;line-height:1.6;}
+
+/* TYPE PILLS */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px;}
+.type-pill{padding:8px 6px;border-radius:12px;border:1.5px solid var(--border);text-align:center;cursor:pointer;transition:.2s;user-select:none;}
+.type-pill:hover{border-color:var(--lav);}
+.type-pill.selected{border-color:var(--lav);background:rgba(167,139,250,0.08);}
+.type-pill.selected .tp-icon{transform:scale(1.15);}
+.tp-icon{font-size:20px;display:block;margin-bottom:3px;transition:.2s;}
+.tp-label{font-size:10px;font-weight:800;color:var(--soft);}
+.type-pill.selected .tp-label{color:var(--lav2);}
+
+/* AUDIENCE */
+.aud-row{display:flex;gap:8px;flex-wrap:wrap;}
+.aud-chip{padding:6px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:12px;font-weight:800;color:var(--soft);cursor:pointer;transition:.2s;}
+.aud-chip:hover{border-color:var(--lav);}
+.aud-chip.selected{border-color:var(--lav);background:var(--lav);color:white;}
+
+/* SEND BUTTON */
+.send-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;font-family:'Baloo 2';font-size:15px;font-weight:800;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.send-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.3);}
+.send-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* PREVIEW */
+.preview-box{background:var(--off);border-radius:14px;padding:14px;border:1.5px dashed var(--border);}
+.prev-item{display:flex;gap:10px;align-items:flex-start;}
+.prev-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:linear-gradient(135deg,#fef3c7,#fde68a);}
+.prev-msg{font-size:12px;color:#374151;line-height:1.5;font-weight:600;}
+.prev-time{font-size:10px;color:#9ca3af;margin-top:3px;}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-box{background:var(--off);border-radius:14px;padding:12px;text-align:center;border:1.5px solid var(--border);}
+.stat-val{font-family:'Baloo 2';font-size:22px;font-weight:900;color:var(--lav2);}
+.stat-lbl{font-size:10px;color:var(--muted);font-weight:700;margin-top:2px;}
+
+/* HISTORY */
+.hist-item{padding:12px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:8px;background:white;transition:.15s;}
+.hist-item:hover{border-color:var(--lav);}
+.hi-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.hi-type{font-size:13px;}
+.hi-title{font-size:12px;font-weight:800;color:var(--ink);flex:1;}
+.hi-time{font-size:10px;color:var(--muted);}
+.hi-msg{font-size:11px;color:var(--soft);line-height:1.5;}
+.hi-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.hi-chip{font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px;background:var(--off);color:var(--soft);border:1px solid var(--border);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a1a2e;color:white;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;transition:.3s cubic-bezier(.175,.885,.32,1.275);opacity:0;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+
+/* ACCESS DENIED */
+.access-denied{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center;">
+    <a class="nav-logo" href="index.html">Nex<em>Storia</em> 🌏</a>
+    <span class="nav-badge">ADMIN</span>
+  </div>
+  <a href="nexstoria-author-profile.html" class="nav-back">← Kembali ke Profil</a>
+</nav>
+
+<div id="access-denied" class="access-denied" style="display:none;">
+  <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+  <div style="font-family:'Baloo 2';font-size:20px;font-weight:800;color:var(--ink);margin-bottom:6px;">Akses Ditolak</div>
+  <div style="font-size:13px;color:var(--muted);">Halaman ini hanya untuk admin NexStoria.</div>
+</div>
+
+<div id="admin-content" style="display:none;">
+<div class="admin-wrap">
+
+  <!-- LEFT: COMPOSE -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span>📢</span> Hantar Notifikasi / Pengumuman</div>
+
+      <!-- Jenis notifikasi -->
+      <div class="form-group">
+        <label class="form-label">Jenis <span class="req">*</span></label>
+        <div class="type-grid" id="type-grid">
+          <div class="type-pill selected" data-type="announcement" onclick="selectType(this)">
+            <span class="tp-icon">📢</span><div class="tp-label">Pengumuman</div>
+          </div>
+          <div class="type-pill" data-type="achievement" onclick="selectType(this)">
+            <span class="tp-icon">🏆</span><div class="tp-label">Pencapaian</div>
+          </div>
+          <div class="type-pill" data-type="sijil" onclick="selectType(this)">
+            <span class="tp-icon">📜</span><div class="tp-label">Sijil</div>
+          </div>
+          <div class="type-pill" data-type="reward" onclick="selectType(this)">
+            <span class="tp-icon">🎁</span><div class="tp-label">Hadiah</div>
+          </div>
+          <div class="type-pill" data-type="update" onclick="selectType(this)">
+            <span class="tp-icon">🆕</span><div class="tp-label">Kemaskini</div>
+          </div>
+          <div class="type-pill" data-type="warning" onclick="selectType(this)">
+            <span class="tp-icon">⚠️</span><div class="tp-label">Amaran</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tajuk -->
+      <div class="form-group">
+        <label class="form-label">Tajuk / Ringkasan <span class="req">*</span></label>
+        <input class="form-input" id="notif-title" type="text" placeholder="Contoh: Ciri baru tersedia! 🎉" maxlength="80" oninput="updatePreview()">
+      </div>
+
+      <!-- Mesej penuh -->
+      <div class="form-group">
+        <label class="form-label">Mesej Penuh <span class="req">*</span></label>
+        <textarea class="form-textarea" id="notif-msg" placeholder="Tulis mesej pengumuman atau pemberitahuan di sini..." maxlength="300" oninput="updatePreview()"></textarea>
+        <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;" id="char-count">0 / 300</div>
+      </div>
+
+      <!-- Penerima -->
+      <div class="form-group">
+        <label class="form-label">Hantar Kepada <span class="req">*</span></label>
+        <div class="aud-row" id="aud-row">
+          <div class="aud-chip selected" data-aud="all" onclick="selectAud(this)">🌍 Semua Pengguna</div>
+          <div class="aud-chip" data-aud="reader" onclick="selectAud(this)">📖 Pembaca Sahaja</div>
+          <div class="aud-chip" data-aud="writer" onclick="selectAud(this)">✍️ Penulis Sahaja</div>
+          <div class="aud-chip" data-aud="specific" onclick="selectAud(this)">👤 ID Tertentu</div>
+        </div>
+      </div>
+
+      <!-- Specific user ID -->
+      <div class="form-group" id="specific-user-group" style="display:none;">
+        <label class="form-label">User ID / Email Penerima</label>
+        <input class="form-input" id="specific-user" type="text" placeholder="Masukkan user ID atau email...">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">Cari pengguna di bawah untuk dapatkan ID mereka</div>
+      </div>
+
+      <!-- Butang hantar -->
+      <button class="send-btn" id="send-btn" onclick="sendNotification()">
+        <span>🚀</span> <span id="send-label">Hantar Kepada Semua Pengguna</span>
+      </button>
+      <div id="send-result" style="text-align:center;font-size:12px;margin-top:8px;min-height:16px;"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="card">
+      <div class="card-title"><span>📋</span> Sejarah Notifikasi Dihantar</div>
+      <div id="notif-history">
+        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px;">Memuatkan…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: PREVIEW + STATS -->
+  <div>
+    <!-- Preview -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span>👁</span> Preview</div>
+      <div class="preview-box">
+        <div class="prev-item">
+          <div class="prev-icon" id="prev-icon">📢</div>
+          <div>
+            <div class="prev-msg" id="prev-msg">Mesej anda akan muncul di sini...</div>
+            <div class="prev-time">Baru sahaja · Admin NexStoria</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span>📊</span> Statistik</div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Jumlah User</div></div>
+        <div class="stat-box"><div class="stat-val" id="s-readers">—</div><div class="stat-lbl">Pembaca</div></div>
+        <div class="stat-box"><div class="stat-val" id="s-writers">—</div><div class="stat-lbl">Penulis</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;">Notifikasi akan dihantar kepada pengguna yang dipilih</div>
+    </div>
+
+    <!-- Cari pengguna -->
+    <div class="card">
+      <div class="card-title"><span>🔍</span> Cari Pengguna</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input class="form-input" id="search-user" type="text" placeholder="Nama atau email..." style="flex:1;" oninput="searchUsers(this.value)">
+      </div>
+      <div id="user-search-results" style="font-size:12px;color:var(--muted);text-align:center;padding:1rem;">
+        Taip untuk cari pengguna...
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let selectedType = 'announcement';
+let selectedAud  = 'all';
+let adminUser    = null;
+
+const TYPE_ICONS = {
+  announcement:'📢', achievement:'🏆', sijil:'📜',
+  reward:'🎁', update:'🆕', warning:'⚠️'
+};
+const TYPE_BG = {
+  announcement:'linear-gradient(135deg,#fef3c7,#fde68a)',
+  achievement:'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  sijil:'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+  reward:'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  update:'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  warning:'linear-gradient(135deg,#fee2e2,#fecaca)',
+};
+
+// ── INIT ──
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('nexstoria-login.html'); return; }
+  adminUser = session.user;
+
+  const { data: p } = await sb.from('profiles').select('role').eq('id', adminUser.id).single();
+  if (!p || p.role !== 'admin') {
+    document.getElementById('access-denied').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('admin-content').style.display = 'block';
+  loadStats();
+  loadHistory();
+})();
+
+// ── TYPE / AUDIENCE SELECTION ──
+function selectType(el) {
+  document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.type;
+  updatePreview();
+}
+
+function selectAud(el) {
+  document.querySelectorAll('.aud-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAud = el.dataset.aud;
+  const spec = document.getElementById('specific-user-group');
+  spec.style.display = selectedAud === 'specific' ? 'block' : 'none';
+  // Update send button label
+  const labels = { all:'Semua Pengguna', reader:'Semua Pembaca', writer:'Semua Penulis', specific:'Pengguna Tertentu' };
+  document.getElementById('send-label').textContent = 'Hantar Kepada ' + labels[selectedAud];
+}
+
+// ── PREVIEW ──
+function updatePreview() {
+  const title = document.getElementById('notif-title').value.trim();
+  const msg   = document.getElementById('notif-msg').value.trim();
+  const count = document.getElementById('notif-msg').value.length;
+  document.getElementById('char-count').textContent = count + ' / 300';
+
+  const prevMsg = document.getElementById('prev-msg');
+  const prevIcon = document.getElementById('prev-icon');
+  prevMsg.textContent = (title ? title + ' — ' : '') + (msg || 'Mesej anda akan muncul di sini...');
+  prevIcon.textContent = TYPE_ICONS[selectedType] || '📢';
+  prevIcon.style.background = TYPE_BG[selectedType] || TYPE_BG.announcement;
+}
+
+// ── SEND NOTIFICATION ──
+async function sendNotification() {
+  const title = document.getElementById('notif-title').value.trim();
+  const msg   = document.getElementById('notif-msg').value.trim();
+  if (!title) { showToast('⚠️ Sila masukkan tajuk'); return; }
+  if (!msg)   { showToast('⚠️ Sila masukkan mesej'); return; }
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.querySelector('span:last-child').textContent = 'Menghantar…';
+
+  const fullMsg = `${TYPE_ICONS[selectedType]} ${title} — ${msg}`;
+  const resultEl = document.getElementById('send-result');
+
+  try {
+    let userIds = [];
+
+    if (selectedAud === 'specific') {
+      const specVal = document.getElementById('specific-user').value.trim();
+      if (!specVal) { showToast('⚠️ Masukkan ID atau email penerima'); btn.disabled=false; return; }
+      // Try by ID first, then by email
+      const { data: u1 } = await sb.from('profiles').select('id').eq('id', specVal).single().catch(()=>({data:null}));
+      if (u1) { userIds = [u1.id]; }
+      else {
+        const { data: u2 } = await sb.from('profiles').select('id, email:id').eq('username', specVal).single().catch(()=>({data:null}));
+        // Match by auth email
+        if (!u2) { showToast('❌ Pengguna tidak dijumpai'); btn.disabled=false; return; }
+        userIds = [u2.id];
+      }
+    } else {
+      let query = sb.from('profiles').select('id');
+      if (selectedAud === 'reader') query = query.eq('role', 'reader');
+      if (selectedAud === 'writer') query = query.in('role', ['writer','author']);
+      const { data: users } = await query;
+      userIds = (users || []).map(u => u.id);
+    }
+
+    if (!userIds.length) { showToast('❌ Tiada pengguna ditemui'); btn.disabled=false; return; }
+
+    // Batch insert — max 100 per insert
+    const rows = userIds.map(uid => ({
+      user_id: uid,
+      type: selectedType,
+      message: fullMsg,
+      is_read: false,
+      sent_by_admin: true,
+    }));
+
+    const batchSize = 100;
+    let inserted = 0;
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const { error } = await sb.from('notifications').insert(rows.slice(i, i+batchSize));
+      if (!error) inserted += Math.min(batchSize, rows.length - i);
+    }
+
+    // Log in admin_notifications table
+    await sb.from('admin_notifications').insert({
+      sent_by: adminUser.id,
+      type: selectedType,
+      title,
+      message: msg,
+      audience: selectedAud,
+      recipients_count: inserted,
+    }).catch(()=>{});
+
+    resultEl.innerHTML = `<span style="color:#059669;font-weight:800;">✅ Berjaya dihantar kepada ${inserted} pengguna!</span>`;
+    showToast(`✅ ${inserted} notifikasi dihantar`);
+    loadHistory();
+
+    // Clear form
+    document.getElementById('notif-title').value = '';
+    document.getElementById('notif-msg').value = '';
+    document.getElementById('char-count').textContent = '0 / 300';
+    updatePreview();
+
+  } catch(err) {
+    console.error(err);
+    resultEl.innerHTML = `<span style="color:var(--coral);">❌ Gagal menghantar. Cuba lagi.</span>`;
+    showToast('❌ Gagal menghantar notifikasi');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('send-label').textContent = 'Hantar ' + ({'all':'Kepada Semua','reader':'Kepada Pembaca','writer':'Kepada Penulis','specific':'Kepada Pengguna'}[selectedAud]||'');
+  }
+}
+
+// ── STATS ──
+async function loadStats() {
+  const { count: total } = await sb.from('profiles').select('id', { count:'exact', head:true });
+  const { count: readers } = await sb.from('profiles').select('id', { count:'exact', head:true }).eq('role','reader');
+  const { count: writers } = await sb.from('profiles').select('id', { count:'exact', head:true }).in('role',['writer','author']);
+  document.getElementById('s-total').textContent = total || 0;
+  document.getElementById('s-readers').textContent = readers || 0;
+  document.getElementById('s-writers').textContent = writers || 0;
+}
+
+// ── HISTORY ──
+async function loadHistory() {
+  const { data } = await sb.from('admin_notifications')
+    .select('*').order('created_at', { ascending:false }).limit(20);
+  const el = document.getElementById('notif-history');
+  if (!data || !data.length) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:12px;">Belum ada notifikasi dihantar</div>';
+    return;
+  }
+  el.innerHTML = data.map(n => {
+    const aud = { all:'🌍 Semua', reader:'📖 Pembaca', writer:'✍️ Penulis', specific:'👤 Tertentu' }[n.audience] || n.audience;
+    const time = new Date(n.created_at).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return `<div class="hist-item">
+      <div class="hi-top">
+        <span class="hi-type">${TYPE_ICONS[n.type]||'🔔'}</span>
+        <span class="hi-title">${n.title}</span>
+        <span class="hi-time">${time}</span>
+      </div>
+      <div class="hi-msg">${n.message}</div>
+      <div class="hi-meta">
+        <span class="hi-chip">${aud}</span>
+        <span class="hi-chip">👥 ${n.recipients_count||0} penerima</span>
+        <span class="hi-chip">${n.type}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SEARCH USERS ──
+let searchTimer;
+async function searchUsers(q) {
+  clearTimeout(searchTimer);
+  if (!q || q.length < 2) {
+    document.getElementById('user-search-results').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px;">Taip sekurang-kurangnya 2 aksara...</div>';
+    return;
+  }
+  searchTimer = setTimeout(async () => {
+    const { data } = await sb.from('profiles')
+      .select('id, full_name, username, role')
+      .or(`full_name.ilike.%${q}%,username.ilike.%${q}%`)
+      .limit(8);
+
+    const el = document.getElementById('user-search-results');
+    if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px;">Tiada hasil</div>'; return; }
+    el.innerHTML = data.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:6px;background:white;">
+        <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#bfdbfe,#c7d2fe);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">${(u.full_name||u.username||'?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:800;color:var(--ink);">${u.full_name||u.username}</div>
+          <div style="font-size:10px;color:var(--muted);">@${u.username||'—'} · ${u.role}</div>
+        </div>
+        <button onclick="useUserId('${u.id}')" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;background:var(--lav);color:white;cursor:pointer;">Pilih</button>
+      </div>`).join('');
+  }, 300);
+}
+
+function useUserId(id) {
+  // Switch to specific audience
+  const specChip = document.querySelector('[data-aud="specific"]');
+  selectAud(specChip);
+  document.getElementById('specific-user').value = id;
+  showToast('👤 ID pengguna dipilih');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(60px)'; }, 3000);
+}
+</script>
+</body>
+</html>
