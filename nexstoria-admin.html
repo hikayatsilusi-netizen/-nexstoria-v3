@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Notifikasi NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lav:#a78bfa;--lav2:#7c3aed;
+  --coral:#ff6b6b;--mint:#06d6a0;
+  --sun:#ffd166;--sky:#38bdf8;
+  --ink:#1a1a2e;--soft:#6b7a9e;--muted:#94a3b8;
+  --border:#e2e8f7;--off:#f8faff;--white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);min-height:100vh;}
+
+/* NAV */
+nav{background:linear-gradient(135deg,#1e1e38,#2d2b55);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.nav-logo{font-family:'Baloo 2';font-size:18px;font-weight:900;color:white;text-decoration:none;}
+.nav-logo em{color:var(--lav);font-style:normal;}
+.nav-badge{background:var(--coral);color:white;font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px;margin-left:8px;}
+.nav-back{font-size:12px;font-weight:800;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);border:none;border-radius:8px;padding:6px 14px;cursor:pointer;text-decoration:none;}
+
+/* LAYOUT */
+.admin-wrap{max-width:960px;margin:0 auto;padding:28px 20px;display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;}
+@media(max-width:700px){.admin-wrap{grid-template-columns:1fr;}}
+
+/* CARDS */
+.card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;}
+.card-title{font-family:'Baloo 2';font-size:16px;font-weight:800;color:var(--ink);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title span{font-size:18px;}
+
+/* FORM */
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block;}
+.form-label .req{color:var(--coral);}
+.form-input,.form-textarea,.form-select{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito';font-size:13px;color:var(--ink);outline:none;transition:.2s;background:white;}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--lav);}
+.form-textarea{resize:vertical;min-height:100px;line-height:1.6;}
+
+/* TYPE PILLS */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px;}
+.type-pill{padding:8px 6px;border-radius:12px;border:1.5px solid var(--border);text-align:center;cursor:pointer;transition:.2s;user-select:none;}
+.type-pill:hover{border-color:var(--lav);}
+.type-pill.selected{border-color:var(--lav);background:rgba(167,139,250,0.08);}
+.type-pill.selected .tp-icon{transform:scale(1.15);}
+.tp-icon{font-size:20px;display:block;margin-bottom:3px;transition:.2s;}
+.tp-label{font-size:10px;font-weight:800;color:var(--soft);}
+.type-pill.selected .tp-label{color:var(--lav2);}
+
+/* AUDIENCE */
+.aud-row{display:flex;gap:8px;flex-wrap:wrap;}
+.aud-chip{padding:6px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:12px;font-weight:800;color:var(--soft);cursor:pointer;transition:.2s;}
+.aud-chip:hover{border-color:var(--lav);}
+.aud-chip.selected{border-color:var(--lav);background:var(--lav);color:white;}
+
+/* SEND BUTTON */
+.send-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;font-family:'Baloo 2';font-size:15px;font-weight:800;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.send-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.3);}
+.send-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* PREVIEW */
+.preview-box{background:var(--off);border-radius:14px;padding:14px;border:1.5px dashed var(--border);}
+.prev-item{display:flex;gap:10px;align-items:flex-start;}
+.prev-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:linear-gradient(135deg,#fef3c7,#fde68a);}
+.prev-msg{font-size:12px;color:#374151;line-height:1.5;font-weight:600;}
+.prev-time{font-size:10px;color:#9ca3af;margin-top:3px;}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-box{background:var(--off);border-radius:14px;padding:12px;text-align:center;border:1.5px solid var(--border);}
+.stat-val{font-family:'Baloo 2';font-size:22px;font-weight:900;color:var(--lav2);}
+.stat-lbl{font-size:10px;color:var(--muted);font-weight:700;margin-top:2px;}
+
+/* HISTORY */
+.hist-item{padding:12px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:8px;background:white;transition:.15s;}
+.hist-item:hover{border-color:var(--lav);}
+.hi-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.hi-type{font-size:13px;}
+.hi-title{font-size:12px;font-weight:800;color:var(--ink);flex:1;}
+.hi-time{font-size:10px;color:var(--muted);}
+.hi-msg{font-size:11px;color:var(--soft);line-height:1.5;}
+.hi-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.hi-chip{font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px;background:var(--off);color:var(--soft);border:1px solid var(--border);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a1a2e;color:white;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;transition:.3s cubic-bezier(.175,.885,.32,1.275);opacity:0;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+
+/* ACCESS DENIED */
+.access-denied{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+
+/* ADMIN TABS HOVER */
+.adm-tab:hover{background:rgba(255,255,255,0.08)!important;color:rgba(255,255,255,0.85)!important;}
+
+/* TABLE ROWS */
+#users-tbody tr:hover{background:var(--off);}
+#users-table th,#users-table td{font-family:'Nunito',sans-serif;}
+
+/* RESPONSIVE ADMIN */
+@media(max-width:700px){
+  #adm-dashboard,#adm-users,#adm-books,#adm-leaderboard{padding:14px 12px;}
+  #adm-leaderboard > div{grid-template-columns:1fr;}
+  .adm-tab{font-size:11px;padding:10px 12px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center;">
+    <a class="nav-logo" href="index.html">Nex<em>Storia</em> 🌏</a>
+    <span class="nav-badge">ADMIN</span>
+  </div>
+  <a href="nexstoria-author-profile.html" class="nav-back">← Kembali ke Profil</a>
+</nav>
+
+<div id="access-denied" class="access-denied" style="display:none;">
+  <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+  <div style="font-family:'Baloo 2';font-size:20px;font-weight:800;color:var(--ink);margin-bottom:6px;">Akses Ditolak</div>
+  <div style="font-size:13px;color:var(--muted);">Halaman ini hanya untuk admin NexStoria.</div>
+</div>
+
+<div id="admin-content" style="display:none;">
+
+<!-- ADMIN TABS -->
+<div style="background:linear-gradient(135deg,#1e1e38,#2d2b55);padding:0 24px;">
+  <div style="display:flex;gap:4px;max-width:1100px;margin:0 auto;overflow-x:auto;scrollbar-width:none;">
+    <button class="adm-tab active" onclick="switchAdminTab(this,'dashboard')" style="font-family:'Nunito';font-weight:800;font-size:13px;padding:12px 18px;border:none;background:rgba(255,255,255,0.12);color:white;cursor:pointer;border-radius:10px 10px 0 0;border-bottom:3px solid var(--lav);white-space:nowrap;transition:.2s;">📊 Dashboard</button>
+    <button class="adm-tab" onclick="switchAdminTab(this,'users')" style="font-family:'Nunito';font-weight:800;font-size:13px;padding:12px 18px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;border-radius:10px 10px 0 0;border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;">👥 Pengguna</button>
+    <button class="adm-tab" onclick="switchAdminTab(this,'books')" style="font-family:'Nunito';font-weight:800;font-size:13px;padding:12px 18px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;border-radius:10px 10px 0 0;border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;">📚 Buku & Moderasi</button>
+    <button class="adm-tab" onclick="switchAdminTab(this,'leaderboard')" style="font-family:'Nunito';font-weight:800;font-size:13px;padding:12px 18px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;border-radius:10px 10px 0 0;border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;">🏆 Leaderboard</button>
+    <button class="adm-tab" id="tab-btn-writer" onclick="switchAdminTab(this,'writer')" style="font-family:'Nunito';font-weight:800;font-size:13px;padding:12px 18px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;border-radius:10px 10px 0 0;border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;">✍️ Permohonan <span id="pending-badge" style="display:none;background:#ef4444;color:white;border-radius:999px;font-size:9px;padding:1px 6px;margin-left:4px;">0</span></button>
+    <button class="adm-tab" onclick="switchAdminTab(this,'notif')" style="font-family:'Nunito';font-weight:800;font-size:13px;padding:12px 18px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;border-radius:10px 10px 0 0;border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;">📢 Notifikasi</button>
+  </div>
+</div>
+
+<!-- DASHBOARD TAB -->
+<div id="adm-dashboard" class="adm-panel" style="max-width:1100px;margin:0 auto;padding:24px 20px;">
+
+  <!-- Global Stats Row -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="card" style="text-align:center;padding:16px;">
+      <div class="stat-val" id="gs-total-users" style="color:var(--lav2);">—</div>
+      <div class="stat-lbl">Jumlah Pengguna</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div class="stat-val" id="gs-total-books" style="color:var(--coral);">—</div>
+      <div class="stat-lbl">Jumlah Buku</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div class="stat-val" id="gs-total-reads" style="color:var(--mint);">—</div>
+      <div class="stat-lbl">Jumlah Bacaan</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div class="stat-val" id="gs-total-writers" style="color:var(--sun);">—</div>
+      <div class="stat-lbl">Penulis Aktif</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div class="stat-val" id="gs-pending" style="color:var(--coral);">—</div>
+      <div class="stat-lbl">Permohonan Penulis</div>
+    </div>
+  </div>
+
+  <!-- Category Breakdown -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title"><span>📖</span> Jumlah Buku Per Kategori</div>
+    <div id="cat-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+      <div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px;grid-column:1/-1;">Memuatkan…</div>
+    </div>
+  </div>
+
+  <!-- Recent Writer Requests -->
+  <div class="card">
+    <div class="card-title"><span>✍️</span> Permohonan Penulis Terbaru</div>
+    <div id="writer-requests-list">
+      <div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:12px;">Memuatkan…</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- WRITER REQUESTS TAB -->
+<div id="adm-writer" class="adm-panel" style="display:none;max-width:1100px;margin:0 auto;padding:24px 20px;">
+
+  <!-- Filter bar -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">✍️ Semua Permohonan Penulis</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="wr-filter-status" class="form-select" style="padding:7px 12px;font-size:12px;border-radius:10px;border:1.5px solid var(--border);" onchange="loadWriterTab()">
+          <option value="">Semua Status</option>
+          <option value="pending">⏳ Menunggu</option>
+          <option value="approved">✅ Diluluskan</option>
+          <option value="rejected">❌ Ditolak</option>
+        </select>
+        <button onclick="loadWriterTab()" style="padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:800;cursor:pointer;">🔄 Muat Semula</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+    <div class="card" style="text-align:center;padding:14px;">
+      <div style="font-size:1.6rem;font-weight:800;color:#f59e0b;" id="wt-count-pending">—</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700;">⏳ Menunggu</div>
+    </div>
+    <div class="card" style="text-align:center;padding:14px;">
+      <div style="font-size:1.6rem;font-weight:800;color:#059669;" id="wt-count-approved">—</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700;">✅ Diluluskan</div>
+    </div>
+    <div class="card" style="text-align:center;padding:14px;">
+      <div style="font-size:1.6rem;font-weight:800;color:#ef4444;" id="wt-count-rejected">—</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700;">❌ Ditolak</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:10px 12px;font-weight:800;color:var(--soft);">Pemohon</th>
+            <th style="text-align:left;padding:10px 12px;font-weight:800;color:var(--soft);">Nama Pena</th>
+            <th style="text-align:left;padding:10px 12px;font-weight:800;color:var(--soft);">Genre</th>
+            <th style="text-align:left;padding:10px 12px;font-weight:800;color:var(--soft);">Tarikh</th>
+            <th style="text-align:center;padding:10px 12px;font-weight:800;color:var(--soft);">Status</th>
+            <th style="text-align:center;padding:10px 12px;font-weight:800;color:var(--soft);">Tindakan</th>
+          </tr>
+        </thead>
+        <tbody id="writer-tab-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted);">Memuatkan…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETAIL PERMOHONAN + NOTA TOLAK -->
+<div class="modal-overlay" id="wrDetailModal" style="z-index:9999;">
+  <div class="modal-box" style="max-width:500px;">
+    <button class="modal-close" onclick="closeWrDetail()">✕</button>
+    <div class="modal-title">📋 Detail Permohonan</div>
+    <div id="wr-detail-content" style="font-size:13px;color:var(--soft);line-height:1.8;margin-bottom:1rem;"></div>
+    <div id="wr-reject-form" style="display:none;">
+      <label style="font-size:11px;font-weight:800;color:var(--ink);display:block;margin-bottom:5px;">Nota Penolakan (pilihan — dihantar kepada pemohon)</label>
+      <textarea id="wr-reject-note" class="form-input" placeholder="Contoh: Portfolio masih kurang. Cuba semula selepas 30 hari." style="min-height:70px;font-size:12px;"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem;" id="wr-detail-btns"></div>
+    <div class="modal-msg" id="wr-detail-msg"></div>
+  </div>
+</div>
+
+<!-- USERS TAB -->
+<div id="adm-users" class="adm-panel" style="display:none;max-width:1100px;margin:0 auto;padding:24px 20px;">
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span><span>👥</span> Pengurusan Pengguna</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input class="form-input" id="search-user-tab" type="text" placeholder="Cari nama/email…" style="width:200px;padding:7px 12px;font-size:12px;" oninput="searchUsersTab(this.value)">
+        <select class="form-select" id="filter-role" style="width:140px;padding:7px 12px;font-size:12px;" onchange="loadUsersTab()">
+          <option value="">Semua</option>
+          <option value="reader">Pembaca</option>
+          <option value="author">Penulis</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="users-table" style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:8px 10px;font-weight:800;color:var(--soft);">Pengguna</th>
+            <th style="text-align:left;padding:8px 10px;font-weight:800;color:var(--soft);">Status</th>
+            <th style="text-align:left;padding:8px 10px;font-weight:800;color:var(--soft);">Buku</th>
+            <th style="text-align:left;padding:8px 10px;font-weight:800;color:var(--soft);">Daftar</th>
+            <th style="text-align:center;padding:8px 10px;font-weight:800;color:var(--soft);">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Memuatkan…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKS TAB -->
+<div id="adm-books" class="adm-panel" style="display:none;max-width:1100px;margin:0 auto;padding:24px 20px;">
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span><span>📚</span> Moderasi Kandungan</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select class="form-select" id="filter-book-status" style="width:160px;padding:7px 12px;font-size:12px;" onchange="loadBooksTab()">
+          <option value="published">Diterbitkan</option>
+          <option value="pending">Menunggu</option>
+          <option value="rejected">Ditolak</option>
+        </select>
+        <input class="form-input" id="search-book" type="text" placeholder="Cari tajuk buku…" style="width:200px;padding:7px 12px;font-size:12px;" oninput="loadBooksTab()">
+      </div>
+    </div>
+    <div id="books-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:4px;">
+      <div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;grid-column:1/-1;">Memuatkan…</div>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD TAB -->
+<div id="adm-leaderboard" class="adm-panel" style="display:none;max-width:1100px;margin:0 auto;padding:24px 20px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <!-- Top Authors -->
+    <div class="card">
+      <div class="card-title"><span>✍️</span> Top Authors — Paling Banyak Buku</div>
+      <div id="lb-authors">
+        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;">Memuatkan…</div>
+      </div>
+    </div>
+    <!-- Super Readers -->
+    <div class="card">
+      <div class="card-title"><span>📖</span> Super Readers — Paling Banyak Baca</div>
+      <div id="lb-readers">
+        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;">Memuatkan…</div>
+      </div>
+    </div>
+  </div>
+  <!-- Most Read Books -->
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title"><span>🔥</span> Buku Paling Popular (Jumlah Tontonan)</div>
+    <div id="lb-books">
+      <div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;">Memuatkan…</div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION TAB -->
+<div id="adm-notif" class="adm-panel" style="display:none;">
+<div class="admin-wrap">
+
+  <!-- LEFT: COMPOSE -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span>📢</span> Hantar Notifikasi / Pengumuman</div>
+
+      <div class="form-group">
+        <label class="form-label">Jenis <span class="req">*</span></label>
+        <div class="type-grid" id="type-grid">
+          <div class="type-pill selected" data-type="announcement" onclick="selectType(this)">
+            <span class="tp-icon">📢</span><div class="tp-label">Pengumuman</div>
+          </div>
+          <div class="type-pill" data-type="achievement" onclick="selectType(this)">
+            <span class="tp-icon">🏆</span><div class="tp-label">Pencapaian</div>
+          </div>
+          <div class="type-pill" data-type="sijil" onclick="selectType(this)">
+            <span class="tp-icon">📜</span><div class="tp-label">Sijil</div>
+          </div>
+          <div class="type-pill" data-type="reward" onclick="selectType(this)">
+            <span class="tp-icon">🎁</span><div class="tp-label">Hadiah</div>
+          </div>
+          <div class="type-pill" data-type="update" onclick="selectType(this)">
+            <span class="tp-icon">🆕</span><div class="tp-label">Kemaskini</div>
+          </div>
+          <div class="type-pill" data-type="warning" onclick="selectType(this)">
+            <span class="tp-icon">⚠️</span><div class="tp-label">Amaran</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tajuk / Ringkasan <span class="req">*</span></label>
+        <input class="form-input" id="notif-title" type="text" placeholder="Contoh: Ciri baru tersedia! 🎉" maxlength="80" oninput="updatePreview()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mesej Penuh <span class="req">*</span></label>
+        <textarea class="form-textarea" id="notif-msg" placeholder="Tulis mesej pengumuman atau pemberitahuan di sini..." maxlength="300" oninput="updatePreview()"></textarea>
+        <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;" id="char-count">0 / 300</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Hantar Kepada <span class="req">*</span></label>
+        <div class="aud-row" id="aud-row">
+          <div class="aud-chip selected" data-aud="all" onclick="selectAud(this)">🌍 Semua Pengguna</div>
+          <div class="aud-chip" data-aud="reader" onclick="selectAud(this)">📖 Pembaca Sahaja</div>
+          <div class="aud-chip" data-aud="writer" onclick="selectAud(this)">✍️ Penulis Sahaja</div>
+          <div class="aud-chip" data-aud="specific" onclick="selectAud(this)">👤 ID Tertentu</div>
+        </div>
+      </div>
+
+      <div class="form-group" id="specific-user-group" style="display:none;">
+        <label class="form-label">User ID / Email Penerima</label>
+        <input class="form-input" id="specific-user" type="text" placeholder="Masukkan user ID atau email...">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">Cari pengguna di bawah untuk dapatkan ID mereka</div>
+      </div>
+
+      <button class="send-btn" id="send-btn" onclick="sendNotification()">
+        <span>🚀</span> <span id="send-label">Hantar Kepada Semua Pengguna</span>
+      </button>
+      <div id="send-result" style="text-align:center;font-size:12px;margin-top:8px;min-height:16px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>📋</span> Sejarah Notifikasi Dihantar</div>
+      <div id="notif-history">
+        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px;">Memuatkan…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: PREVIEW + SEARCH -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span>👁</span> Preview</div>
+      <div class="preview-box">
+        <div class="prev-item">
+          <div class="prev-icon" id="prev-icon">📢</div>
+          <div>
+            <div class="prev-msg" id="prev-msg">Mesej anda akan muncul di sini...</div>
+            <div class="prev-time">Baru sahaja · Admin NexStoria</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span>📊</span> Statistik Pantas</div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Jumlah User</div></div>
+        <div class="stat-box"><div class="stat-val" id="s-readers">—</div><div class="stat-lbl">Pembaca</div></div>
+        <div class="stat-box"><div class="stat-val" id="s-writers">—</div><div class="stat-lbl">Penulis</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>🔍</span> Cari Pengguna</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input class="form-input" id="search-user" type="text" placeholder="Nama atau email..." style="flex:1;" oninput="searchUsers(this.value)">
+      </div>
+      <div id="user-search-results" style="font-size:12px;color:var(--muted);text-align:center;padding:1rem;">
+        Taip untuk cari pengguna...
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let selectedType = 'announcement';
+let selectedAud  = 'all';
+let adminUser    = null;
+
+const TYPE_ICONS = {
+  announcement:'📢', achievement:'🏆', sijil:'📜',
+  reward:'🎁', update:'🆕', warning:'⚠️'
+};
+const TYPE_BG = {
+  announcement:'linear-gradient(135deg,#fef3c7,#fde68a)',
+  achievement:'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  sijil:'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+  reward:'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  update:'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  warning:'linear-gradient(135deg,#fee2e2,#fecaca)',
+};
+
+// ── INIT ──
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('nexstoria-login.html'); return; }
+  adminUser = session.user;
+
+  const { data: p } = await sb.from('profiles').select('role').eq('id', adminUser.id).single();
+  if (!p || p.role !== 'admin') {
+    document.getElementById('access-denied').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('admin-content').style.display = 'block';
+  loadStats();
+  loadHistory();
+  loadDashboard();
+  loadUsersTab();
+  loadBooksTab();
+  loadLeaderboard();
+})();
+
+// ── TAB NAVIGATION ──
+function switchAdminTab(btn, tabId) {
+  document.querySelectorAll('.adm-tab').forEach(t => {
+    t.style.background = 'transparent';
+    t.style.color = 'rgba(255,255,255,0.5)';
+    t.style.borderBottom = '3px solid transparent';
+  });
+  btn.style.background = 'rgba(255,255,255,0.12)';
+  btn.style.color = 'white';
+  btn.style.borderBottom = '3px solid var(--lav)';
+
+  document.querySelectorAll('.adm-panel').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('adm-' + tabId);
+  if (panel) panel.style.display = 'block';
+  if (tabId === 'writer') loadWriterTab();
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  try {
+    const [usersRes, booksRes, writersRes, readsRes, pendingRes] = await Promise.all([
+      sb.from('profiles').select('id', { count:'exact', head:true }),
+      sb.from('stories').select('id', { count:'exact', head:true }).eq('status','published'),
+      sb.from('profiles').select('id', { count:'exact', head:true }).in('role',['author','writer']),
+      sb.from('stories').select('reads_count').eq('status','published'),
+      sb.from('writer_requests').select('id', { count:'exact', head:true }).eq('status','pending'),
+    ]);
+
+    const totalReads = (readsRes.data || []).reduce((s,r) => s + (r.reads_count||0), 0);
+
+    const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : String(n || 0);
+    document.getElementById('gs-total-users').textContent = fmt(usersRes.count);
+    document.getElementById('gs-total-books').textContent = fmt(booksRes.count);
+    document.getElementById('gs-total-reads').textContent = fmt(totalReads);
+    document.getElementById('gs-total-writers').textContent = fmt(writersRes.count);
+    document.getElementById('gs-pending').textContent = fmt(pendingRes.count);
+
+    // Category breakdown
+    const cats = ['Haiwan','Sains','Dongeng','Teladan','Misteri','Wira','Alam'];
+    const catEmojis = {'Haiwan':'🦁','Sains':'🚀','Dongeng':'🐉','Teladan':'🕌','Misteri':'🧩','Wira':'🛡️','Alam':'🌿'};
+    const catColors = {'Haiwan':'#d1fae5','Sains':'#bfdbfe','Dongeng':'#ede9fe','Teladan':'#fde68a','Misteri':'#faf5ff','Wira':'#fce7f3','Alam':'#ccfbf1'};
+
+    const catRes = await Promise.all(cats.map(c =>
+      sb.from('stories').select('id', { count:'exact', head:true }).eq('status','published').eq('category', c)
+    ));
+
+    const catEl = document.getElementById('cat-breakdown');
+    catEl.innerHTML = cats.map((c, i) => `
+      <div style="background:${catColors[c]};border-radius:14px;padding:16px;text-align:center;border:1.5px solid rgba(0,0,0,0.06);">
+        <div style="font-size:1.8rem;margin-bottom:4px;">${catEmojis[c]}</div>
+        <div style="font-family:'Baloo 2';font-size:1.4rem;font-weight:800;color:#1a1a2e;">${catRes[i].count || 0}</div>
+        <div style="font-size:10px;font-weight:800;color:#6b7a9e;">${c}</div>
+      </div>`).join('');
+
+    // Recent writer requests
+    const { data: requests } = await sb.from('writer_requests')
+      .select('*, profiles:user_id(full_name, username, email)')
+      .order('created_at', { ascending: false }).limit(8);
+
+    const reqEl = document.getElementById('writer-requests-list');
+    if (!requests || !requests.length) {
+      reqEl.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:12px;">Tiada permohonan baharu</div>';
+      return;
+    }
+
+    const statusColors = { pending:'#f59e0b', approved:'#059669', rejected:'#ef4444' };
+    const statusLabels = { pending:'⏳ Menunggu', approved:'✅ Diluluskan', rejected:'❌ Ditolak' };
+    reqEl.innerHTML = requests.map(r => {
+      const p = r.profiles || {};
+      const name = p.full_name || p.username || 'Pengguna';
+      const email = p.email || '';
+      const time = new Date(r.created_at).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric' });
+      // Encode nama & email untuk pass ke fungsi
+      const safeName  = encodeURIComponent(name);
+      const safeEmail = encodeURIComponent(email);
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#bfdbfe,#ddd6fe);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">${name[0].toUpperCase()}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:800;color:var(--ink);">${name}</div>
+            <div style="font-size:10px;color:var(--muted);">Nama Pena: ${r.pen_name || '—'} · ${email ? email + ' · ' : ''}${time}</div>
+          </div>
+          <span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:7px;background:${statusColors[r.status] || '#6b7a9e'}22;color:${statusColors[r.status] || '#6b7a9e'};">${statusLabels[r.status] || r.status}</span>
+          ${r.status === 'pending' ? `
+          <div style="display:flex;gap:5px;">
+            <button onclick="approveWriter('${r.id}','${r.user_id}','${safeName}','${safeEmail}',this)" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;background:#059669;color:white;cursor:pointer;">Lulus ✓</button>
+            <button onclick="rejectWriter('${r.id}','${r.user_id}','${safeName}','${safeEmail}',this)" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;background:#ef4444;color:white;cursor:pointer;">Tolak ✕</button>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+  } catch(e) { console.warn('loadDashboard:', e); }
+}
+
+// ── HANTAR EMEL MELALUI EDGE FUNCTION ──
+async function sendWriterEmail(type, email, name) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-writer-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+      body: JSON.stringify({ type, email, name }),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Gagal hantar emel');
+    return { ok: true };
+  } catch(e) {
+    console.warn('sendWriterEmail gagal:', e.message);
+    return { ok: false, error: e.message };
+  }
+}
+
+// ── APPROVE / REJECT WRITER ──
+async function approveWriter(requestId, userId, safeName, safeEmail, btn) {
+  btn.disabled = true; btn.textContent = '⏳ Meluluskan…';
+  const name  = decodeURIComponent(safeName);
+  const email = decodeURIComponent(safeEmail);
+  try {
+    // 1. Kemas kini status permohonan + peranan profil
+    await sb.from('writer_requests').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', requestId);
+    await sb.from('profiles').update({ role: 'author' }).eq('id', userId);
+
+    // 2. Notifikasi dalam platform
+    await sb.from('notifications').insert({
+      user_id: userId,
+      type: 'announcement',
+      message: '🎉 Tahniah! Permohonan penulis anda telah DILULUSKAN! Selamat datang ke keluarga penulis NexStoria ✍️',
+      is_read: false,
+    });
+
+    // 3. Hantar emel kelulusan rasmi (Edge Function → Resend)
+    const emailResult = await sendWriterEmail('approved', email, name);
+
+    showToast(emailResult.ok
+      ? `✅ ${name} diluluskan & emel kelulusan berjaya dihantar!`
+      : `✅ ${name} diluluskan. ⚠️ Emel gagal — semak RESEND_API_KEY.`
+    );
+    loadDashboard();
+  } catch(e) {
+    showToast('❌ Ralat: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Lulus ✓';
+  }
+}
+
+async function rejectWriter(requestId, userId, safeName, safeEmail, btn) {
+  btn.disabled = true; btn.textContent = '⏳ Menolak…';
+  const name  = decodeURIComponent(safeName);
+  const email = decodeURIComponent(safeEmail);
+  try {
+    // 1. Kemas kini status permohonan
+    await sb.from('writer_requests').update({ status: 'rejected' }).eq('id', requestId);
+
+    // 2. Notifikasi dalam platform
+    await sb.from('notifications').insert({
+      user_id: userId,
+      type: 'announcement',
+      message: '😔 Maaf, permohonan penulis anda tidak berjaya kali ini. Teruskan membaca dan cuba semula selepas 30 hari!',
+      is_read: false,
+    });
+
+    // 3. Hantar emel penolakan rasmi (Edge Function → Resend)
+    const emailResult = await sendWriterEmail('rejected', email, name);
+
+    showToast(emailResult.ok
+      ? `❌ Permohonan ${name} ditolak & emel penolakan berjaya dihantar.`
+      : `❌ Permohonan ${name} ditolak. ⚠️ Emel gagal — semak RESEND_API_KEY.`
+    );
+    loadDashboard();
+  } catch(e) {
+    showToast('❌ Ralat: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Tolak ✕';
+  }
+}
+
+// ── WRITER REQUESTS TAB ──
+let _wrCache = [];
+
+async function loadWriterTab() {
+  const tbody = document.getElementById('writer-tab-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted);">Memuatkan…</td></tr>';
+
+  const statusFilter = document.getElementById('wr-filter-status')?.value || '';
+  let query = sb.from('writer_requests')
+    .select('*, profiles:user_id(full_name, username, email)')
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (statusFilter) query = query.eq('status', statusFilter);
+
+  const { data } = await query;
+  _wrCache = data || [];
+
+  // Update stats
+  const pending  = _wrCache.filter(r => r.status === 'pending').length;
+  const approved = _wrCache.filter(r => r.status === 'approved').length;
+  const rejected = _wrCache.filter(r => r.status === 'rejected').length;
+  document.getElementById('wt-count-pending').textContent  = pending;
+  document.getElementById('wt-count-approved').textContent = approved;
+  document.getElementById('wt-count-rejected').textContent = rejected;
+
+  // Update badge
+  const badge = document.getElementById('pending-badge');
+  if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? 'inline' : 'none'; }
+
+  if (!_wrCache.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted);">Tiada permohonan ditemui.</td></tr>';
+    return;
+  }
+
+  const statusColors = { pending:'#f59e0b', approved:'#059669', rejected:'#ef4444' };
+  const statusLabels = { pending:'⏳ Menunggu', approved:'✅ Diluluskan', rejected:'❌ Ditolak' };
+
+  tbody.innerHTML = _wrCache.map(r => {
+    const p = r.profiles || {};
+    const name  = p.full_name || p.username || 'Pengguna';
+    const email = p.email || '—';
+    const genres = Array.isArray(r.genres) ? r.genres.join(', ') : (r.genres || '—');
+    const time  = new Date(r.created_at).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric' });
+    const sc = statusColors[r.status] || '#6b7a9e';
+    const sl = statusLabels[r.status] || r.status;
+    const safeId    = encodeURIComponent(r.id);
+    const safeUid   = encodeURIComponent(r.user_id);
+    const safeName  = encodeURIComponent(name);
+    const safeEmail = encodeURIComponent(email);
+
+    return `<tr style="border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background=''">
+      <td style="padding:10px 12px;">
+        <div style="font-weight:800;color:var(--ink);">${name}</div>
+        <div style="font-size:10px;color:var(--muted);">${email}</div>
+      </td>
+      <td style="padding:10px 12px;color:var(--ink);font-weight:700;">${r.pen_name || '—'}</td>
+      <td style="padding:10px 12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${genres}</td>
+      <td style="padding:10px 12px;color:var(--muted);">${time}</td>
+      <td style="padding:10px 12px;text-align:center;">
+        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:${sc}22;color:${sc};">${sl}</span>
+      </td>
+      <td style="padding:10px 12px;text-align:center;">
+        <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+          <button onclick="openWrDetail('${safeId}','${safeUid}','${safeName}','${safeEmail}')" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:1.5px solid var(--border);background:white;cursor:pointer;">👁 Detail</button>
+          ${r.status === 'pending' ? `
+          <button onclick="approveWriter('${r.id}','${r.user_id}','${safeName}','${safeEmail}',this)" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;background:#059669;color:white;cursor:pointer;">Lulus ✓</button>
+          <button onclick="openRejectModal('${safeId}','${safeUid}','${safeName}','${safeEmail}')" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;background:#ef4444;color:white;cursor:pointer;">Tolak ✕</button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Buka modal detail permohonan
+function openWrDetail(safeId, safeUid, safeName, safeEmail) {
+  const id    = decodeURIComponent(safeId);
+  const req   = _wrCache.find(r => r.id === id);
+  if (!req) return;
+  const p     = req.profiles || {};
+  const name  = p.full_name || p.username || 'Pengguna';
+  const email = p.email || '—';
+  const genres = Array.isArray(req.genres) ? req.genres.join(', ') : (req.genres || '—');
+  const time  = new Date(req.created_at).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+  document.getElementById('wr-detail-content').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;">
+      <tr><td style="padding:5px 0;color:var(--muted);width:120px;">Nama</td><td style="font-weight:800;color:var(--ink);">${name}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--muted);">E-mel</td><td>${email}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--muted);">Nama Pena</td><td style="font-weight:700;">${req.pen_name || '—'}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--muted);">Genre</td><td>${genres}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--muted);">Tarikh</td><td>${time}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--muted);vertical-align:top;">Sebab</td><td style="line-height:1.6;background:#f8f9ff;padding:8px;border-radius:8px;">${req.reason || '—'}</td></tr>
+      ${req.admin_note ? `<tr><td style="padding:5px 0;color:var(--muted);vertical-align:top;">Nota Admin</td><td style="color:#ef4444;">${req.admin_note}</td></tr>` : ''}
+    </table>`;
+
+  document.getElementById('wr-reject-form').style.display = 'none';
+  document.getElementById('wr-detail-msg').textContent = '';
+
+  const btns = document.getElementById('wr-detail-btns');
+  if (req.status === 'pending') {
+    btns.innerHTML = `
+      <button onclick="approveWriter('${req.id}','${req.user_id}','${safeName}','${safeEmail}',this);closeWrDetail();" style="flex:1;padding:9px;border-radius:10px;border:none;background:#059669;color:white;font-weight:800;font-size:12px;cursor:pointer;">✅ Luluskan</button>
+      <button onclick="openRejectModal('${encodeURIComponent(req.id)}','${safeUid}','${safeName}','${safeEmail}')" style="flex:1;padding:9px;border-radius:10px;border:none;background:#ef4444;color:white;font-weight:800;font-size:12px;cursor:pointer;">❌ Tolak</button>`;
+  } else {
+    btns.innerHTML = `<button onclick="closeWrDetail()" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:white;font-weight:800;font-size:12px;cursor:pointer;">Tutup</button>`;
+  }
+
+  document.getElementById('wrDetailModal').classList.add('open');
+}
+
+function closeWrDetail() {
+  document.getElementById('wrDetailModal').classList.remove('open');
+}
+
+// Buka modal tolak dengan nota
+function openRejectModal(safeId, safeUid, safeName, safeEmail) {
+  const id = decodeURIComponent(safeId);
+  const req = _wrCache.find(r => r.id === id);
+  if (!req) return;
+  const p    = req.profiles || {};
+  const name = p.full_name || p.username || 'Pengguna';
+
+  document.getElementById('wr-detail-content').innerHTML = `<p style="font-size:13px;">Anda akan <strong style="color:#ef4444;">menolak</strong> permohonan daripada <strong>${name}</strong>. Masukkan nota penolakan (pilihan):</p>`;
+  document.getElementById('wr-reject-form').style.display = 'block';
+  document.getElementById('wr-reject-note').value = '';
+  document.getElementById('wr-detail-msg').textContent = '';
+
+  const btns = document.getElementById('wr-detail-btns');
+  btns.innerHTML = `
+    <button onclick="confirmRejectWriter('${safeId}','${safeUid}','${safeName}','${safeEmail}',this)" style="flex:1;padding:9px;border-radius:10px;border:none;background:#ef4444;color:white;font-weight:800;font-size:12px;cursor:pointer;">❌ Sahkan Tolak</button>
+    <button onclick="closeWrDetail()" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:white;font-weight:800;font-size:12px;cursor:pointer;">Batal</button>`;
+
+  document.getElementById('wrDetailModal').classList.add('open');
+}
+
+async function confirmRejectWriter(safeId, safeUid, safeName, safeEmail, btn) {
+  const id    = decodeURIComponent(safeId);
+  const uid   = decodeURIComponent(safeUid);
+  const name  = decodeURIComponent(safeName);
+  const email = decodeURIComponent(safeEmail);
+  const note  = document.getElementById('wr-reject-note').value.trim();
+
+  btn.disabled = true; btn.textContent = '⏳ Menolak…';
+  try {
+    await sb.from('writer_requests').update({ status: 'rejected', admin_note: note || null, reviewed_at: new Date().toISOString() }).eq('id', id);
+    await sb.from('notifications').insert({ user_id: uid, type: 'announcement', message: '😔 Maaf, permohonan penulis anda tidak berjaya kali ini. Teruskan membaca dan cuba semula selepas 30 hari!', is_read: false });
+    const emailResult = await sendWriterEmail('rejected', email, name);
+    showToast(emailResult.ok ? `❌ Permohonan ${name} ditolak & emel dihantar.` : `❌ ${name} ditolak. ⚠️ Emel gagal.`);
+    closeWrDetail();
+    loadWriterTab();
+    loadDashboard();
+  } catch(e) {
+    document.getElementById('wr-detail-msg').textContent = '❌ Ralat: ' + e.message;
+    btn.disabled = false; btn.textContent = '❌ Sahkan Tolak';
+  }
+}
+
+// ── USERS TAB ──
+let _usersCache = [];
+async function loadUsersTab() {
+  const tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Memuatkan…</td></tr>';
+  try {
+    const roleFilter = document.getElementById('filter-role')?.value || '';
+    let query = sb.from('profiles').select('id, full_name, username, role, created_at, total_stories').order('created_at', { ascending: false }).limit(50);
+    if (roleFilter) query = query.eq('role', roleFilter);
+    const { data } = await query;
+    _usersCache = data || [];
+    renderUsersTable(_usersCache);
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Ralat memuatkan data.</td></tr>'; }
+}
+
+function searchUsersTab(q) {
+  const filtered = q.length < 2 ? _usersCache : _usersCache.filter(u =>
+    (u.full_name||'').toLowerCase().includes(q.toLowerCase()) ||
+    (u.username||'').toLowerCase().includes(q.toLowerCase())
+  );
+  renderUsersTable(filtered);
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Tiada pengguna.</td></tr>'; return; }
+  const roleBg = { reader:'#bfdbfe', author:'#d1fae5', writer:'#d1fae5', admin:'#fde68a' };
+  const roleColor = { reader:'#1e40af', author:'#065f46', writer:'#065f46', admin:'#92400e' };
+  tbody.innerHTML = users.map(u => {
+    const name = u.full_name || u.username || 'Tanpa Nama';
+    const joinDate = new Date(u.created_at).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric' });
+    return `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:30px;height:30px;border-radius:8px;background:${roleBg[u.role]||'#e5e7eb'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:${roleColor[u.role]||'#374151'};">${name[0].toUpperCase()}</div>
+            <div>
+              <div style="font-weight:800;font-size:12px;color:var(--ink);">${name}</div>
+              <div style="font-size:10px;color:var(--muted);">@${u.username||'—'}</div>
+            </div>
+          </div>
+        </td>
+        <td style="padding:10px;"><span style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:${roleBg[u.role]||'#f1f5f9'};color:${roleColor[u.role]||'#374151'};">${u.role||'reader'}</span></td>
+        <td style="padding:10px;font-size:12px;color:var(--soft);">${u.total_stories || 0}</td>
+        <td style="padding:10px;font-size:11px;color:var(--muted);">${joinDate}</td>
+        <td style="padding:10px;text-align:center;">
+          <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+            ${u.role !== 'admin' ? `<button onclick="banUser('${u.id}','${name}',this)" style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;border:none;background:#fee2e2;color:#ef4444;cursor:pointer;">🚫 Ban</button>` : ''}
+            ${u.role === 'reader' ? `<button onclick="promoteToWriter('${u.id}','${name}',this)" style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;border:none;background:#d1fae5;color:#059669;cursor:pointer;">✍️ Jadikan Penulis</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+async function banUser(userId, name, btn) {
+  if (!confirm(`Anda pasti mahu ban "${name}"?`)) return;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await sb.from('profiles').update({ role: 'banned' }).eq('id', userId);
+    showToast(`🚫 ${name} telah diharamkan.`);
+    loadUsersTab();
+  } catch(e) { showToast('❌ Ralat: ' + e.message); btn.disabled = false; btn.textContent = '🚫 Ban'; }
+}
+
+async function promoteToWriter(userId, name, btn) {
+  if (!confirm(`Jadikan "${name}" sebagai Penulis?`)) return;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await sb.from('profiles').update({ role: 'author' }).eq('id', userId);
+    await sb.from('notifications').insert({ user_id: userId, type: 'announcement', message: '🎉 Tahniah! Anda telah dilantik sebagai Penulis NexStoria oleh Admin! ✍️', is_read: false });
+    showToast(`✅ ${name} dijadikan Penulis.`);
+    loadUsersTab();
+  } catch(e) { showToast('❌ Ralat: ' + e.message); btn.disabled = false; btn.textContent = '✍️ Jadikan Penulis'; }
+}
+
+// ── BOOKS TAB ──
+async function loadBooksTab() {
+  const grid = document.getElementById('books-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;grid-column:1/-1;">Memuatkan…</div>';
+  try {
+    const status = document.getElementById('filter-book-status')?.value || 'published';
+    const search = document.getElementById('search-book')?.value.trim() || '';
+    let query = sb.from('stories').select('id,title,category,age_group,status,reads_count,created_at,emoji, profiles:author_id(full_name,username)').eq('status', status).order('created_at', { ascending: false }).limit(30);
+    if (search) query = query.ilike('title', `%${search}%`);
+    const { data } = await query;
+
+    if (!data || !data.length) { grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;grid-column:1/-1;">Tiada buku ditemui.</div>'; return; }
+
+    const catColors = {'Haiwan':'#d1fae5','Sains':'#bfdbfe','Dongeng':'#ede9fe','Teladan':'#fde68a','Misteri':'#faf5ff','Wira':'#fce7f3','Alam':'#ccfbf1'};
+    const statusPill = { published:'<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;background:#d1fae5;color:#059669;">✅ Aktif</span>', pending:'<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;background:#fef3c7;color:#92400e;">⏳ Pending</span>', rejected:'<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;background:#fee2e2;color:#ef4444;">❌ Ditolak</span>' };
+
+    grid.innerHTML = data.map(b => {
+      const authorName = b.profiles?.full_name || b.profiles?.username || 'Penulis';
+      const bg = catColors[b.category] || '#f0f9ff';
+      return `
+        <div style="background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;transition:0.2s;" onmouseover="this.style.borderColor='var(--coral)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="height:80px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${b.emoji || '📖'}</div>
+          <div style="padding:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px;">
+              <span style="font-size:10px;font-weight:800;color:var(--lav);text-transform:uppercase;">${b.category}</span>
+              ${statusPill[b.status] || ''}
+            </div>
+            <div style="font-family:'Baloo 2';font-size:13px;font-weight:800;color:var(--ink);margin-bottom:3px;line-height:1.2;">${b.title}</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">oleh ${authorName} · 👁 ${b.reads_count || 0} bacaan</div>
+            <button onclick="deleteBook('${b.id}','${b.title.replace(/'/g,"\\'")}',this)" style="width:100%;font-size:11px;font-weight:800;padding:6px;border-radius:9px;border:none;background:#fee2e2;color:#ef4444;cursor:pointer;font-family:'Nunito';">🗑️ Padam Buku Ini</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) { grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:12px;grid-column:1/-1;">Ralat memuatkan buku.</div>'; }
+}
+
+async function deleteBook(bookId, bookTitle, btn) {
+  if (!confirm(`Padam buku "${bookTitle}"? Tindakan ini tidak boleh dibatalkan.`)) return;
+  btn.disabled = true; btn.textContent = 'Memadam…';
+  try {
+    await sb.from('stories').delete().eq('id', bookId);
+    showToast('🗑️ Buku berjaya dipadam.');
+    loadBooksTab();
+  } catch(e) { showToast('❌ Ralat: ' + e.message); btn.disabled = false; btn.textContent = '🗑️ Padam Buku Ini'; }
+}
+
+// ── LEADERBOARD ──
+async function loadLeaderboard() {
+  try {
+    // Top Authors
+    const { data: authors } = await sb.from('profiles')
+      .select('id, full_name, username, total_stories, stars_received')
+      .in('role', ['author', 'writer'])
+      .order('total_stories', { ascending: false })
+      .limit(10);
+
+    const lbAuthorsEl = document.getElementById('lb-authors');
+    if (lbAuthorsEl && authors?.length) {
+      const medals = ['🥇','🥈','🥉'];
+      lbAuthorsEl.innerHTML = authors.map((a, i) => {
+        const name = a.full_name || a.username || 'Penulis';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:1.1rem;width:22px;text-align:center;">${medals[i] || (i+1)}</span>
+          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;">${name[0].toUpperCase()}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:800;color:var(--ink);">${name}</div>
+            <div style="font-size:10px;color:var(--muted);">⭐ ${a.stars_received||0} bintang</div>
+          </div>
+          <div style="font-family:'Baloo 2';font-size:14px;font-weight:800;color:var(--coral);">${a.total_stories||0} 📚</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Super Readers
+    const { data: readers } = await sb.from('profiles')
+      .select('id, full_name, username, total_stories_read, reading_streak')
+      .order('total_stories_read', { ascending: false })
+      .limit(10);
+
+    const lbReadersEl = document.getElementById('lb-readers');
+    if (lbReadersEl && readers?.length) {
+      const medals = ['🥇','🥈','🥉'];
+      lbReadersEl.innerHTML = readers.map((r, i) => {
+        const name = r.full_name || r.username || 'Pembaca';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:1.1rem;width:22px;text-align:center;">${medals[i] || (i+1)}</span>
+          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#bfdbfe,#c7d2fe);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;">${name[0].toUpperCase()}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:800;color:var(--ink);">${name}</div>
+            <div style="font-size:10px;color:var(--muted);">🔥 ${r.reading_streak||0} hari berturut</div>
+          </div>
+          <div style="font-family:'Baloo 2';font-size:14px;font-weight:800;color:var(--lav);">${r.total_stories_read||0} 📖</div>
+        </div>`;
+      }).join('');
+    } else if (lbReadersEl) {
+      // Fallback: count from reading_progress
+      const { data: rpData } = await sb.from('reading_progress')
+        .select('user_id, profiles:user_id(full_name,username)')
+        .eq('completed', true);
+      const counts = {};
+      (rpData||[]).forEach(r => { const k = r.user_id; counts[k] = (counts[k]||{ n:0, p:r.profiles }); counts[k].n++; });
+      const sorted = Object.entries(counts).sort((a,b) => b[1].n - a[1].n).slice(0,10);
+      if (sorted.length) {
+        const medals = ['🥇','🥈','🥉'];
+        lbReadersEl.innerHTML = sorted.map(([uid, d], i) => {
+          const name = d.p?.full_name || d.p?.username || 'Pembaca';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:1.1rem;width:22px;text-align:center;">${medals[i] || (i+1)}</span>
+            <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#bfdbfe,#c7d2fe);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;">${name[0].toUpperCase()}</div>
+            <div style="flex:1;"><div style="font-size:12px;font-weight:800;color:var(--ink);">${name}</div></div>
+            <div style="font-family:'Baloo 2';font-size:14px;font-weight:800;color:var(--lav);">${d.n} 📖</div>
+          </div>`;
+        }).join('');
+      } else {
+        lbReadersEl.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:12px;">Tiada data pembaca.</div>';
+      }
+    }
+
+    // Most Read Books
+    const { data: topBooks } = await sb.from('stories')
+      .select('id, title, emoji, category, reads_count, profiles:author_id(full_name,username)')
+      .eq('status','published')
+      .order('reads_count', { ascending: false })
+      .limit(10);
+
+    const lbBooksEl = document.getElementById('lb-books');
+    if (lbBooksEl && topBooks?.length) {
+      const medals = ['🥇','🥈','🥉'];
+      const catColors = {'Haiwan':'#d1fae5','Sains':'#bfdbfe','Dongeng':'#ede9fe','Teladan':'#fde68a','Misteri':'#faf5ff','Wira':'#fce7f3','Alam':'#ccfbf1'};
+      lbBooksEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">` +
+        topBooks.map((b, i) => {
+          const authorName = b.profiles?.full_name || b.profiles?.username || 'Penulis';
+          const bg = catColors[b.category] || '#f0f9ff';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:${bg};border:1.5px solid rgba(0,0,0,0.06);">
+            <span style="font-size:1.1rem;width:22px;text-align:center;flex-shrink:0;">${medals[i] || '📗'}</span>
+            <span style="font-size:1.5rem;flex-shrink:0;">${b.emoji||'📖'}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.title}</div>
+              <div style="font-size:10px;color:var(--soft);">${authorName}</div>
+            </div>
+            <div style="font-family:'Baloo 2';font-size:13px;font-weight:800;color:var(--coral);white-space:nowrap;">👁 ${b.reads_count||0}</div>
+          </div>`;
+        }).join('') + '</div>';
+    }
+
+  } catch(e) { console.warn('loadLeaderboard:', e); }
+}
+
+// ── TYPE / AUDIENCE SELECTION ──
+function selectType(el) {
+  document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.type;
+  updatePreview();
+}
+
+function selectAud(el) {
+  document.querySelectorAll('.aud-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAud = el.dataset.aud;
+  const spec = document.getElementById('specific-user-group');
+  spec.style.display = selectedAud === 'specific' ? 'block' : 'none';
+  // Update send button label
+  const labels = { all:'Semua Pengguna', reader:'Semua Pembaca', writer:'Semua Penulis', specific:'Pengguna Tertentu' };
+  document.getElementById('send-label').textContent = 'Hantar Kepada ' + labels[selectedAud];
+}
+
+// ── PREVIEW ──
+function updatePreview() {
+  const title = document.getElementById('notif-title').value.trim();
+  const msg   = document.getElementById('notif-msg').value.trim();
+  const count = document.getElementById('notif-msg').value.length;
+  document.getElementById('char-count').textContent = count + ' / 300';
+
+  const prevMsg = document.getElementById('prev-msg');
+  const prevIcon = document.getElementById('prev-icon');
+  prevMsg.textContent = (title ? title + ' — ' : '') + (msg || 'Mesej anda akan muncul di sini...');
+  prevIcon.textContent = TYPE_ICONS[selectedType] || '📢';
+  prevIcon.style.background = TYPE_BG[selectedType] || TYPE_BG.announcement;
+}
+
+// ── SEND NOTIFICATION ──
+async function sendNotification() {
+  const title = document.getElementById('notif-title').value.trim();
+  const msg   = document.getElementById('notif-msg').value.trim();
+  if (!title) { showToast('⚠️ Sila masukkan tajuk'); return; }
+  if (!msg)   { showToast('⚠️ Sila masukkan mesej'); return; }
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.querySelector('span:last-child').textContent = 'Menghantar…';
+
+  const fullMsg = `${TYPE_ICONS[selectedType]} ${title} — ${msg}`;
+  const resultEl = document.getElementById('send-result');
+
+  try {
+    let userIds = [];
+
+    if (selectedAud === 'specific') {
+      const specVal = document.getElementById('specific-user').value.trim();
+      if (!specVal) { showToast('⚠️ Masukkan ID atau email penerima'); btn.disabled=false; return; }
+      // Try by ID first, then by email
+      const { data: u1 } = await sb.from('profiles').select('id').eq('id', specVal).single().catch(()=>({data:null}));
+      if (u1) { userIds = [u1.id]; }
+      else {
+        const { data: u2 } = await sb.from('profiles').select('id, email:id').eq('username', specVal).single().catch(()=>({data:null}));
+        // Match by auth email
+        if (!u2) { showToast('❌ Pengguna tidak dijumpai'); btn.disabled=false; return; }
+        userIds = [u2.id];
+      }
+    } else {
+      let query = sb.from('profiles').select('id');
+      if (selectedAud === 'reader') query = query.eq('role', 'reader');
+      if (selectedAud === 'writer') query = query.in('role', ['writer','author']);
+      const { data: users } = await query;
+      userIds = (users || []).map(u => u.id);
+    }
+
+    if (!userIds.length) { showToast('❌ Tiada pengguna ditemui'); btn.disabled=false; return; }
+
+    // Batch insert — max 100 per insert
+    const rows = userIds.map(uid => ({
+      user_id: uid,
+      type: selectedType,
+      message: fullMsg,
+      is_read: false,
+      sent_by_admin: true,
+    }));
+
+    const batchSize = 100;
+    let inserted = 0;
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const { error } = await sb.from('notifications').insert(rows.slice(i, i+batchSize));
+      if (!error) inserted += Math.min(batchSize, rows.length - i);
+    }
+
+    // Log in admin_notifications table
+    await sb.from('admin_notifications').insert({
+      sent_by: adminUser.id,
+      type: selectedType,
+      title,
+      message: msg,
+      audience: selectedAud,
+      recipients_count: inserted,
+    }).catch(()=>{});
+
+    resultEl.innerHTML = `<span style="color:#059669;font-weight:800;">✅ Berjaya dihantar kepada ${inserted} pengguna!</span>`;
+    showToast(`✅ ${inserted} notifikasi dihantar`);
+    loadHistory();
+
+    // Clear form
+    document.getElementById('notif-title').value = '';
+    document.getElementById('notif-msg').value = '';
+    document.getElementById('char-count').textContent = '0 / 300';
+    updatePreview();
+
+  } catch(err) {
+    console.error(err);
+    resultEl.innerHTML = `<span style="color:var(--coral);">❌ Gagal menghantar. Cuba lagi.</span>`;
+    showToast('❌ Gagal menghantar notifikasi');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('send-label').textContent = 'Hantar ' + ({'all':'Kepada Semua','reader':'Kepada Pembaca','writer':'Kepada Penulis','specific':'Kepada Pengguna'}[selectedAud]||'');
+  }
+}
+
+// ── STATS ──
+async function loadStats() {
+  const { count: total } = await sb.from('profiles').select('id', { count:'exact', head:true });
+  const { count: readers } = await sb.from('profiles').select('id', { count:'exact', head:true }).eq('role','reader');
+  const { count: writers } = await sb.from('profiles').select('id', { count:'exact', head:true }).in('role',['writer','author']);
+  document.getElementById('s-total').textContent = total || 0;
+  document.getElementById('s-readers').textContent = readers || 0;
+  document.getElementById('s-writers').textContent = writers || 0;
+}
+
+// ── HISTORY ──
+async function loadHistory() {
+  const { data } = await sb.from('admin_notifications')
+    .select('*').order('created_at', { ascending:false }).limit(20);
+  const el = document.getElementById('notif-history');
+  if (!data || !data.length) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:12px;">Belum ada notifikasi dihantar</div>';
+    return;
+  }
+  el.innerHTML = data.map(n => {
+    const aud = { all:'🌍 Semua', reader:'📖 Pembaca', writer:'✍️ Penulis', specific:'👤 Tertentu' }[n.audience] || n.audience;
+    const time = new Date(n.created_at).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return `<div class="hist-item">
+      <div class="hi-top">
+        <span class="hi-type">${TYPE_ICONS[n.type]||'🔔'}</span>
+        <span class="hi-title">${n.title}</span>
+        <span class="hi-time">${time}</span>
+      </div>
+      <div class="hi-msg">${n.message}</div>
+      <div class="hi-meta">
+        <span class="hi-chip">${aud}</span>
+        <span class="hi-chip">👥 ${n.recipients_count||0} penerima</span>
+        <span class="hi-chip">${n.type}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SEARCH USERS ──
+let searchTimer;
+async function searchUsers(q) {
+  clearTimeout(searchTimer);
+  if (!q || q.length < 2) {
+    document.getElementById('user-search-results').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px;">Taip sekurang-kurangnya 2 aksara...</div>';
+    return;
+  }
+  searchTimer = setTimeout(async () => {
+    const { data } = await sb.from('profiles')
+      .select('id, full_name, username, role')
+      .or(`full_name.ilike.%${q}%,username.ilike.%${q}%`)
+      .limit(8);
+
+    const el = document.getElementById('user-search-results');
+    if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px;">Tiada hasil</div>'; return; }
+    el.innerHTML = data.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:6px;background:white;">
+        <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#bfdbfe,#c7d2fe);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">${(u.full_name||u.username||'?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:800;color:var(--ink);">${u.full_name||u.username}</div>
+          <div style="font-size:10px;color:var(--muted);">@${u.username||'—'} · ${u.role}</div>
+        </div>
+        <button onclick="useUserId('${u.id}')" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;background:var(--lav);color:white;cursor:pointer;">Pilih</button>
+      </div>`).join('');
+  }, 300);
+}
+
+function useUserId(id) {
+  // Switch to specific audience
+  const specChip = document.querySelector('[data-aud="specific"]');
+  selectAud(specChip);
+  document.getElementById('specific-user').value = id;
+  showToast('👤 ID pengguna dipilih');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(60px)'; }, 3000);
+}
+</script>
+</body>
+</html>
