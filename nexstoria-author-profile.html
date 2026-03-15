@@ -1490,7 +1490,9 @@ async function loadKarya() {
   stories.forEach(s => {
     const sc = s.status==='published'?'status-published':s.status==='draft'?'status-draft':'status-pending';
     const sl = s.status==='published'?'Diterbitkan':s.status==='draft'?'Draf':'Menunggu';
-    const prog = Math.min((s.total_chapters||0)/Math.max((s.total_chapters||0)+2,5)*100,100);
+    // Kira panel count dari array panels (bukan total_chapters yang tak wujud)
+    const panelCount = Array.isArray(s.panels) ? s.panels.length : (s.panels ? (typeof s.panels === 'string' ? (JSON.parse(s.panels)||[]).length : 0) : 0);
+    const prog = Math.min(panelCount/Math.max(panelCount+2,5)*100,100);
     grid.innerHTML += `<div class="karya-card">
       <div class="kc-top">
         <div class="kc-cover" style="background:${covBg(s.category)};position:relative;overflow:hidden;">
@@ -1502,9 +1504,9 @@ async function loadKarya() {
             <div class="kc-title">${s.title}</div>
             <span class="status-badge ${sc}">${sl}</span>
           </div>
-          <div class="kc-meta"><span>📂 ${s.category}</span><span>🎯 ${s.age_group} thn</span><span>👁 ${fmt(s.reads_count)}</span><span>🖼️ ${s.total_chapters||0} panel</span></div>
+          <div class="kc-meta"><span>📂 ${s.category}</span><span>🎯 ${s.age_group} thn</span><span>👁 ${fmt(s.reads_count)}</span><span>🖼️ ${panelCount} panel</span></div>
           <div class="kc-progress-wrap"><div class="kc-progress" style="width:${prog}%"></div></div>
-          <div class="kc-progress-label"><span>Panel ${s.latest_chapter||0}</span><span>${s.total_chapters||0} panel</span></div>
+          <div class="kc-progress-label"><span>Panel ${panelCount}</span><span>${panelCount} panel</span></div>
         </div>
       </div>
       <div class="kc-actions">
