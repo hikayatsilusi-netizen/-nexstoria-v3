@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tulis Cerita — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@400;600;700;800&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#ff6b6b;--coral2:#ff4757;--coral3:#ffe0e0;
+  --lav:#a78bfa;--lav2:#7c3aed;--lav3:#ede9fe;
+  --mint:#06d6a0;--mint2:#059669;--mint3:#d1fae5;
+  --sun:#ffd166;--sun2:#f59e0b;--sun3:#fef3c7;
+  --sky:#38bdf8;--sky2:#0284c7;--sky3:#e0f2fe;
+  --ink:#1a1a2e;--soft:#6b7a9e;--muted:#94a3b8;
+  --border:#e2e8f7;--off:#f8faff;--white:#fff;
+  --radius:20px;--shadow:0 4px 24px rgba(26,26,46,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);min-height:100vh;}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);padding:0 5%;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid var(--border);}
+.logo{font-family:'Baloo 2';font-size:26px;font-weight:800;color:var(--coral);text-decoration:none;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-save-btn{padding:8px 20px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'Nunito';font-size:13px;font-weight:800;color:var(--soft);cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.nav-save-btn:hover{border-color:var(--sky);color:var(--sky);}
+.nav-save-btn.saved{border-color:var(--mint);color:var(--mint);}
+.nav-preview-btn{padding:8px 20px;border-radius:12px;border:none;background:var(--lav3);font-family:'Nunito';font-size:13px;font-weight:800;color:var(--lav2);cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.nav-preview-btn:hover{background:var(--lav);color:white;}
+
+/* ── NAV MOBILE ── */
+@media(max-width:600px){
+  nav{padding:0 16px;height:56px;}
+  .logo{font-size:20px;}
+  .nav-right{gap:6px;}
+  .nav-save-btn{padding:7px 10px;font-size:11px;gap:4px;}
+  .nav-save-btn#btn-back-profile{padding:7px 10px;}
+  /* Sembunyikan label teks — hanya ikon */
+  .nav-save-btn .btn-label{display:none;}
+  .nav-preview-btn{padding:7px 10px;font-size:11px;gap:4px;}
+  .nav-preview-btn .btn-label{display:none;}
+  .progress-bar{top:56px;}
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar{height:4px;background:var(--border);position:sticky;top:64px;z-index:199;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--coral),var(--lav),var(--mint));transition:width .4s ease;width:0%;}
+
+/* ── MAIN LAYOUT ── */
+.main-wrap{max-width:860px;margin:0 auto;padding:32px 20px 120px;}
+@media(max-width:600px){
+  .main-wrap{padding:16px 12px 140px;}
+}
+
+/* ── STEP INDICATOR ── */
+.steps-row{display:flex;gap:6px;margin-bottom:32px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
+.steps-row::-webkit-scrollbar{display:none;}
+.step-pill{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:50px;border:2px solid var(--border);background:white;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer;transition:.2s;white-space:nowrap;flex-shrink:0;}
+.step-pill.active{background:var(--ink);border-color:var(--ink);color:white;}
+.step-pill.done{background:var(--mint3);border-color:var(--mint);color:var(--mint2);}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+.step-pill.active .step-num{background:rgba(255,255,255,0.2);color:white;}
+.step-pill.done .step-num{background:var(--mint);color:white;}
+
+/* ── SECTION CARD ── */
+.section-card{background:white;border-radius:var(--radius);border:2px solid var(--border);padding:28px;margin-bottom:20px;box-shadow:var(--shadow);transition:.3s;}
+.section-card:focus-within{border-color:var(--sky);box-shadow:0 4px 24px rgba(56,189,248,.12);}
+@media(max-width:600px){
+  .section-card{padding:18px 14px;border-radius:16px;margin-bottom:12px;}
+}
+.section-title{font-family:'Baloo 2',cursive;font-size:1.15rem;font-weight:800;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.section-sub{font-size:.78rem;color:var(--muted);margin-bottom:20px;}
+
+/* ── FORM ELEMENTS ── */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.field-row.three{grid-template-columns:1fr 1fr 1fr;}
+.field-row.single{grid-template-columns:1fr;}
+@media(max-width:600px){.field-row,.field-row.three{grid-template-columns:1fr;}}
+.field-label{font-size:12px;font-weight:800;color:var(--soft);margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+.field-label span{color:var(--coral);}
+input[type=text],input[type=url],select,textarea{width:100%;padding:11px 14px;border-radius:12px;border:2px solid var(--border);font-family:'Nunito';font-size:14px;color:var(--ink);background:var(--off);outline:none;transition:.2s;}
+input[type=text]:focus,input[type=url]:focus,select:focus,textarea:focus{border-color:var(--sky);background:white;box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+textarea{resize:vertical;min-height:90px;line-height:1.6;}
+select{cursor:pointer;}
+@media(max-width:600px){
+  input[type=text],input[type=url],select,textarea{font-size:16px;padding:13px 14px;} /* font-size 16px cegah zoom iOS */
+}
+
+/* ── UPLOAD GUIDE ── */
+.upload-guide{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:12px;animation:guideSlideIn .25s ease;}
+@keyframes guideSlideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.upload-guide-title{font-weight:800;color:#0369a1;margin-bottom:8px;display:flex;align-items:center;gap:6px;font-size:12px;}
+.upload-guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:500px){.upload-guide-grid{grid-template-columns:1fr;}}
+.upload-guide-item{background:white;border-radius:10px;padding:8px 10px;border:1px solid #e0f2fe;}
+.upload-guide-item-title{font-weight:800;color:#0284c7;font-size:11px;margin-bottom:3px;}
+.upload-guide-item-val{font-weight:700;color:#1a1a2e;font-size:12px;margin-bottom:2px;}
+.upload-guide-item-note{font-size:10px;color:#64748b;line-height:1.4;}
+.upload-guide-tip{margin-top:8px;font-size:11px;color:#0369a1;background:rgba(56,189,248,0.1);border-radius:8px;padding:6px 10px;line-height:1.5;}
+.info-btn{width:22px;height:22px;border-radius:50%;border:none;background:var(--sky3,#e0f2fe);color:#0369a1;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s;padding:0;line-height:1;flex-shrink:0;}
+.info-btn:hover{background:#bae6fd;transform:scale(1.1);}
+.info-btn.active{background:#0369a1;color:white;}
+
+/* ── COVER BUILDER ── */
+.cover-builder{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start;}
+@media(max-width:600px){.cover-builder{grid-template-columns:1fr;}}
+.cover-preview{height:220px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:72px;border:2.5px dashed var(--border);cursor:pointer;transition:.3s;position:relative;overflow:hidden;flex-shrink:0;}
+.cover-preview:hover{border-color:var(--sky);transform:translateY(-2px);}
+.cover-preview.has-image{border-style:solid;border-color:var(--border);}
+.cover-preview img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.cover-emoji-overlay{position:relative;z-index:1;font-size:64px;text-shadow:0 4px 12px rgba(0,0,0,.15);}
+.cover-upload-hint{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.5));color:white;font-size:11px;font-weight:800;text-align:center;padding:12px 8px 8px;opacity:0;transition:.2s;}
+.cover-preview:hover .cover-upload-hint{opacity:1;}
+.cover-controls{display:flex;flex-direction:column;gap:10px;}
+.cover-label{font-size:12px;font-weight:800;color:var(--soft);margin-bottom:4px;}
+.emoji-picker-row{display:flex;flex-wrap:wrap;gap:6px;}
+.ep-btn{width:36px;height:36px;border-radius:10px;border:2px solid var(--border);background:white;font-size:18px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;}
+.ep-btn:hover,.ep-btn.selected{border-color:var(--sky);background:var(--sky3);transform:scale(1.1);}
+.color-picker-row{display:flex;flex-wrap:wrap;gap:6px;}
+.cp-swatch{width:28px;height:28px;border-radius:8px;cursor:pointer;border:2.5px solid transparent;transition:.2s;}
+.cp-swatch:hover,.cp-swatch.selected{border-color:var(--ink);transform:scale(1.15);}
+
+/* ── CHIPS ── */
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:7px 16px;border-radius:50px;border:2px solid var(--border);background:white;font-size:13px;font-weight:700;color:var(--soft);cursor:pointer;transition:.2s;}
+.chip:hover{border-color:var(--sky);color:var(--sky);}
+.chip.active-cat{background:var(--coral);border-color:var(--coral);color:white;}
+.chip.active-age{background:var(--lav);border-color:var(--lav);color:white;}
+.chip.active-diff{background:var(--sun2);border-color:var(--sun2);color:white;}
+.chip.active-lang{background:var(--mint);border-color:var(--mint);color:white;}
+@media(max-width:600px){
+  .chip{padding:10px 16px;font-size:13px;}
+}
+
+/* ── PANELS ── */
+.panels-list{display:flex;flex-direction:column;gap:14px;}
+.panel-item{background:var(--off);border-radius:16px;border:2px solid var(--border);overflow:hidden;transition:.2s;}
+.panel-item:focus-within{border-color:var(--lav);}
+.panel-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:white;border-bottom:1.5px solid var(--border);}
+.panel-num{width:28px;height:28px;border-radius:8px;background:var(--lav3);color:var(--lav2);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.panel-type-tabs{display:flex;gap:4px;}
+.pt-tab{padding:4px 10px;border-radius:8px;border:none;background:transparent;font-family:'Nunito';font-size:11px;font-weight:800;color:var(--muted);cursor:pointer;transition:.15s;}
+.pt-tab.active{background:var(--lav3);color:var(--lav2);}
+.panel-del{margin-left:auto;background:none;border:none;font-size:14px;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:8px;transition:.2s;}
+.panel-del:hover{background:#fff0f0;color:var(--coral);}
+.panel-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+@media(max-width:600px){
+  .panel-header{padding:10px 12px;flex-wrap:wrap;gap:8px;}
+  .panel-type-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;}
+  .pt-tab{padding:8px 6px;font-size:12px;text-align:center;border:1.5px solid var(--border);border-radius:10px;background:var(--off);}
+  .pt-tab.active{background:var(--lav3);border-color:var(--lav);color:var(--lav2);}
+  .panel-del{margin-left:0;padding:8px 12px;font-size:16px;}
+  .panel-body{padding:12px;}
+}
+
+
+/* ── RICH TEXT EDITOR ── */
+.rte-wrap{border:2px solid var(--border);border-radius:12px;overflow:hidden;background:white;transition:.2s;}
+.rte-wrap:focus-within{border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+.rte-toolbar{display:flex;align-items:center;gap:2px;padding:6px 8px;background:var(--off);border-bottom:1.5px solid var(--border);flex-wrap:wrap;}
+@media(max-width:600px){
+  .rte-toolbar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding:8px;}
+  .rte-toolbar::-webkit-scrollbar{display:none;}
+  .rte-btn{width:34px;height:34px;flex-shrink:0;}
+  .rte-select{flex-shrink:0;}
+  .rte-body{min-height:110px;font-size:15px;}
+}
+.rte-sep{width:1px;height:18px;background:var(--border);margin:0 4px;flex-shrink:0;}
+.rte-btn{width:28px;height:28px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:800;color:var(--soft);display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;}
+.rte-btn:hover{background:var(--lav3);color:var(--lav2);}
+.rte-btn.active{background:var(--lav3);color:var(--lav2);}
+.rte-select{height:28px;padding:0 6px;border-radius:7px;border:1.5px solid var(--border);background:white;font-family:'Nunito';font-size:11px;font-weight:700;color:var(--ink);cursor:pointer;outline:none;transition:.15s;}
+.rte-select:focus{border-color:var(--sky);}
+.rte-body{min-height:90px;max-height:280px;overflow-y:auto;padding:10px 14px;font-family:'Nunito';font-size:14px;line-height:1.7;color:var(--ink);outline:none;}
+.rte-body:empty:before{content:attr(data-placeholder);color:var(--muted);pointer-events:none;}
+.rte-body[data-font="lora"]{font-family:'Lora',serif;}
+.rte-body[data-font="baloo"]{font-family:'Baloo 2',cursive;}
+.rte-body[data-font="nunito"]{font-family:'Nunito',sans-serif;}
+
+
+.img-upload-area{border:2px dashed var(--border);border-radius:12px;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;background:white;}
+.img-upload-area:hover{border-color:var(--sky);background:var(--sky3);}
+.img-upload-area.has-img{border-style:solid;min-height:140px;}
+.img-upload-area img{width:100%;height:140px;object-fit:cover;border-radius:10px;}
+.img-upload-icon{font-size:1.5rem;}
+.img-upload-text{font-size:11px;font-weight:700;color:var(--muted);}
+.img-clear-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:white;border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer;}
+@media(max-width:600px){
+  .img-upload-area{min-height:120px;border-radius:14px;}
+  .img-upload-icon{font-size:2rem;}
+  .img-upload-text{font-size:12px;text-align:center;padding:0 12px;}
+  .img-clear-btn{padding:6px 10px;font-size:12px;top:8px;right:8px;border-radius:8px;}
+}
+
+
+/* Add panel button */
+.add-panel-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.add-panel-btn{padding:9px 18px;border-radius:50px;border:2.5px dashed var(--border);background:white;font-size:12px;font-weight:800;color:var(--soft);cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.add-panel-btn:hover{border-color:var(--lav);color:var(--lav);background:var(--lav3);}
+@media(max-width:600px){
+  .add-panel-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .add-panel-btn{padding:12px 10px;font-size:13px;justify-content:center;border-radius:14px;}
+}
+
+/* ── MORAL LESSON ── */
+.moral-card{background:linear-gradient(135deg,var(--sun3),#fffbeb);border:2px solid var(--sun);border-radius:16px;padding:18px;display:flex;gap:12px;align-items:flex-start;}
+.moral-icon{font-size:2rem;flex-shrink:0;}
+.moral-field{flex:1;}
+.moral-field label{font-size:12px;font-weight:800;color:var(--sun2);margin-bottom:6px;display:block;}
+.moral-field textarea{border-color:var(--sun);background:rgba(255,255,255,.7);}
+.moral-field textarea:focus{border-color:var(--sun2);}
+@media(max-width:600px){
+  .moral-card{padding:14px;gap:10px;}
+  .moral-icon{font-size:1.6rem;}
+}
+
+/* ── SAFETY CHECKS ── */
+.safety-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:500px){.safety-grid{grid-template-columns:1fr;}}
+.safety-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:2px solid var(--border);background:var(--off);cursor:pointer;transition:.2s;}
+.safety-item:hover{border-color:var(--mint);background:var(--mint3);}
+.safety-item.checked{border-color:var(--mint);background:var(--mint3);}
+.safety-checkbox{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;font-size:12px;}
+.safety-item.checked .safety-checkbox{background:var(--mint);border-color:var(--mint);color:white;}
+.safety-text{font-size:12px;font-weight:700;color:var(--soft);}
+.safety-item.checked .safety-text{color:var(--mint2);}
+@media(max-width:600px){
+  .safety-item{padding:14px;}
+  .safety-checkbox{width:24px;height:24px;font-size:14px;}
+  .safety-text{font-size:13px;}
+}
+
+/* ── TRANSLATION ── */
+.trans-row{display:flex;flex-wrap:wrap;gap:8px;}
+
+/* ── DIFFICULTY ── */
+.diff-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:500px){.diff-cards{grid-template-columns:1fr;}}
+.diff-card{padding:14px;border-radius:14px;border:2px solid var(--border);background:white;cursor:pointer;transition:.25s;text-align:center;}
+.diff-card:hover{transform:translateY(-3px);}
+.diff-card.active{border-color:currentColor;}
+.diff-card[data-d=mudah].active{background:#d1fae5;border-color:var(--mint);color:var(--mint2);}
+.diff-card[data-d=sederhana].active{background:var(--sun3);border-color:var(--sun2);color:var(--sun2);}
+.diff-card[data-d=mencabar].active{background:#fee2e2;border-color:var(--coral);color:var(--coral2);}
+.diff-icon{font-size:1.6rem;margin-bottom:4px;}
+.diff-name{font-family:'Baloo 2',cursive;font-size:.85rem;font-weight:800;}
+.diff-desc{font-size:.65rem;color:var(--muted);margin-top:2px;}
+@media(max-width:600px){
+  .diff-cards{grid-template-columns:repeat(3,1fr);}
+  .diff-card{padding:12px 8px;}
+  .diff-icon{font-size:1.4rem;}
+  .diff-name{font-size:.75rem;}
+}
+
+/* ── SUBMIT BAR ── */
+.submit-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-top:1.5px solid var(--border);padding:14px 5%;display:flex;align-items:center;justify-content:space-between;z-index:150;gap:12px;}
+.submit-status{font-size:12px;font-weight:700;color:var(--muted);}
+.submit-status strong{color:var(--ink);}
+.submit-btns{display:flex;gap:10px;}
+.btn-draft{padding:10px 22px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'Nunito';font-size:13px;font-weight:800;color:var(--soft);cursor:pointer;transition:.2s;}
+.btn-draft:hover{border-color:var(--sky);color:var(--sky);}
+.btn-publish{padding:10px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--coral),#ff8e53);color:white;font-family:'Nunito';font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 var(--coral2);transition:.2s;display:flex;align-items:center;gap:8px;}
+.btn-publish:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--coral2);}
+.btn-publish:active{transform:translateY(0);box-shadow:0 2px 0 var(--coral2);}
+.btn-publish:disabled{opacity:.5;pointer-events:none;}
+@media(max-width:600px){
+  .submit-bar{flex-direction:column;padding:12px 16px;gap:8px;align-items:stretch;}
+  .submit-status{text-align:center;font-size:11px;}
+  .submit-btns{display:grid;grid-template-columns:1fr 2fr;gap:8px;}
+  .btn-draft{padding:13px 10px;font-size:13px;text-align:center;border-radius:14px;}
+  .btn-publish{padding:13px 10px;font-size:14px;justify-content:center;border-radius:14px;}
+}
+
+/* ── PREVIEW MODAL ── */
+.preview-overlay{position:fixed;inset:0;background:rgba(15,15,30,.92);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
+.preview-overlay.open{display:flex;}
+.preview-device{width:375px;max-width:100%;background:#1a1a2e;border-radius:36px;border:10px solid #0d0d1a;box-shadow:0 32px 80px rgba(0,0,0,.6);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;}
+.preview-notch{height:28px;background:#0d0d1a;display:flex;align-items:center;justify-content:center;}
+.preview-notch-pill{width:80px;height:8px;background:#222;border-radius:4px;}
+.preview-screen{flex:1;overflow-y:auto;scrollbar-width:none;}
+.preview-screen::-webkit-scrollbar{display:none;}
+.preview-close{position:absolute;top:24px;right:24px;background:white;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;}
+
+/* Preview content — dark theme sama seperti reader */
+.preview-screen{background:#1a1a2e;}
+.pv-cover{min-height:220px;display:flex;align-items:center;justify-content:center;font-size:72px;position:relative;overflow:hidden;}
+.pv-cover img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.pv-cover-emoji{position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));}
+.pv-info{padding:16px 16px 12px;background:#1a1a2e;}
+.pv-cat{font-size:10px;font-weight:800;color:#38bdf8;text-transform:uppercase;letter-spacing:1px;}
+.pv-title{font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:#fff;margin:4px 0;}
+.pv-synopsis{font-size:12px;color:rgba(255,255,255,.6);line-height:1.5;margin-bottom:12px;}
+.pv-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.pv-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);}
+.pv-divider{height:1px;background:rgba(255,255,255,.06);margin:0;}
+/* Panel — sama dengan reader */
+.pv-panel{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.pv-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.pv-panel-num{min-width:26px;height:22px;border-radius:7px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:rgba(255,255,255,.35);padding:0 6px;}
+.pv-type-pill{font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.4px;}
+.pv-type-pill.dialog{background:rgba(255,209,102,.12);color:#ffd166;}
+.pv-type-pill.action{background:rgba(255,107,107,.12);color:#ff6b6b;}
+.pv-type-pill.narration{background:rgba(56,189,248,.12);color:#38bdf8;}
+.pv-panel-img{width:100%;border-radius:14px;margin-bottom:14px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:block;}
+.pv-text{font-family:'Lora',serif;font-size:15px;line-height:1.85;color:rgba(255,255,255,.88);padding:0 4px;}
+.pv-text.dialog{font-style:italic;color:rgba(255,209,102,.9);border-left:3px solid #ffd166;padding-left:14px;margin-left:4px;}
+.pv-text.action{font-family:'Baloo 2',cursive;font-size:16px;font-weight:700;color:rgba(255,107,107,.9);text-transform:uppercase;letter-spacing:.5px;}
+.pv-text.narration{font-size:13px;color:rgba(255,255,255,.88);font-style:italic;text-align:center;}
+/* Moral card — sama dengan reader */
+.pv-moral{padding:16px 16px 20px;}
+.pv-moral-card{background:linear-gradient(135deg,rgba(255,209,102,.1),rgba(255,107,107,.07));border:1.5px solid rgba(255,209,102,.3);border-radius:20px;padding:24px;text-align:center;}
+.pv-moral-icon{font-size:2.5rem;margin-bottom:10px;}
+.pv-moral-title{font-family:'Baloo 2',cursive;font-size:16px;font-weight:800;color:#ffd166;margin-bottom:8px;}
+.pv-moral-text{font-family:'Lora',serif;font-size:15px;line-height:1.85;color:rgba(255,255,255,.95);font-style:italic;font-weight:500;}
+
+/* ── SUCCESS SCREEN ── */
+.success-overlay{position:fixed;inset:0;background:white;z-index:2000;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px;}
+.success-overlay.open{display:flex;}
+.success-anim{font-size:5rem;animation:bounceIn .6s ease;}
+@keyframes bounceIn{0%{transform:scale(0);opacity:0;}60%{transform:scale(1.2);}100%{transform:scale(1);opacity:1;}}
+.success-title{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:800;color:var(--ink);margin:16px 0 8px;}
+.success-sub{font-size:1rem;color:var(--soft);max-width:380px;line-height:1.6;}
+.success-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease forwards;}
+@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+.success-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;justify-content:center;}
+.sa-btn{padding:12px 28px;border-radius:14px;font-family:'Nunito';font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;transition:.2s;}
+.sa-btn.primary{background:var(--coral);color:white;border:none;box-shadow:0 4px 0 var(--coral2);}
+.sa-btn.primary:hover{transform:translateY(-2px);}
+.sa-btn.secondary{background:var(--off);color:var(--soft);border:2px solid var(--border);}
+.sa-btn.secondary:hover{border-color:var(--sky);color:var(--sky);}
+
+/* autosave toast */
+.autosave-toast{position:fixed;bottom:80px;right:20px;background:white;border:1.5px solid var(--mint);border-radius:12px;padding:8px 14px;font-size:12px;font-weight:700;color:var(--mint2);display:none;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(6,214,160,.15);z-index:500;}
+.autosave-toast.show{display:flex;animation:slideInRight .3s ease;}
+@keyframes slideInRight{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ── CONTENT MODE TOGGLE ── */
+.content-mode-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.content-mode-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 12px;border-radius:16px;border:2.5px solid var(--border);background:var(--off);cursor:pointer;transition:.25s;text-align:center;font-family:'Nunito';}
+.content-mode-btn:hover{border-color:var(--sky);background:var(--sky3);}
+.content-mode-btn.active{border-color:var(--lav);background:var(--lav3);}
+.mode-icon{font-size:2rem;line-height:1;}
+.mode-title{font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:800;color:var(--ink);}
+.mode-desc{font-size:.68rem;color:var(--muted);line-height:1.4;}
+.content-mode-btn.active .mode-title{color:var(--lav2);}
+@media(max-width:500px){
+  .content-mode-row{grid-template-columns:1fr 1fr;}
+  .content-mode-btn{padding:14px 8px;}
+  .mode-icon{font-size:1.6rem;}
+  .mode-title{font-size:.82rem;}
+  .mode-desc{font-size:.62rem;}
+}
+
+/* ── PDF TABS ── */
+.pdf-tab-row{display:flex;gap:8px;margin-bottom:16px;}
+.pdf-tab{flex:1;padding:10px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'Nunito';font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;transition:.2s;}
+.pdf-tab.active{background:var(--sky3);border-color:var(--sky);color:var(--sky2);}
+
+/* ── PDF DROP AREA ── */
+.pdf-drop-area{border:2.5px dashed var(--border);border-radius:16px;padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.25s;background:white;text-align:center;}
+.pdf-drop-area:hover,.pdf-drop-area.drag{border-color:var(--sky);background:var(--sky3);}
+.pdf-drop-area.has-file{border-style:solid;border-color:var(--mint);background:var(--mint3);}
+.pdf-drop-icon{font-size:2.8rem;line-height:1;}
+.pdf-drop-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);}
+.pdf-drop-sub{font-size:.75rem;color:var(--muted);}
+@media(max-width:600px){
+  .pdf-drop-area{padding:28px 16px;}
+}
+
+/* ── PDF PREVIEW VIEWER ── */
+.pdf-preview-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--ink);border-radius:14px 14px 0 0;color:white;font-size:13px;font-weight:700;}
+.pdf-viewer-frame{border:2px solid var(--ink);border-top:none;border-radius:0 0 14px 14px;overflow:hidden;background:#525659;}
+@media(max-width:600px){
+  .pdf-viewer-frame iframe{height:380px !important;}
+}
+
+/* ── LINK HINTS ── */
+.pdf-link-hints{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.link-hint-badge{font-size:11px;font-weight:800;padding:4px 10px;border-radius:8px;background:var(--mint3);color:var(--mint2);border:1px solid var(--mint);}
+
+
+/* char counter */
+.char-counter{font-size:11px;color:var(--muted);text-align:right;margin-top:3px;}
+
+/* ── FILE UPLOAD FEEDBACK ── */
+.upload-progress{height:4px;border-radius:2px;background:var(--border);overflow:hidden;margin-top:6px;display:none;}
+.upload-progress.show{display:block;}
+.upload-progress-fill{height:100%;background:linear-gradient(90deg,var(--mint),var(--sky));width:0%;transition:width .3s ease;border-radius:2px;}
+.file-error{font-size:11px;font-weight:700;color:var(--coral);margin-top:5px;display:none;align-items:center;gap:4px;}
+.file-error.show{display:flex;}
+.file-success{font-size:11px;font-weight:700;color:var(--mint2);margin-top:5px;display:none;align-items:center;gap:4px;}
+.file-success.show{display:flex;}
+.file-size-bar{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.fsb-label{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;}
+.fsb-track{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden;}
+.fsb-fill{height:100%;border-radius:3px;transition:width .3s,background .3s;}
+
+/* Compress hint */
+.compress-hint{background:var(--sun3);border:1.5px solid var(--sun);border-radius:10px;padding:8px 12px;font-size:11px;font-weight:700;color:var(--sun2);display:none;align-items:center;gap:6px;margin-top:6px;}
+.compress-hint.show{display:flex;}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="nexstoria-author-profile.html" class="logo">🚀 NexStoria</a>
+  <div class="nav-right">
+    <button class="nav-save-btn" id="btn-back-profile" onclick="saveDraftAndGoBack()" style="gap:6px;">← <span class="btn-label">Kembali ke Profil</span></button>
+    <button class="nav-save-btn" id="nav-save-btn" onclick="saveDraft()">💾 <span class="btn-label">Simpan Draf</span></button>
+    <button class="nav-preview-btn" onclick="openPreview()">📱 <span class="btn-label">Preview</span></button>
+  </div>
+</nav>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+<!-- AUTOSAVE TOAST -->
+<div class="autosave-toast" id="autosave-toast">✅ Draf disimpan automatik</div>
+
+<div class="main-wrap">
+
+  <!-- STEP PILLS -->
+  <div class="steps-row">
+    <div class="step-pill active" data-step="1" onclick="scrollToSection('sec-basic')">
+      <div class="step-num">1</div> Maklumat Asas
+    </div>
+    <div class="step-pill" data-step="2" onclick="scrollToSection('sec-cover')">
+      <div class="step-num">2</div> Kulit Buku
+    </div>
+    <div class="step-pill" data-step="3" onclick="scrollToSection('sec-synopsis')">
+      <div class="step-num">3</div> Sinopsis
+    </div>
+    <div class="step-pill" data-step="4" onclick="scrollToSection('sec-panels')">
+      <div class="step-num">4</div> Panel Cerita
+    </div>
+    <div class="step-pill" data-step="5" onclick="scrollToSection('sec-moral')">
+      <div class="step-num">5</div> Pengajaran
+    </div>
+    <div class="step-pill" data-step="6" onclick="scrollToSection('sec-settings')">
+      <div class="step-num">6</div> Tetapan
+    </div>
+  </div>
+
+  <!-- ① BASIC INFO -->
+  <div class="section-card" id="sec-basic">
+    <div class="section-title">📝 Maklumat Asas</div>
+    <div class="section-sub">Lengkapkan maklumat utama cerita anda</div>
+
+    <div class="field-row single">
+      <div>
+        <div class="field-label">Tajuk Cerita <span>*</span></div>
+        <input type="text" id="f-title" placeholder="cth: Si Arnab dan Kura-kura yang Bijak…" oninput="updateProgress();autoSaveDebounce()">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <div class="field-label">Nama Penulis <span>*</span></div>
+        <input type="text" id="f-author" placeholder="Nama anda atau nama pena">
+      </div>
+      <div>
+        <div class="field-label">Negara</div>
+        <select id="f-country">
+          <option value="">— Pilih Negara —</option>
+          <option value="MY" selected>🇲🇾 Malaysia</option>
+          <option value="SG">🇸🇬 Singapura</option>
+          <option value="BN">🇧🇳 Brunei</option>
+          <option value="ID">🇮🇩 Indonesia</option>
+          <option value="OTHER">🌍 Lain-lain</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <div class="field-label">Bahasa Asal <span>*</span></div>
+        <select id="f-language" onchange="updateProgress()">
+          <option value="ms">🇲🇾 Bahasa Melayu</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="ta">🇮🇳 தமிழ்</option>
+          <option value="ar">🇸🇦 العربية</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Terjemahan Tambahan</div>
+        <div class="trans-row" id="trans-chips">
+          <div class="chip" data-lang="en" onclick="toggleLang(this)">🇬🇧 English</div>
+          <div class="chip" data-lang="zh" onclick="toggleLang(this)">🇨🇳 中文</div>
+          <div class="chip" data-lang="ta" onclick="toggleLang(this)">🇮🇳 Tamil</div>
+          <div class="chip" data-lang="ar" onclick="toggleLang(this)">🇸🇦 العربية</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② COVER -->\n  <div class="section-card" id="sec-cover">
+    <div class="section-title">🎨 Kulit Buku
+      <button class="info-btn" onclick="toggleGuide('guide-cover')" title="Panduan upload">ℹ️</button>
+    </div>
+    <div class="section-sub">Bina kulit cerita yang menarik — pilih emoji, warna, atau muat naik gambar sendiri</div>
+
+    <!-- ARAHAN UPLOAD COVER -->
+    <div class="upload-guide" id="guide-cover" style="display:none;">
+      <div class="upload-guide-title">📐 Panduan Gambar Kulit Buku</div>
+      <div class="upload-guide-grid">
+        <div class="upload-guide-item">
+          <div class="upload-guide-item-title">📏 Saiz Disyorkan</div>
+          <div class="upload-guide-item-val">600 × 800 px</div>
+          <div class="upload-guide-item-note">Nisbah 3:4 — nampak cantik di semua bahagian</div>
+        </div>
+        <div class="upload-guide-item">
+          <div class="upload-guide-item-title">📁 Format & Saiz Fail</div>
+          <div class="upload-guide-item-val">JPG / PNG / WebP</div>
+          <div class="upload-guide-item-note">Maksimum 3MB. JPG disyorkan untuk foto</div>
+        </div>
+        <div class="upload-guide-item">
+          <div class="upload-guide-item-title">🖼️ Minimum Boleh Guna</div>
+          <div class="upload-guide-item-val">300 × 400 px</div>
+          <div class="upload-guide-item-note">Bawah ini gambar akan kelihatan kabur</div>
+        </div>
+        <div class="upload-guide-item">
+          <div class="upload-guide-item-title">✅ Dipaparkan Di</div>
+          <div class="upload-guide-item-val">Explore · Profil · Library</div>
+          <div class="upload-guide-item-note">Kulit buku muncul di semua bahagian platform</div>
+        </div>
+      </div>
+      <div class="upload-guide-tip">💡 <b>Tips:</b> Elakkan teks kecil pada kulit buku — ia akan susah dibaca apabila dipaparkan dalam saiz kecil. Gunakan warna kontras tinggi dan subjek yang jelas.</div>
+    </div>
+    <div class="cover-builder">
+      <div>
+        <div class="cover-preview" id="cover-preview" onclick="triggerCoverUpload()" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)">
+          <span class="cover-emoji-overlay" id="cover-emoji-display">📖</span>
+          <input type="file" id="cover-upload" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleCoverUpload(event)">
+          <div class="cover-upload-hint">📷 Klik untuk tukar gambar</div>
+        </div>
+        <!-- Butang padam gambar — hanya kelihatan bila ada gambar -->
+        <button id="cover-remove-btn" onclick="removeCoverImage()" style="display:none;width:100%;margin-top:8px;padding:7px;border-radius:10px;border:1.5px solid var(--coral);background:transparent;color:var(--coral);font-family:'Nunito';font-size:12px;font-weight:800;cursor:pointer;">✕ Buang Gambar</button>
+        <div id="cover-feedback-wrap" style="margin-top:6px;"></div>
+      </div>
+
+      <!-- Panel emoji + warna — sembunyi bila ada gambar -->
+      <div class="cover-controls" id="cover-controls-panel">
+        <div class="cover-label">Pilih Emoji</div>
+        <div class="emoji-picker-row" id="emoji-picker">
+          <!-- Tiada emoji -->
+          <button class="ep-btn" id="ep-none" onclick="setEmoji(this,'')" title="Tiada emoji" style="font-size:13px;color:var(--muted);font-weight:800;">✕</button>
+          <button class="ep-btn selected" data-emoji="📖" onclick="setEmoji(this,'📖')">📖</button>
+          <button class="ep-btn" data-emoji="🦁" onclick="setEmoji(this,'🦁')">🦁</button>
+          <button class="ep-btn" data-emoji="🚀" onclick="setEmoji(this,'🚀')">🚀</button>
+          <button class="ep-btn" data-emoji="🐉" onclick="setEmoji(this,'🐉')">🐉</button>
+          <button class="ep-btn" data-emoji="🦋" onclick="setEmoji(this,'🦋')">🦋</button>
+          <button class="ep-btn" data-emoji="🧙" onclick="setEmoji(this,'🧙')">🧙</button>
+          <button class="ep-btn" data-emoji="🐬" onclick="setEmoji(this,'🐬')">🐬</button>
+          <button class="ep-btn" data-emoji="🌟" onclick="setEmoji(this,'🌟')">🌟</button>
+          <button class="ep-btn" data-emoji="🦊" onclick="setEmoji(this,'🦊')">🦊</button>
+          <button class="ep-btn" data-emoji="🐼" onclick="setEmoji(this,'🐼')">🐼</button>
+          <button class="ep-btn" data-emoji="🌈" onclick="setEmoji(this,'🌈')">🌈</button>
+          <button class="ep-btn" data-emoji="⚔️" onclick="setEmoji(this,'⚔️')">⚔️</button>
+        </div>
+        <div class="cover-label" style="margin-top:8px;">Warna Latar</div>
+        <div class="color-picker-row" id="color-picker">
+          <!-- Tiada warna -->
+          <div class="cp-swatch" id="cp-none" onclick="setCoverBg(this)" data-bg="" title="Tiada warna" style="background:#fff;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);font-weight:800;">✕</div>
+          <div class="cp-swatch selected" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)" data-bg="linear-gradient(135deg,#d1fae5,#a7f3d0)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#bfdbfe,#c7d2fe)" data-bg="linear-gradient(135deg,#bfdbfe,#c7d2fe)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#fde68a,#fca5a5)" data-bg="linear-gradient(135deg,#fde68a,#fca5a5)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#e9d5ff,#ddd6fe)" data-bg="linear-gradient(135deg,#e9d5ff,#ddd6fe)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8)" data-bg="linear-gradient(135deg,#fce7f3,#fbcfe8)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#0f0f1e,#1a2040)" data-bg="linear-gradient(135deg,#0f0f1e,#1a2040)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#fff7ed,#fde68a)" data-bg="linear-gradient(135deg,#fff7ed,#fde68a)" onclick="setCoverBg(this)"></div>
+          <div class="cp-swatch" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5)" data-bg="linear-gradient(135deg,#ecfdf5,#d1fae5)" onclick="setCoverBg(this)"></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);font-weight:700;">📷 Atau klik gambar untuk muat naik foto sendiri</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ SYNOPSIS + CATEGORY -->
+  <div class="section-card" id="sec-synopsis">
+    <div class="section-title">📋 Sinopsis & Kategori</div>
+    <div class="section-sub">Ceritakan serba sedikit tentang kisah anda</div>
+
+    <div class="field-row single" style="margin-bottom:18px;">
+      <div>
+        <div class="field-label">Sinopsis <span>*</span></div>
+        <textarea id="f-synopsis" placeholder="Tuliskan sinopsis menarik yang membuat pembaca ingin membaca lebih lanjut…" maxlength="300" oninput="updateCharCount(this,'synopsis-count');updateProgress();autoSaveDebounce()"></textarea>
+        <div class="char-counter"><span id="synopsis-count">0</span>/300</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div class="field-label">Kategori <span>*</span></div>
+      <div class="chip-row" id="cat-chips">
+        <div class="chip" data-val="Haiwan" onclick="toggleChip(this,'cat')">🦁 Haiwan</div>
+        <div class="chip" data-val="Sains" onclick="toggleChip(this,'cat')">🚀 Sains</div>
+        <div class="chip" data-val="Dongeng" onclick="toggleChip(this,'cat')">🐉 Dongeng</div>
+        <div class="chip" data-val="Misteri" onclick="toggleChip(this,'cat')">🧩 Misteri</div>
+        <div class="chip" data-val="Teladan" onclick="toggleChip(this,'cat')">🕌 Teladan</div>
+        <div class="chip" data-val="Wira" onclick="toggleChip(this,'cat')">🛡️ Wira</div>
+        <div class="chip" data-val="Alam" onclick="toggleChip(this,'cat')">🌿 Alam</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="field-label">Kumpulan Umur <span>*</span></div>
+      <div class="chip-row" id="age-chips">
+        <div class="chip" data-val="4-6" onclick="toggleChip(this,'age')">👶 4–6 thn (Prasekolah)</div>
+        <div class="chip" data-val="7-9" onclick="toggleChip(this,'age')">👦 7–9 thn (Kanak-kanak)</div>
+        <div class="chip" data-val="10-12" onclick="toggleChip(this,'age')">🧑‍🎓 10–12 thn (Remaja)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ KANDUNGAN CERITA -->
+  <div class="section-card" id="sec-panels">
+    <div class="section-title">📚 Kandungan Cerita</div>
+    <div class="section-sub">Pilih cara anda ingin menyampaikan cerita</div>
+
+    <!-- MOD TOGGLE -->
+    <div class="content-mode-row" id="content-mode-row">
+      <button class="content-mode-btn active" id="mode-btn-panel" onclick="setContentMode('panel')">
+        <span class="mode-icon">🎞️</span>
+        <span class="mode-title">Bina Panel</span>
+        <span class="mode-desc">Buat cerita panel demi panel dengan gambar & teks</span>
+      </button>
+      <button class="content-mode-btn" id="mode-btn-pdf" onclick="setContentMode('pdf')">
+        <span class="mode-icon">📄</span>
+        <span class="mode-title">PDF / Link Buku</span>
+        <span class="mode-desc">Upload fail PDF atau kongsi link Google Drive / Dropbox</span>
+      </button>
+    </div>
+
+    <!-- ── MOD PANEL ── -->
+    <div id="mode-panel-content">
+      <div class="upload-guide" id="guide-panel" style="display:none;">
+        <div class="upload-guide-title">📐 Panduan Gambar Panel Cerita</div>
+        <div class="upload-guide-grid">
+          <div class="upload-guide-item">
+            <div class="upload-guide-item-title">📏 Saiz Disyorkan</div>
+            <div class="upload-guide-item-val">800 × 600 px</div>
+            <div class="upload-guide-item-note">Nisbah 4:3 — sesuai untuk ilustrasi mendatar</div>
+          </div>
+          <div class="upload-guide-item">
+            <div class="upload-guide-item-title">📱 Untuk Skrin Penuh</div>
+            <div class="upload-guide-item-val">800 × 1000 px</div>
+            <div class="upload-guide-item-note">Nisbah 4:5 — cantik di skrin telefon</div>
+          </div>
+          <div class="upload-guide-item">
+            <div class="upload-guide-item-title">📁 Format & Saiz Fail</div>
+            <div class="upload-guide-item-val">JPG / PNG / WebP / GIF</div>
+            <div class="upload-guide-item-note">Maksimum 3MB setiap panel</div>
+          </div>
+          <div class="upload-guide-item">
+            <div class="upload-guide-item-title">🎨 Kualiti Terbaik</div>
+            <div class="upload-guide-item-val">72 DPI, sRGB</div>
+            <div class="upload-guide-item-note">Resolusi skrin — tidak perlu resolusi cetak tinggi</div>
+          </div>
+        </div>
+        <div class="upload-guide-tip">💡 <b>Tips:</b> Untuk webtoon-style, guna nisbah <b>4:5</b> atau <b>3:4</b>.</div>
+      </div>
+      <div class="panels-list" id="panels-list"></div>
+      <div class="add-panel-row" style="margin-top:14px;">
+        <button class="add-panel-btn" onclick="addPanel('standard')">➕ Tambah Panel Baru</button>
+      </div>
+    </div>
+
+    <!-- ── MOD PDF ── -->
+    <div id="mode-pdf-content" style="display:none;">
+
+      <!-- Tab: Upload vs Link -->
+      <div class="pdf-tab-row">
+        <button class="pdf-tab active" id="pdftab-upload" onclick="setPdfTab('upload')">⬆️ Upload PDF</button>
+        <button class="pdf-tab" id="pdftab-link" onclick="setPdfTab('link')">🔗 Kongsi Link</button>
+      </div>
+
+    <!-- Upload PDF -->
+      <div id="pdfsec-upload">
+        <div class="pdf-drop-area" id="pdf-drop-area" onclick="document.getElementById('pdf-file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="event.preventDefault();this.classList.remove('drag');handlePdfDrop(event)">
+          <div class="pdf-drop-icon" id="pdf-drop-icon">📄</div>
+          <div class="pdf-drop-title" id="pdf-drop-title">Klik atau seret fail PDF ke sini</div>
+          <div class="pdf-drop-sub" id="pdf-drop-sub">Maksimum 20MB · Format: PDF sahaja</div>
+          <input type="file" id="pdf-file-input" accept="application/pdf" style="display:none" onchange="handlePdfUpload(event)">
+        </div>
+        <div id="pdf-upload-feedback"></div>
+
+        <!-- PDF.js Viewer selepas upload -->
+        <div id="pdf-preview-wrap" style="display:none;margin-top:14px;">
+          <div class="pdf-preview-bar">
+            <span id="pdf-preview-name">📄 fail.pdf</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button onclick="pdfViewerPage(-1)" style="background:rgba(255,255,255,.15);border:none;color:white;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:800;">‹</button>
+              <span id="pdf-page-info" style="font-size:12px;color:rgba(255,255,255,.7);">1 / 1</span>
+              <button onclick="pdfViewerPage(1)" style="background:rgba(255,255,255,.15);border:none;color:white;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:800;">›</button>
+              <button onclick="clearPdf()" style="background:none;border:none;color:#ff6b6b;font-size:13px;font-weight:800;cursor:pointer;margin-left:4px;">✕ Buang</button>
+            </div>
+          </div>
+          <div class="pdf-viewer-frame" style="background:#525659;display:flex;justify-content:center;padding:12px;min-height:400px;">
+            <canvas id="pdf-canvas" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.4);"></canvas>
+          </div>
+          <div class="pdf-cover-hint" id="pdf-cover-hint" style="display:none;margin-top:10px;background:var(--mint3);border:1.5px solid var(--mint);border-radius:12px;padding:10px 14px;font-size:12px;font-weight:700;color:var(--mint2);display:flex;align-items:center;gap:8px;">
+            ✅ Halaman pertama PDF telah dijadikan kulit buku secara automatik
+          </div>
+        </div>
+      </div>
+
+      <!-- Kongsi Link -->
+      <div id="pdfsec-link" style="display:none;">
+        <div class="field-label" style="margin-bottom:8px;">URL Buku <span style="color:var(--coral)">*</span></div>
+        <input type="url" id="f-pdf-link" placeholder="https://drive.google.com/file/d/... atau https://www.dropbox.com/s/..." oninput="handleLinkInput(this.value)">
+        <div class="pdf-link-hints">
+          <span class="link-hint-badge">✅ Google Drive</span>
+          <span class="link-hint-badge">✅ Dropbox</span>
+          <span class="link-hint-badge">🔗 URL PDF terus</span>
+        </div>
+        <div id="pdf-link-feedback" style="margin-top:8px;font-size:12px;font-weight:700;color:var(--muted);"></div>
+
+        <!-- Embed preview (Google Drive / Dropbox) -->
+        <div id="pdf-link-preview-wrap" style="display:none;margin-top:14px;">
+          <div class="pdf-preview-bar">
+            <span id="pdf-link-preview-label">🔗 Pratonton Buku</span>
+            <button onclick="clearPdfLink()" style="background:none;border:none;color:#ff6b6b;font-size:13px;font-weight:800;cursor:pointer;">✕ Buang</button>
+          </div>
+          <div class="pdf-viewer-frame">
+            <iframe id="pdf-link-iframe" src="" style="width:100%;height:500px;border:none;border-radius:0 0 14px 14px;" allowfullscreen></iframe>
+          </div>
+        </div>
+
+        <!-- Butang buka terus (URL PDF biasa) -->
+        <div id="pdf-direct-preview-wrap" style="display:none;margin-top:14px;">
+          <div style="background:linear-gradient(135deg,var(--lav3),var(--sky3));border:2px solid var(--lav);border-radius:16px;padding:20px;display:flex;align-items:center;gap:14px;">
+            <div style="font-size:2.5rem;flex-shrink:0;">📄</div>
+            <div style="flex:1;">
+              <div style="font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:800;color:var(--ink);margin-bottom:4px;">Link PDF Disimpan</div>
+              <div id="pdf-direct-url-label" style="font-size:11px;color:var(--soft);word-break:break-all;margin-bottom:10px;"></div>
+              <a id="pdf-direct-open-btn" href="#" target="_blank" rel="noopener"
+                style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;background:var(--lav2);color:white;font-family:'Nunito';font-size:12px;font-weight:800;text-decoration:none;">
+                🔗 Uji Buka PDF →
+              </a>
+              <button onclick="clearPdfLink()" style="margin-left:8px;padding:8px 14px;border-radius:10px;border:1.5px solid var(--coral);background:transparent;color:var(--coral);font-family:'Nunito';font-size:12px;font-weight:800;cursor:pointer;">✕ Buang</button>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);font-weight:600;">
+            💡 Reader akan paparkan butang "Buka Buku" yang buka PDF dalam tab baru.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end mode-pdf-content -->
+  </div>
+
+  <!-- ⑤ MORAL LESSON -->
+  <div class="section-card" id="sec-moral">
+    <div class="section-title">💡 Panel Pengajaran</div>
+    <div class="section-sub">Penutup yang bermakna — apakah pengajaran yang ingin anda sampaikan kepada pembaca muda?</div>
+    <div class="moral-card">
+      <div class="moral-icon">✨</div>
+      <div class="moral-field">
+        <label for="f-moral">Pengajaran / Nilai Murni</label>
+        <textarea id="f-moral" placeholder="cth: Kita harus saling membantu tanpa mengira siapa pun. Seperti Si Singa yang menyelamatkan Tikus kecil, kebaikan sentiasa dibalas dengan kebaikan…" maxlength="400" oninput="updateCharCount(this,'moral-count')"></textarea>
+        <div class="char-counter"><span id="moral-count">0</span>/400</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ SETTINGS -->
+  <div class="section-card" id="sec-settings">
+    <div class="section-title">⚙️ Tetapan Lanjutan</div>
+    <div class="section-sub">Kesulitan bacaan, keselamatan kandungan, dan pilihan lanjutan</div>
+
+    <div style="margin-bottom:20px;">
+      <div class="field-label" style="margin-bottom:10px;">Tahap Kesukaran Bacaan</div>
+      <div class="diff-cards">
+        <div class="diff-card active" data-d="mudah" onclick="setDifficulty(this)">
+          <div class="diff-icon">🌱</div>
+          <div class="diff-name">Mudah</div>
+          <div class="diff-desc">Ayat pendek & ringkas</div>
+        </div>
+        <div class="diff-card" data-d="sederhana" onclick="setDifficulty(this)">
+          <div class="diff-icon">📚</div>
+          <div class="diff-name">Sederhana</div>
+          <div class="diff-desc">Cerita penuh naratif</div>
+        </div>
+        <div class="diff-card" data-d="mencabar" onclick="setDifficulty(this)">
+          <div class="diff-icon">🏆</div>
+          <div class="diff-name">Mencabar</div>
+          <div class="diff-desc">Perbendaharaan kata luas</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="field-label" style="margin-bottom:10px;">✅ Semakan Keselamatan Kandungan</div>
+      <div class="safety-grid">
+        <div class="safety-item checked" data-key="no_violence" onclick="toggleSafety(this)">
+          <div class="safety-checkbox">✓</div>
+          <div class="safety-text">🚫 Tiada unsur keganasan</div>
+        </div>
+        <div class="safety-item checked" data-key="no_adult" onclick="toggleSafety(this)">
+          <div class="safety-checkbox">✓</div>
+          <div class="safety-text">🚫 Tiada kandungan dewasa</div>
+        </div>
+        <div class="safety-item checked" data-key="no_horror" onclick="toggleSafety(this)">
+          <div class="safety-checkbox">✓</div>
+          <div class="safety-text">🚫 Tiada unsur seram</div>
+        </div>
+        <div class="safety-item checked" data-key="child_friendly" onclick="toggleSafety(this)">
+          <div class="safety-checkbox">✓</div>
+          <div class="safety-text">👶 Sesuai untuk kanak-kanak</div>
+        </div>
+        <div class="safety-item" data-key="reviewed" onclick="toggleSafety(this)">
+          <div class="safety-checkbox"></div>
+          <div class="safety-text">🔍 Saya telah semak semula</div>
+        </div>
+        <div class="safety-item" data-key="original" onclick="toggleSafety(this)">
+          <div class="safety-checkbox"></div>
+          <div class="safety-text">✍️ Karya asli saya sendiri</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-wrap -->
+
+<!-- SUBMIT BAR -->
+<div class="submit-bar">
+  <div class="submit-status" id="submit-status">
+    <strong id="panel-count">0</strong> panel · <strong id="word-count">0</strong> patah perkataan
+  </div>
+  <div class="submit-btns">
+    <button class="btn-draft" onclick="saveDraft()">💾 Simpan Draf</button>
+    <button class="btn-publish" id="btn-publish" onclick="submitStory()">🚀 Terbitkan Cerita</button>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="preview-overlay" id="preview-overlay">
+  <button class="preview-close" onclick="closePreview()">✕</button>
+  <div class="preview-device">
+    <div class="preview-notch"><div class="preview-notch-pill"></div></div>
+    <div class="preview-screen" id="preview-screen">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-confetti" id="confetti-container"></div>
+  <div style="font-size:5rem;animation:bounceIn .6s ease;">🎉</div>
+  <div class="success-title">Cerita Berjaya Diterbitkan!</div>
+  <div class="success-sub">Tahniah! Cerita anda kini boleh dibaca oleh kanak-kanak seluruh dunia. Jom kongsi dengan rakan-rakan!</div>
+  <div class="success-actions">
+    <a href="nexstoria-explore.html" class="sa-btn primary">📚 Lihat di Explore</a>
+    <a href="nexstoria-submit.html" class="sa-btn secondary">✍️ Tulis Cerita Baru</a>
+  </div>
+</div>
+
+<script>
+/* ── CONTENT MODE ── */
+let contentMode = 'panel'; // 'panel' | 'pdf'
+let pdfStorageUrl = null;
+let pdfExternalLink = null;
+let pdfTab = 'upload';
+let pdfDoc = null;
+let pdfCurrentPage = 1;
+let pdfCoverDataUrl = null;
+
+// Setup PDF.js worker
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+function setContentMode(mode) {
+  contentMode = mode;
+  document.getElementById('mode-btn-panel').classList.toggle('active', mode === 'panel');
+  document.getElementById('mode-btn-pdf').classList.toggle('active', mode === 'pdf');
+  document.getElementById('mode-panel-content').style.display = mode === 'panel' ? '' : 'none';
+  document.getElementById('mode-pdf-content').style.display = mode === 'pdf' ? '' : 'none';
+  updateProgress();
+}
+
+function setPdfTab(tab) {
+  pdfTab = tab;
+  document.getElementById('pdftab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('pdftab-link').classList.toggle('active', tab === 'link');
+  document.getElementById('pdfsec-upload').style.display = tab === 'upload' ? '' : 'none';
+  document.getElementById('pdfsec-link').style.display = tab === 'link' ? '' : 'none';
+}
+
+/* ── PDF UPLOAD ── */
+function handlePdfDrop(e) {
+  const file = e.dataTransfer.files[0];
+  if (file) processPdfFile(file);
+}
+function handlePdfUpload(e) {
+  const file = e.target.files[0];
+  if (file) processPdfFile(file);
+}
+
+async function processPdfFile(file) {
+  const fb = document.getElementById('pdf-upload-feedback');
+  fb.innerHTML = '';
+
+  if (file.type !== 'application/pdf') {
+    fb.innerHTML = '<div style="color:var(--coral);font-size:12px;font-weight:700;margin-top:6px;">❌ Fail mesti dalam format PDF sahaja.</div>';
+    return;
+  }
+  const maxBytes = 20 * 1024 * 1024;
+  if (file.size > maxBytes) {
+    fb.innerHTML = `<div style="color:var(--coral);font-size:12px;font-weight:700;margin-top:6px;">❌ Fail terlalu besar (${formatBytes(file.size)}). Had: 20MB.</div>`;
+    return;
+  }
+
+  // Show loading state
+  const area = document.getElementById('pdf-drop-area');
+  area.classList.add('has-file');
+  document.getElementById('pdf-drop-icon').textContent = '⏳';
+  document.getElementById('pdf-drop-title').textContent = 'Memproses PDF…';
+  document.getElementById('pdf-drop-sub').textContent = formatBytes(file.size);
+
+  // Tunjuk preview wrap DULU supaya canvas wujud dalam DOM sebelum render
+  document.getElementById('pdf-preview-wrap').style.display = 'block';
+  document.getElementById('pdf-preview-name').textContent = `📄 ${file.name}`;
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    pdfCurrentPage = 1;
+
+    // Render halaman pertama — canvas mesti sudah dalam DOM
+    await renderPdfPage(pdfCurrentPage);
+
+    // Extract cover dari canvas — compress sama seperti panel
+    const canvas = document.getElementById('pdf-canvas');
+    const supWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+    pdfCoverDataUrl = canvas.toDataURL(supWebP ? 'image/webp' : 'image/jpeg', 0.82);
+    canvas.toBlob(blob => { if (blob) autoCoverFromPdf(pdfCoverDataUrl, blob); },
+      supWebP ? 'image/webp' : 'image/jpeg', 0.82);
+
+    // Auto-jana panel untuk setiap muka surat PDF
+    await extractAllPdfPagesAsPanels(fb);
+
+    // Kemaskini UI
+    document.getElementById('pdf-drop-icon').textContent = '✅';
+    document.getElementById('pdf-drop-title').textContent = file.name;
+    document.getElementById('pdf-drop-sub').textContent = `${formatBytes(file.size)} · ${pdfDoc.numPages} muka surat`;
+    document.getElementById('pdf-page-info').textContent = `${pdfCurrentPage} / ${pdfDoc.numPages}`;
+    document.getElementById('pdf-cover-hint').style.display = 'flex';
+
+    // Upload PDF ke Supabase
+    if (currentUser) {
+      fb.innerHTML = '<div style="color:var(--sky2);font-size:12px;font-weight:700;margin-top:6px;">⏳ Memuat naik ke pelayan…</div>';
+      const uploadedUrl = await uploadFileToStorage(file, 'story-pdfs', `${currentUser.id}/book-${Date.now()}.pdf`, 'pdf-upload');
+      if (uploadedUrl) {
+        pdfStorageUrl = uploadedUrl;
+        fb.innerHTML = '<div style="color:var(--mint2);font-size:12px;font-weight:700;margin-top:6px;">✅ PDF berjaya dimuat naik</div>';
+      } else {
+        pdfStorageUrl = URL.createObjectURL(file);
+        fb.innerHTML = '<div style="color:var(--sun2);font-size:12px;font-weight:700;margin-top:6px;">⚠️ Gagal naik ke pelayan — preview tempatan</div>';
+      }
+    } else {
+      pdfStorageUrl = URL.createObjectURL(file);
+      fb.innerHTML = '<div style="color:var(--sun2);font-size:12px;font-weight:700;margin-top:6px;">⚠️ Log masuk untuk simpan PDF ke pelayan</div>';
+    }
+
+    updateProgress();
+    document.getElementById('pdf-preview-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch (err) {
+    document.getElementById('pdf-preview-wrap').style.display = 'none';
+    area.classList.remove('has-file');
+    document.getElementById('pdf-drop-icon').textContent = '📄';
+    document.getElementById('pdf-drop-title').textContent = 'Klik atau seret fail PDF ke sini';
+    document.getElementById('pdf-drop-sub').textContent = 'Maksimum 20MB · Format: PDF sahaja';
+    fb.innerHTML = `<div style="color:var(--coral);font-size:12px;font-weight:700;margin-top:6px;">❌ Gagal memproses PDF: ${err.message || 'Fail rosak atau tidak sah'}</div>`;
+  }
+}
+
+async function renderPdfPage(pageNum) {
+  if (!pdfDoc) return;
+  const page = await pdfDoc.getPage(pageNum);
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  const containerWidth = canvas.parentElement.clientWidth - 24;
+  const viewport = page.getViewport({ scale: 1 });
+  const scale = Math.min((containerWidth || 600) / viewport.width, 2);
+  const scaledViewport = page.getViewport({ scale });
+  canvas.width = scaledViewport.width;
+  canvas.height = scaledViewport.height;
+  await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+  document.getElementById('pdf-page-info').textContent = `${pageNum} / ${pdfDoc.numPages}`;
+}
+
+/* Render semua muka surat PDF ke panel berasingan */
+async function extractAllPdfPagesAsPanels(fb) {
+  if (!pdfDoc) return;
+  const total = pdfDoc.numPages;
+
+  // Padam semua panel sedia ada
+  panels = [];
+  panelCounter = 0;
+  document.getElementById('panels-list').innerHTML = '';
+
+  // Canvas sementara untuk render setiap halaman
+  const offCanvas = document.createElement('canvas');
+  const offCtx = offCanvas.getContext('2d');
+
+  // Tentukan format terbaik — WebP lebih kecil dari JPEG
+  const supportsWebP = offCanvas.toDataURL('image/webp').startsWith('data:image/webp');
+  const imgFormat = supportsWebP ? 'image/webp' : 'image/jpeg';
+  const imgQuality = 0.72; // Kualiti sederhana — seimbang antara saiz & jelas
+  const maxWidth = 720; // Lebar maksimum — cukup untuk skrin telefon
+
+  for (let i = 1; i <= total; i++) {
+    // Kemaskini status
+    if (fb) fb.innerHTML = `<div style="color:var(--sky2);font-size:12px;font-weight:700;margin-top:6px;">🔄 Memproses muka surat ${i} / ${total}…</div>`;
+
+    const page = await pdfDoc.getPage(i);
+    const viewport = page.getViewport({ scale: 1 });
+
+    // Hadkan lebar maksimum — jimat storage, cukup jelas di telefon
+    const scale = Math.min(maxWidth / viewport.width, 1.2);
+    const scaledViewport = page.getViewport({ scale });
+
+    offCanvas.width = scaledViewport.width;
+    offCanvas.height = scaledViewport.height;
+
+    // Clear canvas antara halaman
+    offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height);
+    // Latar putih (PDF biasanya putih)
+    offCtx.fillStyle = '#ffffff';
+    offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+
+    await page.render({ canvasContext: offCtx, viewport: scaledViewport }).promise;
+
+    // Compress — WebP/JPEG kualiti 0.72, saiz biasanya 30-80KB
+    const dataUrl = offCanvas.toDataURL(imgFormat, imgQuality);
+
+    // Anggar saiz dalam KB untuk status
+    const approxKB = Math.round((dataUrl.length * 0.75) / 1024);
+    if (fb) fb.innerHTML = `<div style="color:var(--sky2);font-size:12px;font-weight:700;margin-top:6px;">🔄 Muka surat ${i} / ${total} · ~${approxKB}KB</div>`;
+
+    // Cipta panel baru dengan gambar muka surat ini
+    panelCounter++;
+    const id = 'panel-' + panelCounter;
+    panels.push({ id, type: 'standard', imageUrl: null, imageData: dataUrl, text: '' });
+
+    const list = document.getElementById('panels-list');
+    const item = buildPanelElement(id, 'standard', panelCounter, { imageUrl: dataUrl, initialText: '' });
+
+    // Set gambar terus pada img-area
+    const area = item.querySelector(`#img-area-${id}`);
+    if (area) {
+      area.classList.add('has-img');
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:12px;';
+      area.prepend(img);
+      const clrBtn = document.createElement('button');
+      clrBtn.className = 'img-clear-btn';
+      clrBtn.textContent = '✕';
+      clrBtn.onclick = ev => { ev.stopPropagation(); clearPanelImg(id); };
+      area.appendChild(clrBtn);
+    }
+
+    list.appendChild(item);
+  }
+
+  updatePanelCount();
+
+  // Upload semua gambar panel ke Supabase Storage (background)
+  if (currentUser) {
+    if (fb) fb.innerHTML = `<div style="color:var(--sky2);font-size:12px;font-weight:700;margin-top:6px;">⬆️ Memuat naik ${total} panel ke pelayan…</div>`;
+    let uploaded = 0;
+    for (const panel of panels) {
+      if (!panel.imageData) continue;
+      try {
+        const res = await fetch(panel.imageData);
+        const blob = await res.blob();
+        const url = await uploadFileToStorage(blob, 'story-images', `${currentUser.id}/${panel.id}-${Date.now()}.jpg`, 'pdf-upload');
+        if (url) { panel.imageUrl = url; panel.imageData = null; }
+      } catch (_) {}
+      uploaded++;
+      if (fb) fb.innerHTML = `<div style="color:var(--sky2);font-size:12px;font-weight:700;margin-top:6px;">⬆️ Memuat naik panel ${uploaded} / ${total}…</div>`;
+    }
+    if (fb) fb.innerHTML = `<div style="color:var(--mint2);font-size:12px;font-weight:700;margin-top:6px;">✅ ${total} panel berjaya dimuat naik</div>`;
+  } else {
+    if (fb) fb.innerHTML = `<div style="color:var(--sun2);font-size:12px;font-weight:700;margin-top:6px;">✅ ${total} panel dijana — log masuk untuk simpan ke pelayan</div>`;
+  }
+}
+
+async function pdfViewerPage(delta) {
+  if (!pdfDoc) return;
+  const newPage = pdfCurrentPage + delta;
+  if (newPage < 1 || newPage > pdfDoc.numPages) return;
+  pdfCurrentPage = newPage;
+  await renderPdfPage(pdfCurrentPage);
+}
+
+function autoCoverFromPdf(dataUrl, blob) {
+  // Set cover preview dengan halaman pertama PDF
+  const prev = document.getElementById('cover-preview');
+  prev.classList.add('has-image');
+  prev.style.background = '';
+  let img = prev.querySelector('img');
+  if (!img) { img = document.createElement('img'); prev.prepend(img); }
+  img.src = dataUrl;
+  coverImageDataUrl = dataUrl;
+  document.getElementById('cover-emoji-display').style.display = 'none';
+  document.getElementById('cover-controls-panel').style.display = 'none';
+  document.getElementById('cover-remove-btn').style.display = 'block';
+  // Upload cover — blob sudah ada, tak perlu fetch dataUrl
+  if (currentUser && blob) {
+    uploadFileToStorage(blob, 'story-covers', `${currentUser.id}/cover-pdf-${Date.now()}.jpg`, 'cover-feedback')
+      .then(url => { if (url) coverStorageUrl = url; });
+  }
+}
+
+function clearPdf() {
+  pdfDoc = null;
+  pdfStorageUrl = null;
+  pdfCoverDataUrl = null;
+  document.getElementById('pdf-preview-wrap').style.display = 'none';
+  const canvas = document.getElementById('pdf-canvas');
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('pdf-drop-area').classList.remove('has-file');
+  document.getElementById('pdf-drop-icon').textContent = '📄';
+  document.getElementById('pdf-drop-title').textContent = 'Klik atau seret fail PDF ke sini';
+  document.getElementById('pdf-drop-sub').textContent = 'Maksimum 20MB · Format: PDF sahaja';
+  document.getElementById('pdf-file-input').value = '';
+  document.getElementById('pdf-upload-feedback').innerHTML = '';
+  document.getElementById('pdf-cover-hint').style.display = 'none';
+  // Padam panel yang dijana automatik dari PDF
+  panels = [];
+  panelCounter = 0;
+  document.getElementById('panels-list').innerHTML = '';
+  updatePanelCount();
+  updateProgress();
+}
+
+/* ── PDF LINK ── */
+function detectLinkType(url) {
+  if (url.match(/drive\.google\.com/)) return 'gdrive';
+  if (url.match(/dropbox\.com/)) return 'dropbox';
+  if (url.match(/\.pdf(\?.*)?$/i)) return 'direct';
+  return null;
+}
+
+function handleLinkInput(val) {
+  val = val.trim();
+  const fb = document.getElementById('pdf-link-feedback');
+  const embedWrap = document.getElementById('pdf-link-preview-wrap');
+  const directWrap = document.getElementById('pdf-direct-preview-wrap');
+
+  // Reset
+  embedWrap.style.display = 'none';
+  directWrap.style.display = 'none';
+  fb.innerHTML = '';
+  pdfExternalLink = null;
+
+  if (!val) return;
+
+  const type = detectLinkType(val);
+
+  if (!type) {
+    fb.innerHTML = '⚠️ URL tidak dikenali. Gunakan link Google Drive, Dropbox, atau URL .pdf terus.';
+    fb.style.color = 'var(--coral)';
+    return;
+  }
+
+  pdfExternalLink = val;
+  updateProgress();
+
+  if (type === 'gdrive') {
+    const match = val.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+    const idMatch = val.match(/[?&]id=([^&]+)/);
+    const fileId = match ? match[1] : (idMatch ? idMatch[1] : null);
+    if (!fileId) {
+      fb.innerHTML = '⚠️ ID fail Google Drive tidak dijumpai. Pastikan link "Share" yang betul.';
+      fb.style.color = 'var(--coral)';
+      pdfExternalLink = null;
+      return;
+    }
+    const embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+    fb.innerHTML = '✅ Google Drive — pratonton dimuatkan dalam iframe';
+    fb.style.color = 'var(--mint2)';
+    document.getElementById('pdf-link-iframe').src = embedUrl;
+    embedWrap.style.display = 'block';
+    embedWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } else if (type === 'dropbox') {
+    const embedUrl = val
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace(/[?&]dl=\d/, '');
+    fb.innerHTML = '✅ Dropbox — pratonton dimuatkan dalam iframe';
+    fb.style.color = 'var(--mint2)';
+    document.getElementById('pdf-link-iframe').src = embedUrl;
+    embedWrap.style.display = 'block';
+    embedWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } else if (type === 'direct') {
+    fb.innerHTML = '🔗 URL PDF terus — reader akan papar butang buka dalam tab baru';
+    fb.style.color = 'var(--sky2)';
+    document.getElementById('pdf-direct-url-label').textContent = val;
+    document.getElementById('pdf-direct-open-btn').href = val;
+    directWrap.style.display = 'block';
+    directWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function clearPdfLink() {
+  pdfExternalLink = null;
+  document.getElementById('f-pdf-link').value = '';
+  document.getElementById('pdf-link-feedback').innerHTML = '';
+  document.getElementById('pdf-link-preview-wrap').style.display = 'none';
+  document.getElementById('pdf-direct-preview-wrap').style.display = 'none';
+  document.getElementById('pdf-link-iframe').src = '';
+  updateProgress();
+}
+
+/* ── SUPABASE ── */
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── STATE ── */
+let panels = [];
+let panelCounter = 0;
+let selectedCat = '';
+let selectedAge = '';
+let selectedDiff = 'mudah';
+let selectedLangs = [];
+let safetyState = { no_violence:true, no_adult:true, no_horror:true, child_friendly:true, reviewed:false, original:false };
+let coverBg = 'linear-gradient(135deg,#d1fae5,#a7f3d0)';
+let coverEmoji = '📖';
+let coverImageDataUrl = null;
+let coverStorageUrl = null; // URL sebenar dalam Supabase Storage
+let autoSaveTimer = null;
+let currentUser = null;
+let draftStoryId = null;
+
+/* ── INIT ── */
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    const { data: profile } = await sb.from('profiles').select('full_name,username').eq('id', session.user.id).single();
+    if (profile) document.getElementById('f-author').value = profile.full_name || profile.username || '';
+  }
+
+  // Semak sama ada mod edit (?edit=STORY_ID)
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get('edit');
+
+  if (editId) {
+    // MOD EDIT — muatkan data cerita dari Supabase
+    draftStoryId = editId;
+    await loadStoryForEdit(editId);
+  } else {
+    // MOD BARU — muatkan draf localStorage
+    loadDraft();
+    addPanel('standard');
+  }
+
+  updateProgress();
+})();
+
+/* ── MUATKAN CERITA UNTUK EDIT ── */
+async function loadStoryForEdit(storyId) {
+  // Tunjuk loading state
+  document.getElementById('btn-publish').textContent = '⏳ Memuatkan…';
+  document.getElementById('btn-publish').disabled = true;
+
+  const { data: s, error } = await sb.from('stories')
+    .select('*')
+    .eq('id', storyId)
+    .single();
+
+  if (error || !s) {
+    alert('Gagal memuatkan cerita. Cuba lagi.');
+    window.location.href = 'nexstoria-author-profile.html';
+    return;
+  }
+
+  // Tukar tajuk halaman kepada mod edit
+  document.querySelector('.page-title') && (document.querySelector('.page-title').textContent = '✏️ Edit Cerita');
+  document.getElementById('btn-publish').textContent = '💾 Simpan Perubahan';
+  document.getElementById('btn-publish').disabled = false;
+
+  // ① Isi maklumat asas
+  if (s.title) document.getElementById('f-title').value = s.title;
+  if (s.synopsis) document.getElementById('f-synopsis').value = s.synopsis;
+  if (s.moral_lesson) document.getElementById('f-moral').value = s.moral_lesson;
+  if (s.language) document.getElementById('f-language').value = s.language;
+  if (s.author_country) document.getElementById('f-country').value = s.author_country;
+
+  // ② Bahasa terjemahan
+  if (s.translation_lang?.length) {
+    selectedLangs = s.translation_lang;
+    document.querySelectorAll('.lang-chip').forEach(c => {
+      if (selectedLangs.includes(c.dataset.lang)) c.classList.add('active-lang');
+    });
+  }
+
+  // ③ Kulit buku — emoji & warna
+  if (s.cover_emoji || s.emoji) {
+    coverEmoji = s.cover_emoji || s.emoji;
+    const display = document.getElementById('cover-emoji-display');
+    display.textContent = coverEmoji;
+    display.style.display = coverEmoji ? '' : 'none';
+    document.querySelectorAll('.ep-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.emoji === coverEmoji);
+    });
+  }
+
+  // ④ Kulit buku — gambar upload
+  if (s.cover_url) {
+    coverImageDataUrl = s.cover_url;
+    coverStorageUrl = s.cover_url; // Pulihkan URL Storage
+    const prev = document.getElementById('cover-preview');
+    prev.classList.add('has-image');
+    prev.style.background = '';
+    let img = prev.querySelector('img');
+    if (!img) { img = document.createElement('img'); prev.prepend(img); }
+    img.src = s.cover_url;
+    document.getElementById('cover-emoji-display').style.display = 'none';
+    document.getElementById('cover-controls-panel').style.display = 'none';
+    document.getElementById('cover-remove-btn').style.display = 'block';
+  }
+
+  // ⑤ Kategori & umur
+  if (s.category) {
+    selectedCat = s.category;
+    document.querySelector(`#cat-chips [data-val="${s.category}"]`)?.classList.add('active-cat');
+  }
+  if (s.age_group) {
+    selectedAge = s.age_group;
+    document.querySelector(`#age-chips [data-val="${s.age_group}"]`)?.classList.add('active-age');
+  }
+
+  // ⑥ Kesukaran
+  if (s.difficulty) {
+    selectedDiff = s.difficulty;
+    document.querySelectorAll('.diff-card').forEach(c => c.classList.toggle('active', c.dataset.d === s.difficulty));
+  }
+
+  // ⑦ Tetapan keselamatan
+  if (s.content_safety) {
+    safetyState = { ...safetyState, ...s.content_safety };
+    Object.entries(safetyState).forEach(([key, val]) => {
+      const item = document.querySelector(`.safety-item[data-key="${key}"]`);
+      if (!item) return;
+      if (val) item.classList.add('checked');
+      else item.classList.remove('checked');
+      const box = item.querySelector('.safety-checkbox');
+      if (box) box.textContent = val ? '✓' : '';
+    });
+  }
+
+  // ⑧ Panel-panel cerita
+  const panelData = s.panels || [];
+  if (panelData.length > 0) {
+    panels = [];
+    panelCounter = 0;
+    document.getElementById('panels-list').innerHTML = '';
+    panelData.forEach(p => addPanelWithData(p));
+  } else {
+    addPanel('standard');
+  }
+}
+
+/* Tambah panel dengan data sedia ada */
+function addPanelWithData(data) {
+  panelCounter++;
+  const id = 'panel-' + panelCounter;
+  const type = data.type || 'standard';
+  panels.push({ id, type, imageUrl: data.imageUrl || null, imageData: null, text: data.text || '' });
+  const list = document.getElementById('panels-list');
+  const item = buildPanelElement(id, type, panelCounter, { imageUrl: data.imageUrl, initialText: data.text || '' });
+  list.appendChild(item);
+}
+
+/* ── FILE LIMITS ── */
+const LIMITS = {
+  cover:  { maxBytes: 2 * 1024 * 1024, label: '2MB',  bucket: 'story-covers',  types: ['image/jpeg','image/png','image/webp'] },
+  image:  { maxBytes: 3 * 1024 * 1024, label: '3MB',  bucket: 'story-images',  types: ['image/jpeg','image/png','image/webp','image/gif'] },
+};
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+
+function getSizeColor(bytes, maxBytes) {
+  const pct = bytes / maxBytes;
+  if (pct < 0.6) return 'var(--mint)';
+  if (pct < 0.85) return 'var(--sun2)';
+  return 'var(--coral)';
+}
+
+/* Compress image via canvas before upload */
+function compressImage(file, maxBytes, quality = 0.78) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      // Hadkan dimensi — 900px cukup untuk paparan telefon
+      const MAX_DIM = 900;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        const scale = Math.min(MAX_DIM/width, MAX_DIM/height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      // Cuba WebP dulu — lebih kecil ~30% dari JPEG
+      const supWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+      const fmt = supWebP ? 'image/webp' : 'image/jpeg';
+      canvas.toBlob(blob => {
+        if (blob.size > maxBytes && quality > 0.4) {
+          canvas.toBlob(b2 => resolve(b2), fmt, quality - 0.18);
+        } else {
+          resolve(blob);
+        }
+      }, fmt, quality);
+    };
+    img.src = url;
+  });
+}
+    img.src = url;
+  });
+}
+
+/* ── COVER UPLOAD ── */
+function triggerCoverUpload() {
+  document.getElementById('cover-upload').click();
+}
+async function handleCoverUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const { maxBytes, label, types } = LIMITS.cover;
+
+  if (!types.includes(file.type)) {
+    showFileError('cover-feedback', `❌ Format tidak disokong. Gunakan JPG, PNG atau WebP sahaja.`);
+    return;
+  }
+
+  showFileSizeBar('cover-feedback', file.size, maxBytes, label);
+
+  let processedFile = file;
+  if (file.size > maxBytes) {
+    showCompressHint('cover-feedback', formatBytes(file.size), label);
+    processedFile = await compressImage(file, maxBytes);
+    if (processedFile.size > maxBytes) {
+      showFileError('cover-feedback', `❌ Gambar terlalu besar (${formatBytes(file.size)}). Had: ${label}. Sila pilih gambar lebih kecil.`);
+      return;
+    }
+    showFileSizeBar('cover-feedback', processedFile.size, maxBytes, label, `✅ Dimampatkan: ${formatBytes(file.size)} → ${formatBytes(processedFile.size)}`);
+  }
+
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    coverImageDataUrl = ev.target.result;
+    const prev = document.getElementById('cover-preview');
+    prev.classList.add('has-image');
+    prev.style.background = '';
+    let img = prev.querySelector('img');
+    if (!img) { img = document.createElement('img'); prev.prepend(img); }
+    img.src = coverImageDataUrl;
+
+    // Sembunyikan emoji overlay & panel emoji+warna bila ada gambar
+    document.getElementById('cover-emoji-display').style.display = 'none';
+    document.getElementById('cover-controls-panel').style.display = 'none';
+    document.getElementById('cover-remove-btn').style.display = 'block';
+
+    // Upload to Supabase Storage
+    if (currentUser) {
+      const url = await uploadFileToStorage(processedFile, 'story-covers', `${currentUser.id}/cover-${Date.now()}.jpg`, 'cover-feedback');
+      if (url) coverStorageUrl = url;
+    }
+  };
+  reader.readAsDataURL(processedFile);
+}
+
+/* ── PANEL IMAGE UPLOAD ── */
+function triggerImgUpload(id) { document.getElementById('img-input-' + id).click(); }
+
+async function handlePanelImg(e, id) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const { maxBytes, label, types } = LIMITS.image;
+  const feedbackId = `img-feedback-${id}`;
+
+  if (!types.includes(file.type)) {
+    showFileError(feedbackId, `❌ Format tidak disokong. Gunakan JPG, PNG, WebP atau GIF.`);
+    return;
+  }
+
+  showFileSizeBar(feedbackId, file.size, maxBytes, label);
+
+  let processedFile = file;
+  if (file.size > maxBytes) {
+    showCompressHint(feedbackId, formatBytes(file.size), label);
+    processedFile = await compressImage(file, maxBytes);
+    if (processedFile.size > maxBytes) {
+      showFileError(feedbackId, `❌ Gambar terlalu besar (${formatBytes(file.size)}). Had: ${label}.`);
+      return;
+    }
+    showFileSizeBar(feedbackId, processedFile.size, maxBytes, label, `✅ Dimampatkan: ${formatBytes(file.size)} → ${formatBytes(processedFile.size)}`);
+  }
+
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    const panel = panels.find(p => p.id === id);
+    if (panel) panel.imageData = ev.target.result;
+    const area = document.getElementById('img-area-' + id);
+    area.classList.add('has-img');
+    let img = area.querySelector('img');
+    if (!img) { img = document.createElement('img'); area.prepend(img); }
+    img.src = ev.target.result;
+    let clrBtn = area.querySelector('.img-clear-btn');
+    if (!clrBtn) {
+      clrBtn = document.createElement('button');
+      clrBtn.className = 'img-clear-btn';
+      clrBtn.textContent = '✕';
+      clrBtn.onclick = ev2 => { ev2.stopPropagation(); clearPanelImg(id); };
+      area.appendChild(clrBtn);
+    }
+    // Upload to Supabase Storage
+    if (currentUser) {
+      const url = await uploadFileToStorage(processedFile, 'story-images', `${currentUser.id}/${id}-${Date.now()}.jpg`, feedbackId);
+      if (url && panel) panel.imageUrl = url;
+    } else {
+      showFileError(feedbackId, '⚠️ Sila log masuk untuk muat naik gambar ke pelayan.');
+    }
+  };
+  reader.readAsDataURL(processedFile);
+}
+
+async function uploadFileToStorage(file, bucket, path, feedbackId) {
+  try {
+    showUploadProgress(feedbackId, 30);
+    const { data, error } = await sb.storage.from(bucket).upload(path, file, { upsert: true });
+    showUploadProgress(feedbackId, 100);
+    if (error) throw error;
+    const { data: { publicUrl } } = sb.storage.from(bucket).getPublicUrl(path);
+    setTimeout(() => hideProgress(feedbackId), 1000);
+    showFileSuccessMsg(feedbackId, `✅ Berjaya dimuat naik`);
+    return publicUrl;
+  } catch (err) {
+    hideProgress(feedbackId);
+    if (err.message?.includes('exceeded') || err.statusCode === 413) {
+      showFileError(feedbackId, `❌ Fail ditolak oleh pelayan — melebihi had saiz.`);
+    } else if (err.message?.includes('mime') || err.statusCode === 415) {
+      showFileError(feedbackId, `❌ Jenis fail tidak dibenarkan.`);
+    } else if (err.message?.includes('Bucket not found') || err.message?.includes('bucket')) {
+      showFileError(feedbackId, `❌ Storage bucket belum dibuat. Sila hubungi admin.`);
+    } else {
+      showFileError(feedbackId, `❌ Ralat muat naik: ${err.message || 'Cuba lagi.'}`);
+    }
+    return null;
+  }
+}
+
+/* ── FEEDBACK HELPERS ── */
+function getOrCreateFeedback(parentId, feedbackId) {
+  let fb = document.getElementById(feedbackId);
+  if (!fb) {
+    fb = document.createElement('div');
+    fb.id = feedbackId;
+    const parent = document.getElementById(parentId);
+    if (parent) parent.after(fb);
+  }
+  return fb;
+}
+
+function showFileSizeBar(feedbackId, bytes, maxBytes, label, overrideLabel = null) {
+  let el = document.getElementById(feedbackId + '-sizebar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = feedbackId + '-sizebar';
+    el.className = 'file-size-bar';
+    el.innerHTML = `<span class="fsb-label" id="${feedbackId}-sizelabel"></span><div class="fsb-track"><div class="fsb-fill" id="${feedbackId}-fill"></div></div><span style="font-size:10px;color:var(--muted);white-space:nowrap" id="${feedbackId}-sizetxt"></span>`;
+    appendFeedback(feedbackId, el);
+  }
+  const pct = Math.min((bytes / maxBytes) * 100, 100);
+  const color = getSizeColor(bytes, maxBytes);
+  document.getElementById(feedbackId + '-fill').style.cssText = `width:${pct}%;background:${color};`;
+  document.getElementById(feedbackId + '-sizelabel').textContent = overrideLabel || formatBytes(bytes);
+  document.getElementById(feedbackId + '-sizetxt').textContent = `/ ${label}`;
+}
+
+function showCompressHint(feedbackId, originalSize, limit) {
+  let el = document.getElementById(feedbackId + '-hint');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = feedbackId + '-hint';
+    el.className = 'compress-hint show';
+    el.innerHTML = `🔧 <span></span>`;
+    appendFeedback(feedbackId, el);
+  }
+  el.querySelector('span').textContent = `Gambar (${originalSize}) melebihi ${limit} — sedang dimampatkan secara automatik…`;
+  el.classList.add('show');
+}
+
+function showFileError(feedbackId, msg) {
+  clearFeedbackMessages(feedbackId);
+  let el = document.getElementById(feedbackId + '-err');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = feedbackId + '-err';
+    el.className = 'file-error';
+    appendFeedback(feedbackId, el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function showFileSuccessMsg(feedbackId, msg) {
+  let el = document.getElementById(feedbackId + '-ok');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = feedbackId + '-ok';
+    el.className = 'file-success';
+    appendFeedback(feedbackId, el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function showUploadProgress(feedbackId, pct) {
+  let el = document.getElementById(feedbackId + '-prog');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = feedbackId + '-prog';
+    el.className = 'upload-progress show';
+    el.innerHTML = `<div class="upload-progress-fill" id="${feedbackId}-prog-fill"></div>`;
+    appendFeedback(feedbackId, el);
+  }
+  el.classList.add('show');
+  document.getElementById(feedbackId + '-prog-fill').style.width = pct + '%';
+}
+
+function hideProgress(feedbackId) {
+  const el = document.getElementById(feedbackId + '-prog');
+  if (el) el.classList.remove('show');
+}
+
+function clearFeedbackMessages(feedbackId) {
+  const err = document.getElementById(feedbackId + '-err');
+  const hint = document.getElementById(feedbackId + '-hint');
+  if (err) err.classList.remove('show');
+  if (hint) hint.classList.remove('show');
+}
+
+function appendFeedback(feedbackId, el) {
+  // feedbackId format: 'cover-feedback', 'img-feedback-panel-1', 'audio-feedback-panel-1'
+  const wrapId = feedbackId + '-wrap';
+  const wrap = document.getElementById(wrapId);
+  if (wrap) { wrap.appendChild(el); return; }
+  // cover fallback
+  const coverWrap = document.getElementById('cover-feedback-wrap');
+  if (feedbackId === 'cover-feedback' && coverWrap) { coverWrap.appendChild(el); return; }
+  // last resort
+  document.querySelector('.cover-controls')?.appendChild(el) || document.body.appendChild(el);
+}
+
+function clearPanelImg(id) {
+  const panel = panels.find(p => p.id === id);
+  if (panel) { panel.imageData = null; panel.imageUrl = null; }
+  const area = document.getElementById('img-area-' + id);
+  area.classList.remove('has-img');
+  const img = area.querySelector('img');
+  const btn = area.querySelector('.img-clear-btn');
+  if (img) img.remove();
+  if (btn) btn.remove();
+}
+
+function setEmoji(btn, emoji) {
+  coverEmoji = emoji;
+  const display = document.getElementById('cover-emoji-display');
+  display.textContent = emoji;
+  // Sembunyikan span jika tiada emoji
+  display.style.display = emoji ? '' : 'none';
+  document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  autoSaveDebounce();
+}
+function setCoverBg(swatch) {
+  coverBg = swatch.dataset.bg || '';
+  const prev = document.getElementById('cover-preview');
+  prev.style.background = coverBg || 'var(--off)';
+  // Buang gambar jika ada
+  const img = prev.querySelector('img');
+  if (img) img.remove();
+  coverImageDataUrl = null;
+  coverStorageUrl = null;
+  prev.classList.remove('has-image');
+  document.querySelectorAll('.cp-swatch').forEach(s => s.classList.remove('selected'));
+  swatch.classList.add('selected');
+  // Tunjuk semula panel emoji+warna
+  document.getElementById('cover-controls-panel').style.display = '';
+  document.getElementById('cover-remove-btn').style.display = 'none';
+}
+
+function removeCoverImage() {
+  coverImageDataUrl = null;
+  coverStorageUrl = null;
+  const prev = document.getElementById('cover-preview');
+  // Buang img tag
+  const img = prev.querySelector('img');
+  if (img) img.remove();
+  prev.classList.remove('has-image');
+  // Pulihkan warna asal
+  const defaultBg = 'linear-gradient(135deg,#d1fae5,#a7f3d0)';
+  coverBg = defaultBg;
+  prev.style.background = defaultBg;
+  // Tunjuk semula emoji
+  const emojiDisplay = document.getElementById('cover-emoji-display');
+  emojiDisplay.style.display = '';
+  if (!coverEmoji) {
+    coverEmoji = '📖';
+    emojiDisplay.textContent = '📖';
+    document.querySelector('.ep-btn[data-emoji="📖"]')?.classList.add('selected');
+  }
+  // Tunjuk semula panel pilihan
+  document.getElementById('cover-controls-panel').style.display = '';
+  document.getElementById('cover-remove-btn').style.display = 'none';
+  // Reset swatch pilihan
+  document.querySelectorAll('.cp-swatch').forEach(s => s.classList.remove('selected'));
+  document.querySelector(`.cp-swatch[data-bg="${defaultBg}"]`)?.classList.add('selected');
+  // Reset file input
+  document.getElementById('cover-upload').value = '';
+}
+
+function toggleChip(chip, type) {
+  const group = type === 'cat' ? '#cat-chips .chip' : '#age-chips .chip';
+  document.querySelectorAll(group).forEach(c => c.classList.remove('active-'+type));
+  chip.classList.add('active-'+type);
+  if (type === 'cat') selectedCat = chip.dataset.val;
+  else selectedAge = chip.dataset.val;
+  updateProgress();
+  autoSaveDebounce();
+}
+function toggleLang(chip) {
+  chip.classList.toggle('active-lang');
+  const lang = chip.dataset.lang;
+  if (selectedLangs.includes(lang)) selectedLangs = selectedLangs.filter(l => l !== lang);
+  else selectedLangs.push(lang);
+}
+
+/* ── DIFFICULTY ── */
+function setDifficulty(card) {
+  document.querySelectorAll('.diff-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  selectedDiff = card.dataset.d;
+}
+
+/* ── SAFETY ── */
+function toggleSafety(item) {
+  item.classList.toggle('checked');
+  const key = item.dataset.key;
+  safetyState[key] = item.classList.contains('checked');
+  const box = item.querySelector('.safety-checkbox');
+  box.textContent = safetyState[key] ? '✓' : '';
+}
+
+/* ── PANELS ── */
+const panelTypeLabels = { standard:'Panel', dialog:'Dialog', action:'Aksi', narration:'Naratif' };
+const panelTypeColors = { standard:'var(--lav2)', dialog:'var(--sky2)', action:'var(--coral2)', narration:'var(--mint2)' };
+
+/* ── SHARED PANEL BUILDER ── */
+function buildPanelElement(id, type, num, opts = {}) {
+  const { imageUrl = null, initialText = '' } = opts;
+  const item = document.createElement('div');
+  item.className = 'panel-item';
+  item.id = id;
+  item.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-num" style="background:${panelTypeColors[type]}22;color:${panelTypeColors[type]}">${num}</div>
+      <div class="panel-type-tabs">
+        ${['standard','dialog','action','narration'].map(t =>
+          `<button class="pt-tab${t===type?' active':''}" onclick="changePanelType('${id}','${t}',this)">${panelTypeLabels[t]}</button>`
+        ).join('')}
+      </div>
+      <button class="panel-del" onclick="deletePanel('${id}')" title="Padam panel">🗑️</button>
+    </div>
+    <div class="panel-body">
+      <div>
+        <div class="img-upload-area${imageUrl?' has-img':''}" id="img-area-${id}" onclick="triggerImgUpload('${id}')">
+          ${imageUrl ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:12px;">` : ''}
+          <div class="img-upload-icon">🖼️</div>
+          <div class="img-upload-text">Klik untuk muat naik gambar panel — max 3MB (JPG/PNG/WebP/GIF)</div>
+          <input type="file" id="img-input-${id}" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="handlePanelImg(event,'${id}')">
+        </div>
+        <div id="img-feedback-${id}-wrap" style="padding:0 2px;"></div>
+      </div>
+      <div>${buildRTE(id, type, initialText)}</div>
+      <div></div>
+    </div>
+  `;
+  return item;
+}
+
+function addPanel(type = 'standard') {
+  panelCounter++;
+  const id = 'panel-' + panelCounter;
+  panels.push({ id, type, imageUrl: null, imageData: null, text: '' });
+  const list = document.getElementById('panels-list');
+  const item = buildPanelElement(id, type, panelCounter, {});
+  list.appendChild(item);
+  item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  updatePanelCount();
+}
+
+/* ══════════════════════════════════════════
+   RICH TEXT EDITOR
+══════════════════════════════════════════ */
+function buildRTE(id, type, initialText) {
+  return `
+  <div class="rte-wrap" id="rte-wrap-${id}">
+    <div class="rte-toolbar">
+      <!-- Fon -->
+      <select class="rte-select" onchange="rteFont('${id}',this.value)" title="Gaya Fon" style="width:90px;">
+        <option value="nunito">Nunito</option>
+        <option value="lora">Lora (Klasik)</option>
+        <option value="baloo">Baloo 2</option>
+      </select>
+      <!-- Saiz -->
+      <select class="rte-select" onchange="rteSize('${id}',this.value)" title="Saiz Teks" style="width:58px;">
+        <option value="12px">12</option>
+        <option value="13px">13</option>
+        <option value="14px" selected>14</option>
+        <option value="16px">16</option>
+        <option value="18px">18</option>
+        <option value="20px">20</option>
+        <option value="24px">24</option>
+      </select>
+      <div class="rte-sep"></div>
+      <!-- Format -->
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','bold')" title="Bold"><b>B</b></button>
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','italic')" title="Italic"><i>I</i></button>
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','underline')" title="Garis Bawah"><u>U</u></button>
+      <div class="rte-sep"></div>
+      <!-- Align -->
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','justifyLeft')" title="Kiri">⬅</button>
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','justifyCenter')" title="Tengah">☰</button>
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','justifyRight')" title="Kanan">➡</button>
+      <div class="rte-sep"></div>
+      <!-- Warna teks -->
+      <input type="color" value="#1a1a2e" title="Warna Teks" style="width:26px;height:26px;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;padding:1px;" onchange="rteColor('${id}',this.value)">
+      <!-- Padam format -->
+      <button class="rte-btn" onmousedown="event.preventDefault();rteCmd('${id}','removeFormat')" title="Padam Format" style="font-size:11px;">✕</button>
+    </div>
+    <div class="rte-body"
+      id="text-${id}"
+      contenteditable="true"
+      data-font="nunito"
+      data-placeholder="${getPlaceholder(type)}"
+      oninput="updatePanelText('${id}',getRteText('${id}'));updateProgress();autoSaveDebounce()"
+    >${initialText ? initialText : ''}</div>
+  </div>`;
+}
+
+function rteCmd(id, cmd) {
+  document.getElementById('text-' + id).focus();
+  document.execCommand(cmd, false, null);
+}
+
+function rteFont(id, font) {
+  const body = document.getElementById('text-' + id);
+  body.dataset.font = font;
+  const families = { nunito:"'Nunito',sans-serif", lora:"'Lora',serif", baloo:"'Baloo 2',cursive" };
+  body.style.fontFamily = families[font] || families.nunito;
+}
+
+function rteSize(id, size) {
+  document.getElementById('text-' + id).focus();
+  document.execCommand('fontSize', false, '7');
+  // Override font-size on all font[size=7] elements created by execCommand
+  document.getElementById('text-' + id).querySelectorAll('font[size="7"]').forEach(el => {
+    el.removeAttribute('size');
+    el.style.fontSize = size;
+  });
+}
+
+function rteColor(id, color) {
+  document.getElementById('text-' + id).focus();
+  document.execCommand('foreColor', false, color);
+}
+
+function getRteText(id) {
+  return document.getElementById('text-' + id)?.innerHTML || '';
+}
+
+
+function getPlaceholder(type) {
+  const p = { standard:'Tulis teks naratif atau dialog untuk panel ini…', dialog:'"Apa yang kau buat di sini?" tanya Si Arnab dengan hairan.', action:'WHOOOOSH! Si Wira melompat tinggi melewati tembok batu itu!', narration:'Di sebuah hutan yang lebat dan sunyi, hiduplah seekor harimau yang baik hati…' };
+  return p[type] || p.standard;
+}
+function changePanelType(id, type, btn) {
+  const panel = panels.find(p => p.id === id);
+  if (panel) panel.type = type;
+  btn.closest('.panel-type-tabs').querySelectorAll('.pt-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const rteBody = document.getElementById('text-' + id);
+  if (rteBody) rteBody.dataset.placeholder = getPlaceholder(type);
+}
+function deletePanel(id) {
+  if (panels.length <= 1) return alert('Cerita perlu sekurang-kurangnya 1 panel!');
+  panels = panels.filter(p => p.id !== id);
+  document.getElementById(id).remove();
+  updatePanelCount();
+}
+function updatePanelText(id, val) {
+  const panel = panels.find(p => p.id === id);
+  if (panel) panel.text = val;
+}
+function triggerImgUpload(id) { document.getElementById('img-input-' + id).click(); }
+function clearPanelImg(id) {
+  const panel = panels.find(p => p.id === id);
+  if (panel) { panel.imageData = null; panel.imageUrl = null; }
+  const area = document.getElementById('img-area-' + id);
+  area.classList.remove('has-img');
+  const img = area.querySelector('img');
+  const btn = area.querySelector('.img-clear-btn');
+  if (img) img.remove();
+  if (btn) btn.remove();
+}
+
+function updatePanelCount() {
+  document.getElementById('panel-count').textContent = panels.length;
+  updateProgress();
+}
+
+/* ── WORD COUNT ── */
+function stripHtml(html) { const d = document.createElement('div'); d.innerHTML = html; return d.innerText || ''; }
+function getTotalWords() {
+  const synopsis = (document.getElementById('f-synopsis')?.value || '').trim();
+  const panelTexts = panels.map(p => stripHtml(p.text)).join(' ');
+  const moral = (document.getElementById('f-moral')?.value || '').trim();
+  const all = [synopsis, panelTexts, moral].join(' ');
+  return all.split(/\s+/).filter(w => w.length > 0).length;
+}
+
+/* ── PROGRESS ── */
+function updateProgress() {
+  const panelHasText = panels.some(p => stripHtml(p.text).trim().length > 0);
+  const pdfReady = contentMode === 'pdf' && (pdfStorageUrl || pdfExternalLink);
+  const contentReady = contentMode === 'panel' ? panelHasText : pdfReady;
+  const checks = [
+    !!document.getElementById('f-title')?.value.trim(),
+    !!document.getElementById('f-synopsis')?.value.trim(),
+    !!selectedCat,
+    !!selectedAge,
+    contentReady,
+  ];
+  const pct = (checks.filter(Boolean).length / checks.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('word-count').textContent = getTotalWords();
+
+  const stepChecks = [
+    document.getElementById('f-title')?.value.trim() && document.getElementById('f-author')?.value.trim(),
+    true,
+    document.getElementById('f-synopsis')?.value.trim() && selectedCat && selectedAge,
+    contentReady,
+    document.getElementById('f-moral')?.value.trim(),
+    true
+  ];
+  document.querySelectorAll('.step-pill').forEach((pill, i) => {
+    pill.classList.toggle('done', !!stepChecks[i] && !pill.classList.contains('active'));
+  });
+}
+
+/* ── CHAR COUNTER ── */
+function updateCharCount(el, countId) {
+  document.getElementById(countId).textContent = el.value.length;
+}
+
+/* ── SCROLL TO SECTION ── */
+function toggleGuide(id) {
+  const guide = document.getElementById(id);
+  const btn = guide.previousElementSibling?.querySelector('.info-btn') ||
+              guide.closest('.section-card').querySelector('.info-btn');
+  const isHidden = guide.style.display === 'none';
+  guide.style.display = isHidden ? 'block' : 'none';
+  if (btn) btn.classList.toggle('active', isHidden);
+}
+
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // update active pill
+  document.querySelectorAll('.step-pill').forEach(p => p.classList.remove('active'));
+  const steps = ['sec-basic','sec-cover','sec-synopsis','sec-panels','sec-moral','sec-settings'];
+  const idx = steps.indexOf(id);
+  document.querySelectorAll('.step-pill')[idx]?.classList.add('active');
+}
+
+/* ── AUTO-SAVE (localStorage) ── */
+function autoSaveDebounce() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(doAutoSave, 2000);
+}
+function doAutoSave() {
+  const draft = collectFormData();
+  try {
+    localStorage.setItem('nexstoria_draft', JSON.stringify(draft));
+    const toast = document.getElementById('autosave-toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+    const btn = document.getElementById('nav-save-btn');
+    btn.textContent = '✅ Tersimpan';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = '💾 Simpan Draf'; btn.classList.remove('saved'); }, 3000);
+  } catch(e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem('nexstoria_draft');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.title) document.getElementById('f-title').value = d.title;
+    if (d.synopsis) document.getElementById('f-synopsis').value = d.synopsis;
+    if (d.moral) document.getElementById('f-moral').value = d.moral;
+    if (d.coverEmoji) { coverEmoji = d.coverEmoji; document.getElementById('cover-emoji-display').textContent = d.coverEmoji; }
+    if (d.coverBg) { coverBg = d.coverBg; document.getElementById('cover-preview').style.background = d.coverBg; }
+    if (d.category) { selectedCat = d.category; document.querySelector(`#cat-chips [data-val="${d.category}"]`)?.classList.add('active-cat'); }
+    if (d.age_group) { selectedAge = d.age_group; document.querySelector(`#age-chips [data-val="${d.age_group}"]`)?.classList.add('active-age'); }
+    if (d.difficulty) { selectedDiff = d.difficulty; document.querySelectorAll('.diff-card').forEach(c => { c.classList.toggle('active', c.dataset.d === d.difficulty); }); }
+    updateProgress();
+  } catch(e) {}
+}
+
+/* ── COLLECT DATA ── */
+function collectFormData() {
+  return {
+    title: document.getElementById('f-title').value.trim(),
+    author: document.getElementById('f-author').value.trim(),
+    country: document.getElementById('f-country').value,
+    language: document.getElementById('f-language').value,
+    translation_lang: selectedLangs,
+    synopsis: document.getElementById('f-synopsis').value.trim(),
+    category: selectedCat,
+    age_group: selectedAge,
+    difficulty: selectedDiff,
+    moral: document.getElementById('f-moral').value.trim(),
+    coverEmoji, coverBg,
+    content_safety: safetyState,
+    content_mode: contentMode,
+    pdf_url: pdfStorageUrl || null,
+    pdf_link: pdfExternalLink || null,
+    panels: contentMode === 'panel' ? panels.map(p => ({ type: p.type, text: p.text, imageUrl: p.imageUrl || p.imageData || null })) : [],
+  };
+}
+
+/* ── SAVE DRAFT (Supabase) ── */
+async function saveDraftAndGoBack() {
+  const btn = document.getElementById('btn-back-profile');
+  btn.textContent = '⏳ Menyimpan...';
+  btn.disabled = true;
+  try {
+    await saveDraft();
+    const toast = document.getElementById('autosave-toast');
+    toast.textContent = '✅ Draf disimpan! Kembali ke profil...';
+    toast.classList.add('show');
+    setTimeout(() => window.location.href = 'nexstoria-author-profile.html', 1500);
+  } catch (e) {
+    btn.textContent = '← Kembali ke Profil';
+    btn.disabled = false;
+  }
+}
+
+async function saveDraft() {
+  doAutoSave(); // always save to localStorage
+  if (!currentUser) return;
+  const d = collectFormData();
+  if (!d.title) return;
+  const payload = {
+    author_id: currentUser.id,
+    title: d.title,
+    synopsis: d.synopsis,
+    category: d.category || null,
+    age_group: d.age_group || null,
+    language: d.language,
+    translation_lang: d.translation_lang,
+    difficulty: d.difficulty,
+    emoji: d.coverEmoji,
+    moral_lesson: d.moral,
+    content_safety: d.content_safety,
+    panels: d.panels.map(p => ({
+      type: p.type,
+      text: p.text,
+      imageUrl: (p.imageUrl && !p.imageUrl.startsWith('data:')) ? p.imageUrl : null,
+    })),
+    author_country: d.country,
+    cover_emoji: d.coverEmoji,
+    cover_url: coverStorageUrl || null,
+    status: 'draft',
+  };
+  if (draftStoryId) {
+    await sb.from('stories').update(payload).eq('id', draftStoryId);
+  } else {
+    const { data } = await sb.from('stories').insert(payload).select('id').single();
+    if (data) draftStoryId = data.id;
+  }
+}
+
+/* ── SUBMIT ── */
+async function submitStory() {
+  const d = collectFormData();
+  const isEditMode = !!new URLSearchParams(window.location.search).get('edit');
+
+  // Validate
+  if (!d.title) return alert('Sila masukkan tajuk cerita!');
+  if (!d.synopsis) return alert('Sila tulis sinopsis!');
+  if (!d.category) return alert('Sila pilih kategori!');
+  if (!d.age_group) return alert('Sila pilih kumpulan umur!');
+  if (contentMode === 'panel' && !panels.some(p => stripHtml(p.text).trim())) return alert('Cerita perlu sekurang-kurangnya 1 panel dengan teks!');
+  if (contentMode === 'pdf' && !pdfStorageUrl && !pdfExternalLink) return alert('Sila upload PDF atau masukkan link buku!');
+  if (!safetyState.reviewed || !safetyState.original) return alert('Sila tandakan "Saya telah semak semula" dan "Karya asli saya" dalam Semakan Keselamatan!');
+
+  const btn = document.getElementById('btn-publish');
+  btn.disabled = true;
+  btn.textContent = isEditMode ? '⏳ Menyimpan…' : '⏳ Menerbitkan…';
+
+  try {
+    const payload = {
+      author_id: currentUser?.id || null,
+      title: d.title,
+      synopsis: d.synopsis,
+      category: d.category,
+      age_group: d.age_group,
+      language: d.language,
+      translation_lang: d.translation_lang,
+      difficulty: d.difficulty,
+      emoji: d.coverEmoji,
+      moral_lesson: d.moral,
+      content_safety: d.content_safety,
+      panels: d.panels.map(p => ({
+        type: p.type,
+        text: p.text,
+        imageUrl: (p.imageUrl && !p.imageUrl.startsWith('data:')) ? p.imageUrl : null,
+      })),
+      author_country: d.country,
+      cover_emoji: d.coverEmoji,
+      cover_url: coverStorageUrl || null,
+      content_mode: contentMode,
+      pdf_url: pdfStorageUrl || null,
+      pdf_link: pdfExternalLink || null,
+      status: 'published',
+      reads_count: 0,
+    };
+
+    let storyId = draftStoryId;
+    if (storyId) {
+      const { error } = await sb.from('stories').update(payload).eq('id', storyId);
+      if (error) throw error;
+    } else {
+      const { data, error } = await sb.from('stories').insert(payload).select('id').single();
+      if (error) throw error;
+      storyId = data?.id;
+    }
+
+    // Update author profile total_stories (hanya bila buat cerita baru)
+    if (currentUser && !isEditMode) {
+      try { await sb.rpc('increment_total_stories', { user_id: currentUser.id }); } catch (_) {}
+    }
+
+    // Clear localStorage draft
+    localStorage.removeItem('nexstoria_draft');
+
+    if (isEditMode) {
+      // Mod edit — tunjuk mesej kejayaan dan balik ke profil
+      btn.textContent = '✅ Berjaya Disimpan!';
+      btn.style.background = 'var(--mint)';
+      setTimeout(() => {
+        window.location.href = 'nexstoria-author-profile.html';
+      }, 1500);
+    } else {
+      showSuccess();
+    }
+  } catch (err) {
+    console.error('Submit error full details:', err);
+    const msg = err?.message || err?.details || err?.hint || JSON.stringify(err) || 'Ralat tidak diketahui';
+    alert('❌ Ralat semasa menyimpan:\n' + msg + '\n\nSila screenshot ini dan hubungi admin.');
+    btn.disabled = false;
+    btn.textContent = isEditMode ? '💾 Simpan Perubahan' : '🚀 Terbitkan Cerita';
+  }
+}
+
+/* ── PREVIEW ── */
+function openPreview() {
+  const d = collectFormData();
+  const screen = document.getElementById('preview-screen');
+  const coverImgSrc = document.querySelector('#cover-preview img')?.src || null;
+  const diffLabels = { mudah:'Mudah', sederhana:'Sederhana', mencabar:'Mencabar' };
+
+  // ── MOD PDF ──
+  if (contentMode === 'pdf') {
+    const canvas = document.getElementById('pdf-canvas');
+    const pdfThumb = (canvas && canvas.width > 0) ? canvas.toDataURL('image/jpeg', 0.7) : null;
+    const coverHTML = (coverImgSrc || pdfThumb)
+      ? `<div class="pv-cover" style="background:${coverBg}"><img src="${coverImgSrc || pdfThumb}" onerror="this.style.display='none'"></div>`
+      : `<div class="pv-cover" style="background:${coverBg}"><span class="pv-cover-emoji">${coverEmoji}</span></div>`;
+    const moralText = document.getElementById('f-moral')?.value.trim();
+    screen.innerHTML = `
+      ${coverHTML}
+      <div class="pv-info">
+        <div class="pv-cat">${d.category || 'Kategori'}</div>
+        <div class="pv-title">${d.title || 'Tajuk Cerita'}</div>
+        <div class="pv-synopsis">${d.synopsis || 'Sinopsis cerita…'}</div>
+        <div class="pv-meta">
+          <span class="pv-badge">🎯 ${d.age_group || '—'} thn</span>
+          <span class="pv-badge">📄 Buku PDF</span>
+          <span class="pv-badge">🌐 ${d.language.toUpperCase()}</span>
+        </div>
+      </div>
+      <div class="pv-divider"></div>
+      <div style="padding:24px 16px;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:12px;">📄</div>
+        <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:white;margin-bottom:6px;">Buku PDF</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);">${pdfStorageUrl ? 'PDF dimuat naik — reader akan papar terus' : pdfExternalLink ? 'Link luar — reader akan buka dalam tab' : 'Tiada PDF ditetapkan'}</div>
+      </div>
+      ${moralText ? `<div class="pv-moral"><div class="pv-moral-card"><div class="pv-moral-icon">✨</div><div class="pv-moral-title">Pengajaran Cerita</div><div class="pv-moral-text">${moralText}</div></div></div>` : ''}
+    `;
+    document.getElementById('preview-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+
+  // ── MOD PANEL ──
+  const typeLabel = { dialog: 'Dialog', action: 'Aksi', narration: 'Narasi', standard: '' };
+
+  const panelHTML = panels.map((p, i) => {
+    const type = p.type || 'standard';
+    const imgSrc = p.imageData || p.imageUrl || null;
+    const imgHTML = imgSrc ? `<img src="${imgSrc}" class="pv-panel-img" onerror="this.style.display='none'">` : '';
+    const typePill = type !== 'standard'
+      ? `<span class="pv-type-pill ${type}">${typeLabel[type] || type}</span>` : '';
+    const header = `<div class="pv-panel-header">
+        <span class="pv-panel-num">${i + 1}</span>
+        ${typePill}
+      </div>`;
+    const textClass = type !== 'standard' ? `pv-text ${type}` : 'pv-text';
+    const textHTML = p.text ? `<div class="${textClass}">${p.text}</div>` : '';
+    return `<div class="pv-panel">${header}${imgHTML}${textHTML}</div>`;
+  }).join('');
+
+  const moralText = document.getElementById('f-moral')?.value.trim();
+  const moralHTML = moralText ? `
+    <div class="pv-moral">
+      <div class="pv-moral-card">
+        <div class="pv-moral-icon">✨</div>
+        <div class="pv-moral-title">Pengajaran Cerita</div>
+        <div class="pv-moral-text">${moralText}</div>
+      </div>
+    </div>` : '';
+
+  const coverHTML = coverImgSrc
+    ? `<div class="pv-cover" style="background:${coverBg}"><img src="${coverImgSrc}" onerror="this.style.display='none'"><span class="pv-cover-emoji" style="${coverImgSrc ? 'display:none' : ''}">${coverEmoji}</span></div>`
+    : `<div class="pv-cover" style="background:${coverBg}"><span class="pv-cover-emoji">${coverEmoji}</span></div>`;
+
+  screen.innerHTML = `
+    ${coverHTML}
+    <div class="pv-info">
+      <div class="pv-cat">${d.category || 'Kategori'}</div>
+      <div class="pv-title">${d.title || 'Tajuk Cerita'}</div>
+      <div class="pv-synopsis">${d.synopsis || 'Sinopsis cerita…'}</div>
+      <div class="pv-meta">
+        <span class="pv-badge">🎯 ${d.age_group || '—'} thn</span>
+        <span class="pv-badge">📖 ${diffLabels[selectedDiff] || selectedDiff}</span>
+        <span class="pv-badge">🌐 ${d.language.toUpperCase()}</span>
+      </div>
+    </div>
+    <div class="pv-divider"></div>
+    ${panelHTML}
+    ${moralHTML}
+  `;
+  document.getElementById('preview-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePreview() {
+  document.getElementById('preview-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── SUCCESS ── */
+function showSuccess() {
+  const overlay = document.getElementById('success-overlay');
+  overlay.classList.add('open');
+  spawnConfetti();
+}
+function spawnConfetti() {
+  const container = document.getElementById('confetti-container');
+  const colors = ['#ff6b6b','#a78bfa','#06d6a0','#ffd166','#38bdf8','#f472b6'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-delay:${Math.random()*1.5}s;
+      animation-duration:${2+Math.random()*2}s;
+    `;
+    container.appendChild(piece);
+  }
+}
+
+/* ── INTERSECTION OBSERVER for step pills ── */
+const sections = ['sec-basic','sec-cover','sec-synopsis','sec-panels','sec-moral','sec-settings'];
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const idx = sections.indexOf(entry.target.id);
+      if (idx >= 0) {
+        document.querySelectorAll('.step-pill').forEach((p,i) => p.classList.toggle('active', i===idx));
+      }
+    }
+  });
+}, { threshold: 0.4 });
+sections.forEach(id => { const el = document.getElementById(id); if(el) observer.observe(el); });
+</script>
+</body>
+</html>
