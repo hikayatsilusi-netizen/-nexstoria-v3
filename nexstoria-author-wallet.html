@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pusat Pendapatan — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#ffd166;--gold2:#f59e0b;
+  --purple:#a78bfa;--purple2:#7c3aed;
+  --coral:#ff6b6b;--coral2:#ff4757;
+  --mint:#06d6a0;--sky:#38bdf8;--sky2:#0ea5e9;
+  --pink:#f472b6;--sun:#ffd166;
+  --lav:#a78bfa;--lav2:#7c3aed;
+  --ink:#1a1a2e;--soft:#6b7a9e;
+  --muted:#94a3b8;--border:#e2e8f7;
+  --off:#f8faff;--white:#fff;
+  --dark:#0f0f1e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);overflow-x:hidden;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:60px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(15,15,30,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(167,139,250,0.2);box-shadow:0 4px 24px rgba(0,0,0,0.3);}
+.nav-logo{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;text-decoration:none;display:flex;align-items:center;gap:6px;color:var(--gold);}
+.nav-logo em{color:var(--purple);font-style:normal;}
+.nav-logo-badge{font-size:0.6rem;font-weight:800;padding:3px 10px;border-radius:8px;letter-spacing:0.5px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#78350f;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-btn{font-family:'Nunito',sans-serif;font-weight:700;font-size:0.82rem;padding:7px 16px;border-radius:10px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.7);}
+.nav-btn:hover{border-color:var(--purple);color:var(--purple);}
+.btn-logout{padding:7px 14px;border-radius:10px;background:transparent;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:0.2s;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.55);}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+
+/* HERO BANNER */
+.hero-banner{background:linear-gradient(135deg,#0f0f1e 0%,#1a1040 40%,#0f2027 70%,#0f0f1e 100%);padding:3rem 2rem 4rem;position:relative;overflow:hidden;}
+.hero-banner::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 20% 30%,rgba(255,209,102,0.08),transparent 50%),radial-gradient(circle at 80% 70%,rgba(167,139,250,0.08),transparent 50%);}
+.hero-particles{position:absolute;inset:0;overflow:hidden;}
+.hero-particle{position:absolute;border-radius:50%;animation:floatUp 6s ease-in-out infinite;pointer-events:none;}
+@keyframes floatUp{0%,100%{transform:translateY(0) scale(1);opacity:0.3;}50%{transform:translateY(-20px) scale(1.1);opacity:0.7;}}
+.hero-content{max-width:900px;margin:0 auto;position:relative;z-index:2;text-align:center;}
+.hero-icon{font-size:3.5rem;margin-bottom:1rem;filter:drop-shadow(0 4px 16px rgba(255,209,102,0.4));}
+.hero-title{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:800;color:white;margin-bottom:0.5rem;}
+.hero-sub{font-size:0.9rem;color:rgba(255,255,255,0.5);max-width:500px;margin:0 auto;}
+
+/* MAIN */
+.main-wrap{max-width:900px;margin:-2rem auto 3rem;padding:0 1.5rem;position:relative;z-index:3;}
+
+/* CARD */
+.card{background:white;border-radius:24px;padding:1.8rem;margin-bottom:1.5rem;border:1.5px solid var(--border);box-shadow:0 8px 40px rgba(26,26,46,0.08);}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;}
+.card-title{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.card-badge{font-size:0.6rem;font-weight:900;padding:4px 12px;border-radius:20px;letter-spacing:0.5px;}
+
+/* BAKI OVERVIEW */
+.baki-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+.baki-card{border-radius:18px;padding:1.2rem;position:relative;overflow:hidden;text-align:center;}
+.baki-card::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;pointer-events:none;}
+.baki-stars{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid rgba(255,209,102,0.35);}
+.baki-stars::before{background:radial-gradient(circle,rgba(255,209,102,0.2),transparent 70%);}
+.baki-diamond{background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(124,58,237,0.04));border:1.5px solid rgba(167,139,250,0.3);}
+.baki-diamond::before{background:radial-gradient(circle,rgba(167,139,250,0.15),transparent 70%);}
+.baki-rm{background:linear-gradient(135deg,rgba(6,214,160,0.08),rgba(6,214,160,0.04));border:1.5px solid rgba(6,214,160,0.3);}
+.baki-rm::before{background:radial-gradient(circle,rgba(6,214,160,0.15),transparent 70%);}
+.baki-icon{font-size:2rem;margin-bottom:6px;display:block;}
+.baki-val{font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:800;}
+.baki-label{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;margin-top:4px;}
+.baki-tag{position:absolute;top:8px;right:8px;font-size:0.5rem;font-weight:900;padding:2px 7px;border-radius:6px;letter-spacing:0.3px;}
+
+/* RATE INFO */
+.rate-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--off);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:1.5rem;}
+.rate-item{font-size:0.75rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:6px;}
+.rate-chip{padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:800;}
+.rate-chip.diamond{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);color:var(--lav2);}
+.rate-chip.rm{background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.25);color:#059669;}
+
+/* WITHDRAW OPTIONS */
+.withdraw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.withdraw-card{background:var(--off);border:1.5px solid var(--border);border-radius:18px;padding:1.5rem 1rem;text-align:center;position:relative;overflow:hidden;transition:all 0.25s;}
+.withdraw-card:not(.disabled):hover{border-color:var(--purple);box-shadow:0 8px 28px rgba(124,58,237,0.12);transform:translateY(-3px);}
+.withdraw-card.disabled{opacity:0.65;pointer-events:none;}
+.wc-icon{font-size:2.2rem;margin-bottom:8px;}
+.wc-title{font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;color:var(--ink);margin-bottom:4px;}
+.wc-desc{font-size:0.68rem;color:var(--soft);line-height:1.5;margin-bottom:10px;min-height:36px;}
+.wc-min{font-size:0.65rem;font-weight:800;padding:4px 12px;border-radius:8px;display:inline-block;margin-bottom:12px;}
+.wc-min.stars{background:#fef3c7;color:#92400e;}
+.wc-min.rm{background:rgba(6,214,160,0.15);color:#059669;}
+.wc-btn{width:100%;padding:10px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:800;cursor:pointer;transition:0.2s;}
+.wc-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;box-shadow:0 4px 16px rgba(124,58,237,0.3);}
+.wc-btn.active:hover{opacity:0.9;transform:translateY(-1px);}
+.wc-btn.locked{background:rgba(148,163,184,0.1);color:var(--muted);cursor:not-allowed;}
+.wc-lock-overlay{position:absolute;inset:0;background:rgba(248,250,255,0.85);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-radius:18px;}
+.wc-lock-icon{font-size:1.5rem;}
+.wc-lock-text{font-size:0.6rem;font-weight:900;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+
+/* SIJIL SECTION */
+.sijil-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;}
+.sijil-card{border-radius:18px;overflow:hidden;border:1.5px solid var(--border);background:white;transition:all 0.25s;cursor:pointer;}
+.sijil-card:not(.locked):hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(124,58,237,0.15);border-color:var(--purple);}
+.sijil-card.locked{opacity:0.5;cursor:default;}
+.sijil-art{height:100px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.sijil-art .sc-icon{font-size:2.5rem;position:relative;z-index:2;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.15));}
+.sijil-art .sc-glow{position:absolute;inset:0;opacity:0.4;}
+.sijil-body{padding:12px 14px 14px;background:white;}
+.sijil-name{font-family:'Baloo 2',cursive;font-size:0.82rem;font-weight:800;color:var(--ink);margin-bottom:3px;}
+.sijil-desc{font-size:0.62rem;color:var(--muted);line-height:1.4;margin-bottom:6px;}
+.sijil-status{font-size:0.6rem;font-weight:800;padding:3px 10px;border-radius:8px;display:inline-block;}
+.sijil-status.earned{background:rgba(6,214,160,0.15);color:#059669;}
+.sijil-status.locked{background:var(--off);color:var(--muted);}
+.sijil-claim-btn{width:100%;padding:8px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:800;cursor:pointer;transition:0.2s;margin-top:8px;}
+.sijil-claim-btn.can-claim{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#78350f;box-shadow:0 3px 12px rgba(255,209,102,0.3);}
+.sijil-claim-btn.can-claim:hover{transform:translateY(-1px);opacity:0.9;}
+.sijil-claim-btn.claimed{background:rgba(6,214,160,0.15);color:#059669;cursor:default;}
+.sijil-claim-btn.disabled{background:var(--off);color:var(--muted);cursor:not-allowed;}
+
+/* HISTORY TABLE */
+.history-wrap{overflow-x:auto;margin-top:1rem;}
+.history-table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+.history-table th{text-align:left;padding:10px 12px;background:var(--off);color:var(--soft);font-weight:800;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1.5px solid var(--border);}
+.history-table td{padding:12px;border-bottom:1px solid var(--border);color:var(--ink);}
+.history-table tr:hover td{background:rgba(167,139,250,0.03);}
+.history-status{font-size:0.65rem;font-weight:800;padding:3px 10px;border-radius:8px;display:inline-block;}
+.history-status.pending{background:#fef3c7;color:#92400e;}
+.history-status.completed{background:rgba(6,214,160,0.15);color:#059669;}
+.history-status.rejected{background:rgba(239,68,68,0.1);color:#dc2626;}
+
+/* NOTA INFO */
+.nota-box{display:flex;gap:12px;align-items:flex-start;background:rgba(167,139,250,0.05);border:1.5px solid rgba(167,139,250,0.2);border-radius:14px;padding:14px 18px;margin-top:1.5rem;}
+.nota-icon{font-size:1.2rem;flex-shrink:0;}
+.nota-text{font-size:0.75rem;color:var(--soft);line-height:1.7;}
+.nota-text strong{color:var(--ink);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:999;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:white;border-radius:28px;padding:2rem;width:100%;max-width:480px;position:relative;animation:modalIn 0.3s ease;max-height:90vh;overflow-y:auto;}
+@keyframes modalIn{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);}
+.modal-title{font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;margin-bottom:1.2rem;color:var(--ink);text-align:center;}
+.form-group{margin-bottom:1rem;}
+.form-label{font-size:0.78rem;font-weight:800;color:var(--soft);display:block;margin-bottom:5px;}
+.form-input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:0.9rem;color:var(--ink);outline:none;transition:0.2s;background:var(--off);}
+.form-input:focus{border-color:var(--purple);background:white;}
+.form-input:disabled{opacity:0.6;cursor:not-allowed;}
+.form-submit{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;cursor:pointer;margin-top:0.5rem;transition:0.2s;box-shadow:0 4px 16px rgba(124,58,237,0.3);}
+.form-submit:hover{opacity:0.9;transform:translateY(-1px);}
+.form-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.form-msg{font-size:0.78rem;text-align:center;margin-top:10px;min-height:18px;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:3rem 1.5rem;color:var(--muted);}
+.empty-icon{font-size:3rem;margin-bottom:10px;}
+.empty-title{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:6px;}
+.empty-sub{font-size:0.82rem;line-height:1.6;}
+
+/* BACK BUTTON */
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;color:var(--soft);text-decoration:none;padding:8px 16px;border-radius:12px;background:white;border:1.5px solid var(--border);transition:0.2s;margin-bottom:1.5rem;}
+.back-btn:hover{border-color:var(--purple);color:var(--purple);}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  nav{padding:0 1rem;}
+  .hero-banner{padding:2rem 1rem 3rem;}
+  .hero-title{font-size:1.5rem;}
+  .main-wrap{padding:0 1rem;}
+  .baki-grid{grid-template-columns:1fr;}
+  .withdraw-grid{grid-template-columns:1fr;}
+  .card{padding:1.2rem;}
+}
+@media(max-width:480px){
+  .nav-btn,.btn-logout{display:none;}
+  .sijil-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <a class="nav-logo" href="index.html">Nex<em>Storia</em></a>
+    <span class="nav-logo-badge">PUSAT PENDAPATAN</span>
+  </div>
+  <div class="nav-right">
+    <a class="nav-btn" href="nexstoria-author-profile.html">Kembali ke Profil</a>
+    <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
+  </div>
+</nav>
+
+<!-- HERO BANNER -->
+<div class="hero-banner">
+  <div class="hero-particles" id="hero-particles"></div>
+  <div class="hero-content">
+    <div class="hero-icon">💸</div>
+    <h1 class="hero-title">Pusat Pendapatan Penulis</h1>
+    <p class="hero-sub">Urus pendapatan royalti, keluarkan wang, dan tuntut sijil fizikal di sini.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+  <a href="nexstoria-author-profile.html" class="back-btn">← Kembali ke Profil</a>
+
+  <!-- BAKI OVERVIEW -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Ringkasan Baki</div>
+      <div class="card-badge" style="background:linear-gradient(135deg,rgba(6,214,160,0.15),rgba(6,214,160,0.1));color:#059669;">Dikemaskini secara automatik</div>
+    </div>
+
+    <div class="baki-grid">
+      <!-- Bintang -->
+      <div class="baki-card baki-stars">
+        <div class="baki-tag" style="background:rgba(255,209,102,0.25);color:#92400e;">IN-APP</div>
+        <span class="baki-icon">⭐</span>
+        <div class="baki-val" style="color:#92400e;" id="baki-stars">—</div>
+        <div class="baki-label" style="color:#b45309;">Bintang Terkumpul</div>
+      </div>
+
+      <!-- Diamond / NexCoins -->
+      <div class="baki-card baki-diamond">
+        <div class="baki-tag" style="background:rgba(167,139,250,0.2);color:var(--lav2);">BOLEH TUKAR</div>
+        <span class="baki-icon">💎</span>
+        <div class="baki-val" style="color:var(--lav2);" id="baki-diamond">0</div>
+        <div class="baki-label" style="color:var(--lav2);">NexCoins (Diamond)</div>
+      </div>
+
+      <!-- RM Value -->
+      <div class="baki-card baki-rm">
+        <div class="baki-tag" style="background:rgba(6,214,160,0.2);color:#059669;">ANGGARAN</div>
+        <span class="baki-icon">💵</span>
+        <div class="baki-val" style="color:#059669;" id="baki-rm">RM 0.00</div>
+        <div class="baki-label" style="color:#059669;">Nilai Tunai</div>
+      </div>
+    </div>
+
+    <!-- Rate Info -->
+    <div class="rate-bar">
+      <div class="rate-item">Kadar Pertukaran Semasa:</div>
+      <div class="rate-chip diamond">💎 10 NexCoins = RM 1.00</div>
+      <div class="rate-chip rm">Minimum pengeluaran: RM 3.00</div>
+    </div>
+  </div>
+
+  <!-- PENGELUARAN WANG -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Keluarkan Pendapatan</div>
+      <div class="card-badge" style="background:linear-gradient(135deg,rgba(255,209,102,0.15),rgba(245,158,11,0.1));border:1px solid rgba(255,209,102,0.3);color:#92400e;">AKAN DATANG</div>
+    </div>
+
+    <div class="withdraw-grid">
+      <!-- Bank Transfer -->
+      <div class="withdraw-card disabled">
+        <div class="wc-lock-overlay">
+          <div class="wc-lock-icon">🔒</div>
+          <div class="wc-lock-text">Akan Datang</div>
+        </div>
+        <div class="wc-icon">🏦</div>
+        <div class="wc-title">Pindahan Bank</div>
+        <div class="wc-desc">Pindah terus ke akaun bank Malaysia anda</div>
+        <div class="wc-min rm">Min: RM 3.00 (30 💎)</div>
+        <button class="wc-btn locked" disabled>Pilih</button>
+      </div>
+
+      <!-- E-Wallet -->
+      <div class="withdraw-card disabled">
+        <div class="wc-lock-overlay">
+          <div class="wc-lock-icon">🔒</div>
+          <div class="wc-lock-text">Akan Datang</div>
+        </div>
+        <div class="wc-icon">📱</div>
+        <div class="wc-title">E-Wallet</div>
+        <div class="wc-desc">Touch n Go, GrabPay, Boost, atau ShopeePay</div>
+        <div class="wc-min rm">Min: RM 10.00 (100 💎)</div>
+        <button class="wc-btn locked" disabled>Pilih</button>
+      </div>
+
+      <!-- Redeem Gift -->
+      <div class="withdraw-card disabled">
+        <div class="wc-lock-overlay">
+          <div class="wc-lock-icon">🔒</div>
+          <div class="wc-lock-text">Akan Datang</div>
+        </div>
+        <div class="wc-icon">🎁</div>
+        <div class="wc-title">Tebus Hadiah</div>
+        <div class="wc-desc">Voucher, merchandise NexStoria & banyak lagi</div>
+        <div class="wc-min stars">Min: 200 ⭐</div>
+        <button class="wc-btn locked" disabled>Pilih</button>
+      </div>
+    </div>
+
+    <div class="nota-box">
+      <div class="nota-icon">ℹ️</div>
+      <div class="nota-text">
+        Ciri pengeluaran pendapatan akan diaktifkan secara berperingkat. Penulis yang layak akan dimaklumkan melalui e-mel. 
+        Pendapatan tertakluk kepada <strong>Terma & Syarat</strong> NexStoria.
+      </div>
+    </div>
+  </div>
+
+  <!-- TUNTUT SIJIL FIZIKAL -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Tuntut Sijil Fizikal</div>
+      <div class="card-badge" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:#78350f;" id="sijil-count">0 sijil layak</div>
+    </div>
+
+    <p style="font-size:0.82rem;color:var(--soft);margin-bottom:1.2rem;line-height:1.6;">
+      Dapatkan sijil pencapaian anda dalam bentuk fizikal yang berkualiti tinggi! 
+      Sijil akan dicetak dan dihantar ke alamat anda.
+    </p>
+
+    <div class="sijil-grid" id="sijil-grid">
+      <!-- Sijil cards will be loaded here -->
+      <div class="empty-state" style="grid-column:1/-1;">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Memuatkan sijil...</div>
+      </div>
+    </div>
+
+    <div class="nota-box" style="background:rgba(255,209,102,0.05);border-color:rgba(255,209,102,0.2);">
+      <div class="nota-icon">📦</div>
+      <div class="nota-text">
+        <strong>Kos penghantaran:</strong> RM 5 (Semenanjung) / RM 8 (Sabah & Sarawak). 
+        Sijil akan dihantar dalam masa 7-14 hari bekerja selepas pembayaran disahkan.
+      </div>
+    </div>
+  </div>
+
+  <!-- SEJARAH TRANSAKSI -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Sejarah Transaksi</div>
+    </div>
+
+    <div id="history-content">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Tiada transaksi lagi</div>
+        <div class="empty-sub">Sejarah pengeluaran dan tuntutan sijil anda akan dipaparkan di sini.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL WITHDRAW -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('withdrawModal')">✕</button>
+    <div class="modal-title">🏦 Pengeluaran Wang</div>
+    <div class="form-group">
+      <label class="form-label">Jumlah Pengeluaran (RM)</label>
+      <input type="number" class="form-input" id="withdraw-amount" placeholder="Minimum RM 3.00" min="3" step="0.50" disabled>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nama Bank</label>
+      <input type="text" class="form-input" id="withdraw-bank" placeholder="cth: Maybank, CIMB, Public Bank" disabled>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombor Akaun</label>
+      <input type="text" class="form-input" id="withdraw-acc" placeholder="Nombor akaun bank anda" disabled>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nama Pemegang Akaun</label>
+      <input type="text" class="form-input" id="withdraw-name" placeholder="Seperti dalam buku akaun" disabled>
+    </div>
+    <button class="form-submit" disabled>Ciri ini akan datang tidak lama lagi</button>
+    <div class="form-msg" id="withdraw-msg"></div>
+  </div>
+</div>
+
+<!-- MODAL CLAIM SIJIL -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('claimModal')">✕</button>
+    <div class="modal-title" id="claim-title">📜 Tuntut Sijil Fizikal</div>
+    <div style="text-align:center;margin-bottom:1.2rem;">
+      <div style="font-size:3rem;margin-bottom:8px;" id="claim-icon">📜</div>
+      <div style="font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);" id="claim-sijil-name">—</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nama Penerima</label>
+      <input type="text" class="form-input" id="claim-nama" placeholder="Nama penuh untuk sijil" disabled>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Alamat Penghantaran</label>
+      <textarea class="form-input" id="claim-alamat" placeholder="Alamat lengkap untuk penghantaran sijil" rows="3" style="resize:none;" disabled></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombor Telefon</label>
+      <input type="tel" class="form-input" id="claim-phone" placeholder="cth: 012-3456789" disabled>
+    </div>
+    <div style="background:var(--off);border-radius:12px;padding:12px;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.82rem;color:var(--soft);font-weight:700;">Kos Penghantaran</span>
+      <span style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--gold2);">RM 5.00</span>
+    </div>
+    <button class="form-submit" disabled>Ciri ini akan datang tidak lama lagi</button>
+    <div class="form-msg" id="claim-msg"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let profileData = null;
+
+// ── HELPERS ──
+function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','')+'k' : String(n||0); }
+
+// ── HERO PARTICLES ──
+function genParticles() {
+  const c = document.getElementById('hero-particles');
+  const colors = ['#ffd166','#a78bfa','#06d6a0','#38bdf8','#f472b6'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'hero-particle';
+    const s = Math.random() * 6 + 3;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:${colors[i%5]};opacity:0.25;animation-delay:${Math.random()*4}s;animation-duration:${Math.random()*3+4}s;`;
+    c.appendChild(p);
+  }
+}
+
+// ── MODAL ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── LOGOUT ──
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.replace('nexstoria-login.html');
+}
+
+// ── SIJIL DEFINITIONS ──
+const SIJIL_DEFS = [
+  { id: 'first_story', icon: '📝', name: 'Penulis Pertama', desc: 'Terbitkan cerita pertama anda', gradient: 'linear-gradient(135deg,#e9d5ff,#c4b5fd)', req: s => s.publishedCount >= 1 },
+  { id: 'five_stories', icon: '📚', name: 'Penulis Berkembang', desc: 'Terbitkan 5 cerita', gradient: 'linear-gradient(135deg,#bfdbfe,#93c5fd)', req: s => s.publishedCount >= 5 },
+  { id: 'ten_stories', icon: '🏆', name: 'Penulis Prolifik', desc: 'Terbitkan 10 cerita', gradient: 'linear-gradient(135deg,#fde68a,#fcd34d)', req: s => s.publishedCount >= 10 },
+  { id: 'hundred_reads', icon: '👁️', name: '100 Pembaca', desc: 'Capai 100 jumlah bacaan', gradient: 'linear-gradient(135deg,#bbf7d0,#86efac)', req: s => s.totalReads >= 100 },
+  { id: 'thousand_reads', icon: '🌟', name: '1,000 Pembaca', desc: 'Capai 1,000 jumlah bacaan', gradient: 'linear-gradient(135deg,#fecaca,#fca5a5)', req: s => s.totalReads >= 1000 },
+  { id: 'first_diamond', icon: '💎', name: 'Diamond Pertama', desc: 'Terima diamond pertama anda', gradient: 'linear-gradient(135deg,#ddd6fe,#c4b5fd)', req: s => s.diamonds >= 1 },
+];
+
+// ── RENDER SIJIL ──
+function renderSijil(stats) {
+  const grid = document.getElementById('sijil-grid');
+  let earnedCount = 0;
+
+  let html = '';
+  SIJIL_DEFS.forEach(sijil => {
+    const earned = sijil.req(stats);
+    if (earned) earnedCount++;
+
+    html += `
+      <div class="sijil-card ${earned ? '' : 'locked'}">
+        <div class="sijil-art" style="background:${sijil.gradient}">
+          <div class="sc-glow" style="background:radial-gradient(circle,rgba(255,255,255,0.4),transparent 70%);"></div>
+          <span class="sc-icon">${sijil.icon}</span>
+        </div>
+        <div class="sijil-body">
+          <div class="sijil-name">${sijil.name}</div>
+          <div class="sijil-desc">${sijil.desc}</div>
+          <span class="sijil-status ${earned ? 'earned' : 'locked'}">${earned ? 'Layak' : 'Belum layak'}</span>
+          ${earned ? `<button class="sijil-claim-btn can-claim" onclick="openClaimModal('${sijil.id}','${sijil.icon}','${sijil.name}')" disabled style="opacity:0.6;cursor:not-allowed;">Akan datang</button>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  grid.innerHTML = html;
+  document.getElementById('sijil-count').textContent = earnedCount + ' sijil layak';
+}
+
+// ── OPEN CLAIM MODAL ──
+function openClaimModal(sijilId, icon, name) {
+  document.getElementById('claim-icon').textContent = icon;
+  document.getElementById('claim-sijil-name').textContent = name;
+  document.getElementById('claim-title').textContent = '📜 Tuntut: ' + name;
+  openModal('claimModal');
+}
+
+// ── INIT ──
+async function init() {
+  genParticles();
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.replace('nexstoria-login.html');
+    return;
+  }
+  currentUser = session.user;
+
+  // Get profile
+  const { data: p } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (!p || !['writer', 'author'].includes(p.role)) {
+    window.location.replace('nexstoria-reader-profile.html');
+    return;
+  }
+  profileData = p;
+
+  // Update balance
+  const stars = p.stars || 0;
+  const diamonds = p.coins || 0;
+  const rmValue = (diamonds * 0.10).toFixed(2);
+
+  document.getElementById('baki-stars').textContent = stars || '—';
+  document.getElementById('baki-diamond').textContent = fmt(diamonds);
+  document.getElementById('baki-rm').textContent = 'RM ' + rmValue;
+
+  // Pre-fill claim form
+  document.getElementById('claim-nama').value = p.full_name || '';
+
+  // Load stories for sijil stats
+  const { data: stories } = await sb.from('stories').select('*').eq('author_id', currentUser.id);
+  
+  const stats = {
+    publishedCount: stories?.filter(s => s.status === 'published').length || 0,
+    totalReads: stories?.reduce((sum, s) => sum + (s.reads_count || 0), 0) || 0,
+    diamonds: diamonds
+  };
+
+  renderSijil(stats);
+}
+
+init();
+</script>
+</body>
+</html>
