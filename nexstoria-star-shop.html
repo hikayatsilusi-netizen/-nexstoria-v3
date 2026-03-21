@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kedai Bintang — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#ffd166;--gold2:#f59e0b;--gold3:#78350f;
+  --lav:#a78bfa;--lav2:#7c3aed;
+  --mint:#06d6a0;--mint2:#059669;
+  --coral:#ff6b6b;
+  --sky:#38bdf8;
+  --ink:#1a1a2e;--soft:#6b7a9e;--muted:#94a3b8;
+  --border:#e2e8f7;--off:#f8faff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:62px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;background:rgba(26,26,46,.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,209,102,.15);}
+.nav-logo{font-family:'Baloo 2',cursive;font-size:1.5rem;font-weight:800;color:var(--gold);text-decoration:none;}
+.nav-logo em{color:var(--lav);font-style:normal;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-back{font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;padding:7px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.65);cursor:pointer;text-decoration:none;transition:.2s;}
+.nav-back:hover{border-color:var(--gold);color:var(--gold);}
+.nav-stars{display:flex;align-items:center;gap:6px;background:rgba(255,209,102,.12);border:1.5px solid rgba(255,209,102,.3);border-radius:12px;padding:6px 14px;}
+.nav-stars-val{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--gold);}
+.nav-stars-lbl{font-size:.68rem;color:rgba(255,209,102,.65);font-weight:700;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f0f1e,#1a0a2e,#0f1e2a);padding:2.5rem 1.5rem 5rem;position:relative;overflow:hidden;text-align:center;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(255,209,102,.1),transparent 55%),radial-gradient(ellipse at 70% 50%,rgba(167,139,250,.08),transparent 55%);}
+.hero-particles{position:absolute;inset:0;pointer-events:none;}
+.hp{position:absolute;border-radius:50%;animation:hpFloat 5s ease-in-out infinite;}
+@keyframes hpFloat{0%,100%{transform:translateY(0);opacity:.2;}50%{transform:translateY(-18px);opacity:.6;}}
+.hero-inner{position:relative;z-index:2;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.25);border-radius:20px;padding:5px 14px;font-size:.7rem;font-weight:800;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;}
+.hero-title{font-family:'Baloo 2',cursive;font-size:2.2rem;font-weight:800;color:white;margin-bottom:8px;}
+.hero-title span{color:var(--gold);}
+.hero-sub{font-size:.88rem;color:rgba(255,255,255,.45);max-width:460px;margin:0 auto 1.5rem;line-height:1.6;}
+.hero-stats{display:inline-flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+.hs-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:.9rem 1.4rem;text-align:center;min-width:110px;}
+.hs-val{font-family:'Baloo 2',cursive;font-size:1.5rem;font-weight:800;display:block;}
+.hs-lbl{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.35);margin-top:2px;}
+
+/* MAIN */
+.wrap{max-width:860px;margin:-2.5rem auto 4rem;padding:0 1.5rem;position:relative;z-index:3;}
+
+/* FILTER TABS */
+.filter-tabs{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;}
+.ftab{font-family:'Nunito',sans-serif;font-weight:800;font-size:.8rem;padding:8px 18px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--soft);cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.ftab:hover{border-color:var(--gold);color:var(--gold2);}
+.ftab.active{background:linear-gradient(135deg,var(--gold),var(--gold2));border-color:transparent;color:var(--gold3);box-shadow:0 4px 14px rgba(255,209,102,.3);}
+
+/* GRID */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;}
+
+/* ITEM CARD */
+.item-card{background:white;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;transition:all .25s;position:relative;cursor:pointer;}
+.item-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(26,26,46,.12);border-color:var(--gold);}
+.item-card.owned{border-color:rgba(6,214,160,.4);background:linear-gradient(135deg,rgba(6,214,160,.04),white);}
+.item-card.owned:hover{border-color:var(--mint);}
+.item-card.equipped{border-color:var(--lav);background:linear-gradient(135deg,rgba(167,139,250,.06),white);box-shadow:0 0 0 3px rgba(167,139,250,.2);}
+
+/* Item art */
+.item-art{height:110px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.item-art-emoji{font-size:3rem;position:relative;z-index:2;filter:drop-shadow(0 4px 12px rgba(0,0,0,.15));transition:.3s;}
+.item-card:hover .item-art-emoji{transform:scale(1.12);}
+.item-art-glow{position:absolute;inset:0;opacity:.35;}
+
+/* Type badge */
+.item-type-badge{position:absolute;top:8px;left:8px;font-size:.5rem;font-weight:900;padding:3px 8px;border-radius:7px;letter-spacing:.4px;text-transform:uppercase;}
+.tb-avatar{background:rgba(167,139,250,.15);color:var(--lav2);}
+.tb-badge{background:rgba(255,209,102,.15);color:var(--gold3);}
+.tb-coupon{background:rgba(6,214,160,.15);color:var(--mint2);}
+
+/* Owned badge */
+.owned-badge{position:absolute;top:8px;right:8px;font-size:.55rem;font-weight:900;padding:3px 9px;border-radius:8px;background:rgba(6,214,160,.15);color:var(--mint2);}
+.equipped-badge{position:absolute;top:8px;right:8px;font-size:.55rem;font-weight:900;padding:3px 9px;border-radius:8px;background:rgba(167,139,250,.2);color:var(--lav2);}
+
+/* Item body */
+.item-body{padding:10px 12px 14px;}
+.item-name{font-family:'Baloo 2',cursive;font-size:.85rem;font-weight:800;color:var(--ink);margin-bottom:3px;}
+.item-desc{font-size:.62rem;color:var(--muted);line-height:1.4;margin-bottom:8px;min-height:28px;}
+.item-cost{display:flex;align-items:center;justify-content:space-between;}
+.item-price{font-family:'Baloo 2',cursive;font-size:.9rem;font-weight:800;color:var(--gold2);display:flex;align-items:center;gap:4px;}
+.item-price.free{color:var(--mint2);}
+.item-btn{font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:800;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;transition:.2s;}
+.item-btn-buy{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--gold3);}
+.item-btn-buy:hover{opacity:.9;}
+.item-btn-owned{background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.25);color:var(--mint2);cursor:default;}
+.item-btn-equip{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--lav2);cursor:pointer;}
+.item-btn-equip:hover{background:rgba(167,139,250,.2);}
+.item-btn-equipped{background:rgba(167,139,250,.2);border:1px solid var(--lav);color:var(--lav2);cursor:default;}
+.item-btn-insufficient{background:var(--off);color:var(--muted);border:1px solid var(--border);cursor:not-allowed;opacity:.7;}
+
+/* Cara Dapat Bintang */
+.earn-section{background:linear-gradient(135deg,#0f0f1e,#1a1040);border:1.5px solid rgba(255,209,102,.2);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.earn-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,209,102,.07),transparent 60%),radial-gradient(circle at 85% 50%,rgba(167,139,250,.07),transparent 60%);pointer-events:none;}
+.earn-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:white;margin-bottom:1rem;position:relative;display:flex;align-items:center;gap:8px;}
+.earn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;position:relative;}
+.earn-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:.9rem .8rem;text-align:center;}
+.earn-icon{font-size:1.6rem;margin-bottom:5px;}
+.earn-stars{font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:800;color:var(--gold);}
+.earn-label{font-size:.62rem;color:rgba(255,255,255,.45);font-weight:700;margin-top:3px;line-height:1.4;}
+
+/* History */
+.history-section{background:white;border:1.5px solid var(--border);border-radius:20px;padding:1.4rem;margin-top:1.5rem;}
+.history-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.history-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.history-item:last-child{border:none;}
+.hi-icon{font-size:1.5rem;flex-shrink:0;}
+.hi-info{flex:1;}
+.hi-name{font-weight:800;font-size:.85rem;color:var(--ink);}
+.hi-date{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.hi-cost{font-family:'Baloo 2',cursive;font-size:.85rem;font-weight:800;color:var(--gold2);}
+
+/* Empty */
+.empty{text-align:center;padding:3rem 1rem;grid-column:1/-1;}
+.empty-icon{font-size:2.5rem;margin-bottom:8px;opacity:.4;}
+.empty-text{font-size:.82rem;color:var(--muted);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:999;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:white;border-radius:26px;padding:2rem;width:100%;max-width:380px;position:relative;animation:mIn .3s ease;text-align:center;}
+@keyframes mIn{from{transform:translateY(36px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-close{position:absolute;top:1rem;right:1rem;background:var(--off);border:1.5px solid var(--border);font-size:.9rem;width:30px;height:30px;border-radius:50%;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:.2s;}
+.modal-close:hover{color:var(--coral);}
+.modal-item-icon{font-size:3.5rem;margin-bottom:8px;display:block;}
+.modal-item-name{font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;color:var(--ink);margin-bottom:4px;}
+.modal-item-desc{font-size:.8rem;color:var(--soft);margin-bottom:1.2rem;line-height:1.6;}
+.modal-cost-row{display:flex;align-items:center;justify-content:space-between;background:var(--off);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:1rem;}
+.modal-cost-lbl{font-size:.75rem;font-weight:700;color:var(--soft);}
+.modal-cost-val{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--gold2);}
+.modal-bal-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,209,102,.07);border:1px solid rgba(255,209,102,.2);border-radius:12px;padding:10px 16px;margin-bottom:1.2rem;}
+.modal-bal-lbl{font-size:.75rem;font-weight:700;color:var(--soft);}
+.modal-bal-val{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--gold);}
+.modal-confirm-btn{width:100%;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--gold3);font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;cursor:pointer;transition:.2s;box-shadow:0 4px 16px rgba(255,209,102,.35);}
+.modal-confirm-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
+.modal-confirm-btn:disabled{background:linear-gradient(135deg,#94a3b8,#cbd5e1);color:white;cursor:not-allowed;box-shadow:none;transform:none;}
+.modal-cancel-btn{width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--soft);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;margin-top:8px;transition:.2s;}
+.modal-cancel-btn:hover{border-color:var(--coral);color:var(--coral);}
+.modal-msg{font-size:.78rem;min-height:20px;margin-top:10px;font-weight:700;}
+.modal-msg.ok{color:var(--mint);}
+.modal-msg.err{color:var(--coral);}
+
+/* Coupon reveal */
+.coupon-reveal{background:linear-gradient(135deg,rgba(6,214,160,.08),rgba(6,214,160,.04));border:2px dashed rgba(6,214,160,.4);border-radius:14px;padding:1rem;margin-bottom:1rem;display:none;}
+.cr-code{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--mint2);letter-spacing:2px;margin-bottom:4px;}
+.cr-val{font-size:.75rem;color:var(--soft);}
+
+/* Toast */
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.toast-item{padding:10px 20px;border-radius:12px;font-size:.82rem;font-weight:700;white-space:nowrap;animation:tIn .3s ease;box-shadow:0 6px 20px rgba(0,0,0,.15);}
+@keyframes tIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.toast-ok{background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.3);color:var(--mint2);}
+.toast-err{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--coral);}
+
+/* Loading */
+.loading-state{text-align:center;padding:3rem;color:var(--muted);font-size:.85rem;grid-column:1/-1;}
+.spin{display:inline-block;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:600px){
+  nav{padding:0 1rem;}
+  .hero{padding:2rem 1rem 4rem;}
+  .hero-title{font-size:1.6rem;}
+  .wrap{padding:0 1rem;}
+  .earn-grid{grid-template-columns:1fr 1fr;}
+  .shop-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">Nex<em>Storia</em></a>
+  <div class="nav-right">
+    <div class="nav-stars">
+      <span style="font-size:1rem;">⭐</span>
+      <div>
+        <div class="nav-stars-val" id="nav-stars">—</div>
+        <div class="nav-stars-lbl">Bintang Anda</div>
+      </div>
+    </div>
+    <a class="nav-back" href="nexstoria-reader-profile.html">← Profil</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-particles" id="hero-particles"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">⭐ Kedai Bintang</div>
+    <h1 class="hero-title">Tebus <span>Bintang</span> Anda</h1>
+    <p class="hero-sub">Tukar bintang yang dikumpul semasa membaca kepada avatar, lencana, dan kupon istimewa!</p>
+    <div class="hero-stats">
+      <div class="hs-card" style="border-color:rgba(255,209,102,.3);">
+        <span class="hs-val" style="color:var(--gold);" id="stat-stars">0</span>
+        <span class="hs-lbl" style="color:rgba(255,209,102,.5);">Bintang Dimiliki</span>
+      </div>
+      <div class="hs-card" style="border-color:rgba(167,139,250,.3);">
+        <span class="hs-val" style="color:var(--lav);" id="stat-items-owned">0</span>
+        <span class="hs-lbl" style="color:rgba(167,139,250,.5);">Item Ditebus</span>
+      </div>
+      <div class="hs-card" style="border-color:rgba(6,214,160,.3);">
+        <span class="hs-val" style="color:var(--mint);" id="stat-books-read">0</span>
+        <span class="hs-lbl" style="color:rgba(6,214,160,.5);">Buku Dibaca</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="wrap">
+
+  <!-- Cara Dapat Bintang -->
+  <div class="earn-section">
+    <div class="earn-title">💡 Cara Kumpul Bintang</div>
+    <div class="earn-grid">
+      <div class="earn-card">
+        <div class="earn-icon">📖</div>
+        <div class="earn-stars">+1 ⭐</div>
+        <div class="earn-label">Habis baca setiap buku</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-icon">🎁</div>
+        <div class="earn-stars">+10 ⭐</div>
+        <div class="earn-label">Bonus selamat datang</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-icon">🔥</div>
+        <div class="earn-stars">+Bonus</div>
+        <div class="earn-label">Streak membaca harian</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <button class="ftab active" id="tab-all"    onclick="filterItems('all')">   🛍️ Semua</button>
+    <button class="ftab"        id="tab-avatar" onclick="filterItems('avatar_emoji')">🎭 Avatar Emoji</button>
+    <button class="ftab"        id="tab-badge"  onclick="filterItems('badge')"> 🏅 Lencana</button>
+    <button class="ftab"        id="tab-coupon" onclick="filterItems('coupon')">🎟️ Kupon</button>
+  </div>
+
+  <!-- Shop Grid -->
+  <div class="shop-grid" id="shop-grid">
+    <div class="loading-state"><span class="spin">⟳</span> Memuatkan kedai...</div>
+  </div>
+
+  <!-- Sejarah Tebusan -->
+  <div class="history-section" id="history-section" style="display:none;">
+    <div class="history-title">📋 Sejarah Tebusan</div>
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<!-- MODAL BELI -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <span class="modal-item-icon" id="m-icon">⭐</span>
+    <div class="modal-item-name" id="m-name">Item</div>
+    <div class="modal-item-desc" id="m-desc">Penerangan item</div>
+
+    <!-- Reveal kupon (selepas beli) -->
+    <div class="coupon-reveal" id="m-coupon-reveal">
+      <div style="font-size:.7rem;font-weight:800;color:var(--soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Kod Kupon Anda</div>
+      <div class="cr-code" id="m-coupon-code">—</div>
+      <div class="cr-val" id="m-coupon-val">—</div>
+    </div>
+
+    <div class="modal-cost-row">
+      <div class="modal-cost-lbl">Kos Tebusan</div>
+      <div class="modal-cost-val" id="m-cost">0 ⭐</div>
+    </div>
+    <div class="modal-bal-row">
+      <div class="modal-bal-lbl">Bintang Anda</div>
+      <div class="modal-bal-val" id="m-balance">0 ⭐</div>
+    </div>
+
+    <button class="modal-confirm-btn" id="m-confirm-btn" onclick="confirmRedeem()">
+      ⭐ Tebus Sekarang
+    </button>
+    <button class="modal-cancel-btn" onclick="closeModal()">Batal</button>
+    <div class="modal-msg" id="m-msg"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let userProfile = null;
+let allItems    = [];
+let ownedIds    = new Set();
+let equippedEmoji = null;
+let currentFilter = 'all';
+let selectedItem  = null;
+
+// ── HELPERS ──
+const $ = id => document.getElementById(id);
+function toast(msg, ok = true) {
+  const t = document.createElement('div');
+  t.className = `toast-item ${ok ? 'toast-ok' : 'toast-err'}`;
+  t.textContent = msg;
+  $('toast').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','')+'k' : String(n||0); }
+
+// ── PARTICLES ──
+function genParticles() {
+  const c = $('hero-particles');
+  const colors = ['#ffd166','#a78bfa','#06d6a0','#38bdf8'];
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement('div');
+    p.className = 'hp';
+    const s = Math.random() * 5 + 3;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:${colors[i%4]};animation-delay:${Math.random()*4}s;animation-duration:${Math.random()*3+4}s;`;
+    c.appendChild(p);
+  }
+}
+
+// ── LOAD DATA ──
+async function loadData() {
+  // Semak sesi
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('nexstoria-login.html'); return; }
+  currentUser = session.user;
+
+  // Profil
+  const { data: p } = await sb.from('profiles')
+    .select('stars, total_stories_read, avatar_emoji, full_name, username')
+    .eq('id', currentUser.id).single();
+  userProfile = p;
+
+  // Update UI
+  const stars = p?.stars || 0;
+  $('nav-stars').textContent = fmt(stars) + ' ⭐';
+  $('stat-stars').textContent = fmt(stars);
+  $('stat-books-read').textContent = fmt(p?.total_stories_read || 0);
+  equippedEmoji = p?.avatar_emoji || null;
+
+  // Item yang dimiliki
+  const { data: owned } = await sb.from('user_star_items')
+    .select('item_id, is_active').eq('user_id', currentUser.id);
+  (owned || []).forEach(o => ownedIds.add(o.item_id));
+  $('stat-items-owned').textContent = ownedIds.size;
+
+  // Semua item dari kedai
+  const { data: items } = await sb.from('star_items')
+    .select('*').eq('is_active', true).order('sort_order');
+  allItems = items || [];
+
+  renderItems(allItems);
+  loadHistory();
+}
+
+// ── RENDER ITEMS ──
+function renderItems(items) {
+  const grid = $('shop-grid');
+  const filtered = currentFilter === 'all'
+    ? items
+    : items.filter(i => i.type === currentFilter);
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🛍️</div><div class="empty-text">Tiada item dalam kategori ini</div></div>`;
+    return;
+  }
+
+  const stars = userProfile?.stars || 0;
+
+  grid.innerHTML = filtered.map(item => {
+    const owned    = ownedIds.has(item.id);
+    const equipped = owned && item.type === 'avatar_emoji' && item.icon === equippedEmoji;
+    const canAfford = stars >= item.cost_stars;
+
+    const typeClass = { avatar_emoji:'tb-avatar', badge:'tb-badge', coupon:'tb-coupon' }[item.type];
+    const typeLabel = { avatar_emoji:'Avatar', badge:'Lencana', coupon:'Kupon' }[item.type];
+
+    const bgColors = {
+      avatar_emoji: 'linear-gradient(135deg,#ede9fe,#c4b5fd)',
+      badge:        'linear-gradient(135deg,#fef3c7,#fde68a)',
+      coupon:       'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+    };
+
+    let btnHtml = '';
+    if (equipped) {
+      btnHtml = `<button class="item-btn item-btn-equipped">✓ Dipakai</button>`;
+    } else if (owned) {
+      if (item.type === 'avatar_emoji') {
+        btnHtml = `<button class="item-btn item-btn-equip" onclick="equipAvatar(event,'${item.id}','${item.icon}')">Pakai</button>`;
+      } else {
+        btnHtml = `<button class="item-btn item-btn-owned">✓ Dimiliki</button>`;
+      }
+    } else if (!canAfford) {
+      btnHtml = `<button class="item-btn item-btn-insufficient" disabled>Kurang ⭐</button>`;
+    } else {
+      btnHtml = `<button class="item-btn item-btn-buy" onclick="openBuyModal(event,'${item.id}')">Tebus</button>`;
+    }
+
+    return `
+    <div class="item-card ${equipped ? 'equipped' : owned ? 'owned' : ''}" onclick="openBuyModal(event,'${item.id}')">
+      <span class="item-type-badge ${typeClass}">${typeLabel}</span>
+      ${equipped ? '<span class="equipped-badge">⚡ Aktif</span>' : owned ? '<span class="owned-badge">✓ Dimiliki</span>' : ''}
+      <div class="item-art" style="background:${bgColors[item.type]}">
+        <div class="item-art-glow" style="background:radial-gradient(circle,rgba(255,255,255,.5),transparent 70%)"></div>
+        <span class="item-art-emoji">${item.icon}</span>
+      </div>
+      <div class="item-body">
+        <div class="item-name">${item.name}</div>
+        <div class="item-desc">${item.description || ''}</div>
+        <div class="item-cost">
+          <div class="item-price ${item.cost_stars === 0 ? 'free' : ''}">
+            ${item.cost_stars === 0 ? '🆓 Percuma' : '⭐ ' + item.cost_stars}
+          </div>
+          ${btnHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── FILTER ──
+function filterItems(type) {
+  currentFilter = type;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  $('tab-' + (type === 'all' ? 'all' : type === 'avatar_emoji' ? 'avatar' : type)).classList.add('active');
+  renderItems(allItems);
+}
+
+// ── BUKA MODAL BELI ──
+function openBuyModal(e, itemId) {
+  e?.stopPropagation();
+  const item = allItems.find(i => i.id === itemId);
+  if (!item) return;
+
+  // Kalau dah owned & avatar — terus equip
+  if (ownedIds.has(item.id) && item.type === 'avatar_emoji') {
+    equipAvatar(null, item.id, item.icon);
+    return;
+  }
+  if (ownedIds.has(item.id)) return;
+
+  selectedItem = item;
+  $('m-icon').textContent    = item.icon;
+  $('m-name').textContent    = item.name;
+  $('m-desc').textContent    = item.description || '';
+  $('m-cost').textContent    = item.cost_stars === 0 ? 'Percuma' : item.cost_stars + ' ⭐';
+  $('m-balance').textContent = (userProfile?.stars || 0) + ' ⭐';
+  $('m-msg').textContent     = '';
+  $('m-msg').className       = 'modal-msg';
+  $('m-coupon-reveal').style.display = 'none';
+
+  const btn = $('m-confirm-btn');
+  btn.disabled = false;
+  btn.textContent = item.cost_stars === 0 ? '🎁 Dapatkan Percuma' : '⭐ Tebus Sekarang';
+
+  if ((userProfile?.stars || 0) < item.cost_stars) {
+    btn.disabled = true;
+    $('m-msg').textContent = `Bintang tidak mencukupi. Perlu ${item.cost_stars} ⭐, ada ${userProfile?.stars||0} ⭐`;
+    $('m-msg').className = 'modal-msg err';
+  }
+
+  $('buyModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  $('buyModal').classList.remove('open');
+  document.body.style.overflow = '';
+  selectedItem = null;
+}
+
+// ── SAHKAN TEBUS ──
+async function confirmRedeem() {
+  if (!selectedItem) return;
+  const btn = $('m-confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⟳</span> Memproses...';
+  $('m-msg').textContent = '';
+
+  const { data, error } = await sb.rpc('redeem_star_item', { p_item_id: selectedItem.id });
+
+  if (error || !data?.ok) {
+    btn.disabled = false;
+    btn.textContent = selectedItem.cost_stars === 0 ? '🎁 Dapatkan Percuma' : '⭐ Tebus Sekarang';
+    $('m-msg').textContent = data?.error || 'Ralat. Cuba lagi.';
+    $('m-msg').className = 'modal-msg err';
+    return;
+  }
+
+  // Berjaya!
+  ownedIds.add(selectedItem.id);
+
+  // Kemaskini baki bintang
+  if (userProfile) userProfile.stars = data.new_balance;
+  $('nav-stars').textContent  = fmt(data.new_balance) + ' ⭐';
+  $('stat-stars').textContent = fmt(data.new_balance);
+  $('stat-items-owned').textContent = ownedIds.size;
+  $('m-balance').textContent  = data.new_balance + ' ⭐';
+
+  // Kalau avatar — kemaskini terus
+  if (data.item_type === 'avatar_emoji') {
+    equippedEmoji = data.item_icon;
+    if (userProfile) userProfile.avatar_emoji = data.item_icon;
+  }
+
+  // Kalau kupon — tunjuk kod
+  if (data.item_type === 'coupon' && data.coupon_code) {
+    $('m-coupon-code').textContent = data.coupon_code;
+    $('m-coupon-val').textContent  = selectedItem.coupon_value || '';
+    $('m-coupon-reveal').style.display = 'block';
+  }
+
+  btn.textContent = '✓ Berjaya!';
+  $('m-msg').textContent = data.message || 'Item berjaya ditebus!';
+  $('m-msg').className = 'modal-msg ok';
+
+  toast('🎉 ' + (data.message || 'Berjaya ditebus!'));
+  renderItems(allItems);
+  loadHistory();
+
+  // Tutup modal selepas 2.5s (kecuali kupon — biar baca kod dulu)
+  if (data.item_type !== 'coupon') {
+    setTimeout(closeModal, 2500);
+  }
+}
+
+// ── EQUIP AVATAR ──
+async function equipAvatar(e, itemId, emoji) {
+  e?.stopPropagation();
+  const { error } = await sb.from('profiles')
+    .update({ avatar_emoji: emoji }).eq('id', currentUser.id);
+  if (error) { toast('❌ Gagal pakai avatar', false); return; }
+  equippedEmoji = emoji;
+  if (userProfile) userProfile.avatar_emoji = emoji;
+  toast('✅ Avatar ' + emoji + ' dipakai!');
+  renderItems(allItems);
+}
+
+// ── SEJARAH ──
+async function loadHistory() {
+  const { data } = await sb.from('user_star_items')
+    .select('*, star_items(*)')
+    .eq('user_id', currentUser.id)
+    .order('redeemed_at', { ascending: false })
+    .limit(10);
+
+  if (!data?.length) return;
+  $('history-section').style.display = 'block';
+
+  $('history-list').innerHTML = data.map(h => {
+    const item = h.star_items;
+    const d = new Date(h.redeemed_at).toLocaleDateString('ms-MY', { day:'2-digit', month:'short', year:'numeric' });
+    return `
+    <div class="history-item">
+      <div class="hi-icon">${item?.icon || '⭐'}</div>
+      <div class="hi-info">
+        <div class="hi-name">${item?.name || '—'}</div>
+        <div class="hi-date">${d}</div>
+      </div>
+      <div class="hi-cost">${item?.cost_stars === 0 ? 'Percuma' : (item?.cost_stars||0) + ' ⭐'}</div>
+    </div>`;
+  }).join('');
+}
+
+// Klik luar modal
+$('buyModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ── INIT ──
+genParticles();
+loadData();
+</script>
+</body>
+</html>
