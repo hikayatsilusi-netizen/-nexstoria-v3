@@ -1,0 +1,2818 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#ffd166;--gold2:#f59e0b;
+  --purple:#a78bfa;--purple2:#7c3aed;
+  --coral:#ff6b6b;--coral2:#ff4757;
+  --mint:#06d6a0;--sky:#38bdf8;--sky2:#0ea5e9;
+  --pink:#f472b6;--sun:#ffd166;
+  --lav:#a78bfa;--lav2:#7c3aed;
+  --ink:#1a1a2e;--soft:#6b7a9e;
+  --muted:#94a3b8;--border:#e2e8f7;
+  --off:#f8faff;--white:#fff;
+  --dark:#0f0f1e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);overflow-x:hidden;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:60px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;transition:background 0.4s,border-color 0.4s,box-shadow 0.4s;}
+nav.writer-nav{background:rgba(15,15,30,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(167,139,250,0.2);box-shadow:0 4px 24px rgba(0,0,0,0.3);}
+nav.reader-nav{background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);box-shadow:0 2px 16px rgba(26,26,46,0.05);}
+.nav-logo{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.3s;}
+nav.writer-nav .nav-logo{color:var(--gold);}
+nav.reader-nav .nav-logo{color:var(--coral);}
+.nav-logo em{color:var(--purple);font-style:normal;}
+.nav-logo-badge{font-size:0.6rem;font-weight:800;padding:3px 10px;border-radius:8px;letter-spacing:0.5px;transition:all 0.3s;}
+.nav-logo-badge.writer{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;}
+.nav-logo-badge.reader{background:linear-gradient(135deg,var(--sky),var(--sky2));color:white;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-btn{font-family:'Nunito',sans-serif;font-weight:700;font-size:0.82rem;padding:7px 16px;border-radius:10px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;border:none;}
+.nav-btn.outline-light{border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.7);}
+.nav-btn.outline-light:hover{border-color:var(--purple);color:var(--purple);}
+.nav-btn.outline-dark{border:1.5px solid var(--border);background:transparent;color:var(--soft);}
+.nav-btn.outline-dark:hover{border-color:var(--sky);color:var(--sky);}
+.nav-btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);box-shadow:0 3px 10px rgba(255,209,102,0.3);}
+.nav-btn:hover{transform:translateY(-1px);}
+.btn-logout{padding:7px 14px;border-radius:10px;background:transparent;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:0.2s;}
+nav.writer-nav .btn-logout{border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.55);}
+nav.writer-nav .btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+nav.reader-nav .btn-logout{border:1.5px solid var(--border);color:var(--soft);}
+nav.reader-nav .btn-logout:hover{border-color:var(--coral);color:var(--coral);}
+
+/* BANNER */
+.profile-banner{height:220px;position:relative;overflow:hidden;}
+.writer-banner{background:linear-gradient(135deg,#0f0f1e 0%,#2d1b69 40%,#1e1b4b 70%,#0f0f1e 100%);}
+.reader-banner{background:linear-gradient(135deg,#0d1f0d 0%,#0f1e2a 40%,#1a2040 70%,#0f0f1e 100%);}
+.banner-particle{position:absolute;border-radius:50%;animation:drift 6s ease-in-out infinite;pointer-events:none;}
+.banner-star{position:absolute;border-radius:50%;background:white;animation:twinkle 3s ease-in-out infinite;pointer-events:none;}
+@keyframes drift{0%,100%{transform:translateY(0) rotate(0deg);opacity:0.5;}50%{transform:translateY(-18px) rotate(180deg);opacity:0.9;}}
+@keyframes twinkle{0%,100%{opacity:0.2;transform:scale(1);}50%{opacity:0.8;transform:scale(1.3);}}
+.banner-level{position:absolute;bottom:1.5rem;right:2rem;display:flex;align-items:center;gap:8px;}
+.bl-writer{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#78350f;font-family:'Baloo 2',cursive;font-size:0.82rem;font-weight:800;padding:5px 16px;border-radius:20px;box-shadow:0 4px 12px rgba(255,209,102,0.35);}
+.bl-reader{background:linear-gradient(135deg,var(--sky),var(--sky2));color:white;font-family:'Baloo 2',cursive;font-size:0.82rem;font-weight:800;padding:5px 16px;border-radius:20px;box-shadow:0 4px 12px rgba(56,189,248,0.35);}
+.bl-badge{background:linear-gradient(135deg,var(--sun),#f59e0b);color:#78350f;font-weight:800;font-size:0.75rem;padding:4px 14px;border-radius:20px;box-shadow:0 4px 12px rgba(255,209,102,0.3);}
+.bl-rank{font-size:0.72rem;color:rgba(255,255,255,0.5);font-weight:700;}
+.bl-since{font-size:0.72rem;color:rgba(255,255,255,0.4);font-weight:700;}
+
+/* PROFILE WRAP */
+.profile-wrap{max-width:1060px;margin:0 auto;padding:0 1.5rem 5rem;}
+
+/* PROFILE CARD */
+.profile-card{background:white;border-radius:24px;padding:0 2rem 2rem;margin-top:-70px;position:relative;z-index:2;margin-bottom:1.5rem;transition:border-color 0.4s,box-shadow 0.4s;}
+.profile-card.writer-card{border:1.5px solid rgba(167,139,250,0.25);box-shadow:0 8px 48px rgba(124,58,237,0.12);}
+.profile-card.reader-card{border:1.5px solid var(--border);box-shadow:0 8px 40px rgba(26,26,46,0.08);}
+.avatar-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+.avatar-wrap{margin-top:-45px;position:relative;}
+
+/* Writer avatar */
+.writer-avatar{width:120px;height:120px;border-radius:30px;background:linear-gradient(135deg,#e9d5ff,#c4b5fd,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:3.6rem;border:4px solid white;box-shadow:0 8px 24px rgba(124,58,237,0.25);position:relative;}
+.avatar-crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:1.4rem;filter:drop-shadow(0 2px 4px rgba(255,209,102,0.5));}
+.avatar-level-badge{position:absolute;bottom:-8px;right:-8px;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--sun),#f59e0b);display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#78350f;border:3px solid white;box-shadow:0 2px 8px rgba(255,209,102,0.5);}
+
+/* Reader avatar */
+.reader-avatar{width:100px;height:100px;border-radius:22px;background:linear-gradient(135deg,#bfdbfe,#c7d2fe,#ddd6fe);display:flex;align-items:center;justify-content:center;font-size:3.2rem;border:4px solid white;box-shadow:0 8px 24px rgba(26,26,46,0.12);position:relative;cursor:pointer;transition:all 0.2s;}
+.reader-avatar:hover{transform:scale(1.05);}
+.avatar-costume{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:1.4rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
+.avatar-accessories{position:absolute;top:-14px;left:50%;transform:translateX(-50%);display:flex;gap:2px;white-space:nowrap;}
+.avatar-accessories span{font-size:1.3rem;}
+
+.avatar-actions{display:flex;gap:0.6rem;flex-wrap:wrap;}
+.aa-btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem;padding:8px 18px;border-radius:11px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
+.aa-edit{background:var(--off);color:var(--ink);border:1.5px solid var(--border);}
+.aa-edit:hover{border-color:var(--lav);color:var(--lav);}
+.aa-shop{background:linear-gradient(135deg,var(--sun),#f59e0b);border:none;color:#78350f;box-shadow:0 3px 10px rgba(255,209,102,0.3);}
+.aa-shop:hover{transform:translateY(-1px);}
+.aa-new{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);border:none;box-shadow:0 3px 10px rgba(255,209,102,0.3);}
+.aa-new:hover{transform:translateY(-1px);}
+
+.profile-name{font-family:'Baloo 2',cursive;font-size:1.7rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.profile-handle{font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;}
+.profile-bio{font-size:0.85rem;color:var(--soft);line-height:1.7;max-width:580px;margin-bottom:1.2rem;}
+.role-badge{font-size:0.65rem;font-weight:800;padding:3px 10px;border-radius:8px;border:1px solid;}
+
+/* MODE TABS */
+.mode-tabs{display:flex;gap:6px;background:var(--off);border-radius:14px;padding:5px;margin-bottom:1.5rem;border:1.5px solid var(--border);}
+.mode-tab{flex:1;padding:9px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;cursor:pointer;transition:0.25s;background:transparent;color:var(--muted);}
+.mode-tab.active{background:white;color:var(--ink);box-shadow:0 2px 10px rgba(26,26,46,0.08);}
+.mode-tab.writer-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;}
+.mode-tab.reader-tab.active{background:linear-gradient(135deg,var(--sky),var(--sky2));color:white;}
+
+/* STATS GRID (writer) */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:1.2rem;}
+.stat-card{background:var(--off);border:1.5px solid var(--border);border-radius:16px;padding:12px;text-align:center;}
+.sc-val{display:block;font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;}
+.sc-lbl{font-size:0.65rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+
+/* ECONOMY (writer) */
+.economy-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.2rem;}
+.econ-card{flex:1;min-width:140px;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.econ-card.stars-in{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1.5px solid #fbbf24;}
+.econ-card.stars-out{background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:1.5px solid var(--purple);}
+.econ-card.coins-w{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border:1.5px solid var(--mint);}
+.econ-icon{font-size:1.8rem;}
+.econ-val{font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:var(--ink);}
+.econ-lbl{font-size:0.68rem;color:var(--soft);font-weight:700;}
+
+/* STATS PILLS (reader) */
+.stats-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.2rem;}
+.stat-pill{background:var(--off);border:1.5px solid var(--border);border-radius:20px;padding:8px 16px;display:flex;flex-direction:column;align-items:center;min-width:80px;}
+.sp-val{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);}
+.sp-label{font-size:0.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
+
+/* DOMPET (reader) */
+.dompet-card{background:linear-gradient(135deg,rgba(255,209,102,0.08),rgba(245,158,11,0.04));border:1.5px solid rgba(255,209,102,0.25);border-radius:18px;padding:1.3rem;margin-bottom:1.2rem;position:relative;overflow:hidden;}
+.dompet-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(255,209,102,0.15),transparent 70%);pointer-events:none;}
+.dompet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.dompet-title{font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:7px;}
+.dompet-topup{padding:6px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--sun),var(--gold2));color:#78350f;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:800;cursor:pointer;transition:0.2s;}
+.dompet-topup:hover{transform:translateY(-1px);}
+.dompet-balances{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:0.8rem;}
+.db-item{background:rgba(255,255,255,0.7);border-radius:12px;padding:10px 12px;border:1px solid rgba(255,209,102,0.2);}
+.db-icon{font-size:1.3rem;margin-bottom:4px;}
+.db-val{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;}
+.db-label{font-size:0.65rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-top:2px;}
+.coin-rate{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:0.72rem;color:var(--soft);background:rgba(255,255,255,0.6);border-radius:10px;padding:8px 12px;margin-bottom:8px;}
+.coin-convert-btn{padding:5px 12px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;font-size:0.72rem;font-weight:800;cursor:pointer;white-space:nowrap;}
+
+/* LEVEL BAR */
+.level-bar-wrap{background:var(--off);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:1.2rem;}
+.lb-header{display:flex;justify-content:space-between;margin-bottom:6px;}
+.lb-title{font-size:0.8rem;font-weight:800;color:var(--ink);}
+.lb-next{font-size:0.72rem;color:var(--soft);}
+.lb-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:4px;}
+.lb-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--sky),var(--mint));transition:width 0.8s ease;}
+.lb-labels{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--muted);}
+
+/* CURRENCY ROW */
+.currency-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.2rem;}
+.currency-card{flex:1;min-width:100px;border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:0.2s;border:1.5px solid var(--border);}
+.currency-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(26,26,46,0.08);}
+.cc-icon{font-size:1.5rem;}
+.cc-val{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);}
+.cc-label{font-size:0.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
+.cc-token{background:rgba(255,209,102,0.06);border-color:rgba(255,209,102,0.2);}
+.cc-star{background:rgba(167,139,250,0.06);border-color:rgba(167,139,250,0.2);}
+.cc-badge-card{background:rgba(6,214,160,0.06);border-color:rgba(6,214,160,0.2);}
+
+/* KARYA */
+.karya-grid{display:flex;flex-direction:column;gap:14px;}
+.karya-card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:1rem 1.2rem;display:flex;flex-direction:column;gap:0.75rem;transition:0.25s;position:relative;overflow:hidden;}
+.karya-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--purple),var(--gold));}
+.karya-card:hover{box-shadow:0 6px 24px rgba(124,58,237,0.1);transform:translateY(-2px);}
+/* Top row: cover + info side by side */
+.kc-top{display:flex;gap:1rem;align-items:flex-start;}
+.kc-cover{width:72px;height:100px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;box-shadow:3px 3px 10px rgba(0,0,0,0.15);position:relative;overflow:hidden;}
+.kc-info{flex:1;min-width:0;}
+.kc-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.kc-meta{font-size:0.72rem;color:var(--soft);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;}
+.kc-progress-wrap{background:var(--border);border-radius:4px;height:5px;overflow:hidden;margin-bottom:5px;}
+.kc-progress{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--purple),var(--gold));}
+.kc-progress-label{font-size:0.62rem;color:var(--muted);display:flex;justify-content:space-between;}
+/* Bottom row: action buttons always visible */
+.kc-actions{display:flex;gap:6px;flex-wrap:wrap;width:100%;}
+.kc-btn{flex:1;min-width:70px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:0.72rem;font-weight:800;cursor:pointer;transition:0.2s;font-family:'Nunito',sans-serif;white-space:nowrap;text-align:center;}
+.kc-btn:hover{border-color:var(--purple);color:var(--purple);}
+.kc-btn.publish{border-color:#bbf7d0;background:#f0fdf4;color:#16a34a;}
+.kc-btn.publish:hover{background:#16a34a;color:white;border-color:#16a34a;}
+.kc-btn.danger{border-color:#fecaca;background:#fff5f5;color:#ef4444;flex:0;min-width:42px;padding:8px 12px;}
+.kc-btn.danger:hover{background:#ef4444;color:white;border-color:#ef4444;}
+.kc-published-tag{font-size:0.68rem;font-weight:800;color:#16a34a;background:#dcfce7;padding:6px 12px;border-radius:10px;text-align:center;white-space:nowrap;flex:1;}
+.btn-tambah-karya{width:100%;padding:14px;border-radius:18px;border:2px dashed var(--purple);background:rgba(167,139,250,0.04);font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--purple);cursor:pointer;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-tambah-karya:hover{background:rgba(167,139,250,0.1);}
+
+/* SOKONG / FOLLOWING */
+.sokong-grid{display:flex;flex-direction:column;gap:10px;}
+.sokong-item{background:white;border:1.5px solid var(--border);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:0.2s;}
+.sokong-item:hover{border-color:var(--purple);box-shadow:0 4px 16px rgba(124,58,237,0.08);}
+.sokong-ava{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.sokong-info{flex:1;}
+.sokong-name{font-weight:800;font-size:0.9rem;color:var(--ink);margin-bottom:2px;}
+.sokong-story{font-size:0.72rem;color:var(--soft);}
+.sokong-stars{font-size:0.72rem;font-weight:800;color:var(--gold2);background:#fef3c7;padding:4px 10px;border-radius:8px;white-space:nowrap;flex-shrink:0;}
+
+/* READING */
+.reading-section{background:white;border:1.5px solid var(--border);border-radius:20px;padding:1.5rem;margin-bottom:1.2rem;}
+.rs-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:1rem;}
+.reading-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+.rl-card{border-radius:14px;border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:0.2s;}
+.rl-card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(26,26,46,0.08);}
+.rl-cover{height:100px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;position:relative;overflow:hidden;}
+.rl-body{padding:7px 9px;}
+.rl-title{font-size:0.68rem;font-weight:800;color:var(--ink);line-height:1.2;}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.ach-item{border:1.5px solid var(--border);border-radius:14px;padding:12px;text-align:center;background:white;transition:0.2s;}
+.ach-item:not(.locked):hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(26,26,46,0.08);}
+.ach-item.locked{opacity:0.5;}
+.ach-icon{font-size:1.8rem;margin-bottom:5px;}
+.ach-name{font-size:0.72rem;font-weight:800;color:var(--ink);}
+.ach-desc{font-size:0.65rem;color:var(--muted);}
+
+/* STATUS */
+.status-badge{display:inline-block;padding:2px 10px;border-radius:7px;font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;}
+.status-published{background:#d1fae5;color:#065f46;}
+.status-draft{background:#fef3c7;color:#92400e;}
+.status-pending{background:#ede9fe;color:#5b21b6;}
+
+/* WRITER BADGE SECTION */
+.writer-badge-section{background:linear-gradient(135deg,rgba(167,139,250,0.06),rgba(124,58,237,0.03));border:1.5px solid rgba(167,139,250,0.2);border-radius:18px;padding:1.2rem;margin-bottom:1.2rem;}
+.wbs-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:1rem;}
+.wbs-title{font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;color:var(--ink);}
+.wbs-sub{font-size:0.68rem;color:var(--muted);margin-top:2px;}
+.wbs-count{font-family:'Baloo 2',cursive;font-size:0.8rem;font-weight:800;color:var(--purple);background:rgba(167,139,250,0.1);padding:4px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.writer-badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.wb-item{border-radius:16px;padding:14px 12px;text-align:center;transition:all 0.2s;position:relative;overflow:hidden;cursor:default;}
+.wb-item.earned{background:white;border:1.5px solid rgba(167,139,250,0.3);box-shadow:0 4px 16px rgba(124,58,237,0.08);}
+.wb-item.earned:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(124,58,237,0.14);}
+.wb-item.locked{background:var(--off);border:1.5px dashed var(--border);opacity:0.65;}
+.wb-icon{font-size:2rem;margin-bottom:6px;display:block;}
+.wb-name{font-size:0.72rem;font-weight:800;color:var(--ink);margin-bottom:3px;line-height:1.2;}
+.wb-desc{font-size:0.62rem;color:var(--muted);line-height:1.3;}
+.wb-progress{margin-top:7px;height:4px;background:var(--border);border-radius:3px;overflow:hidden;}
+.wb-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width 0.8s ease;}
+.wb-pct{font-size:0.58rem;color:var(--muted);margin-top:3px;font-weight:700;}
+.wb-earned-stamp{position:absolute;top:8px;right:8px;font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;padding:2px 6px;border-radius:6px;letter-spacing:0.3px;}
+.wb-new-glow{animation:newBadgePulse 2s ease-in-out 3;}
+@keyframes newBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(124,58,237,0.08);}50%{box-shadow:0 0 0 4px rgba(167,139,250,0.25),0 8px 28px rgba(124,58,237,0.2);}}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+.empty-state .es-icon{font-size:2.5rem;margin-bottom:8px;}
+.empty-state .es-title{font-weight:800;font-size:0.95rem;color:var(--ink);margin-bottom:4px;}
+.empty-state .es-sub{font-size:0.8rem;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:999;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:white;border-radius:28px;padding:2rem;width:100%;max-width:520px;position:relative;animation:modalIn 0.3s ease;max-height:90vh;overflow-y:auto;}
+@keyframes modalIn{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);}
+.modal-title{font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;margin-bottom:1.2rem;color:var(--ink);}
+.form-group{margin-bottom:1rem;}
+.form-label{font-size:0.78rem;font-weight:800;color:var(--soft);display:block;margin-bottom:5px;}
+.form-input{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:0.9rem;color:var(--ink);outline:none;transition:0.2s;}
+.form-input:focus{border-color:var(--purple);}
+textarea.form-input{resize:vertical;min-height:100px;}
+.form-submit{width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;cursor:pointer;margin-top:0.5rem;transition:0.2s;}
+.form-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.form-emoji-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.wr-genre{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:700;color:var(--soft);cursor:pointer;transition:0.15s;user-select:none;}
+.wr-genre:hover{border-color:var(--purple);color:var(--purple);}
+.wr-genre.selected{background:rgba(167,139,250,0.12);border-color:var(--purple);color:var(--purple);}
+.modal-msg{font-size:0.78rem;text-align:center;margin-top:8px;min-height:18px;}
+.emoji-opt{width:40px;height:40px;border-radius:10px;border:2px solid var(--border);background:var(--off);cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:0.15s;}
+.emoji-opt.selected,.emoji-opt:hover{border-color:var(--purple);background:rgba(167,139,250,0.1);}
+.delete-modal-actions{display:flex;gap:10px;margin-top:1.2rem;}
+.delete-modal-cancel{flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:white;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:800;color:var(--soft);cursor:pointer;transition:0.2s;}
+.delete-modal-cancel:hover{border-color:var(--purple);color:var(--purple);}
+.delete-modal-confirm{flex:1;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:800;cursor:pointer;transition:0.2s;}
+.delete-modal-confirm:hover{opacity:0.85;}
+.delete-modal-confirm:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* ══ DOMPET PENULIS — KELUARKAN WANG ══ */
+.writer-dompet-section{margin-bottom:1.2rem;}
+
+.wd-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  background:linear-gradient(135deg,#0f0f1e 0%,#1a1040 50%,#0f1e2a 100%);
+  border:1.5px solid rgba(255,209,102,0.2);border-radius:18px;
+  padding:1.2rem 1.4rem;margin-bottom:10px;position:relative;overflow:hidden;
+}
+.wd-banner::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 15% 50%,rgba(255,209,102,0.07) 0%,transparent 55%),
+             radial-gradient(circle at 85% 50%,rgba(167,139,250,0.07) 0%,transparent 55%);
+}
+.wd-banner-left{display:flex;align-items:center;gap:12px;position:relative;}
+.wd-banner-icon{font-size:2rem;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(255,209,102,0.4));}
+.wd-banner-title{font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;color:white;margin-bottom:3px;}
+.wd-banner-sub{font-size:0.7rem;color:rgba(255,255,255,0.45);line-height:1.5;max-width:360px;}
+.wd-coming-badge{
+  flex-shrink:0;font-family:'Baloo 2',cursive;font-size:0.7rem;font-weight:800;
+  padding:5px 14px;border-radius:20px;white-space:nowrap;
+  background:linear-gradient(135deg,rgba(255,209,102,0.12),rgba(245,158,11,0.08));
+  border:1.5px solid rgba(255,209,102,0.3);color:var(--gold);letter-spacing:0.4px;
+}
+
+/* Baki ringkas */
+.wd-balance-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;
+}
+.wd-bal-card{
+  flex:1;min-width:100px;background:white;border:1.5px solid var(--border);
+  border-radius:14px;padding:12px 10px;text-align:center;
+}
+.wd-bal-stars{border-color:rgba(255,209,102,0.3);background:rgba(255,249,232,0.6);}
+.wd-bal-rm{border-color:rgba(6,214,160,0.3);background:rgba(232,255,248,0.6);}
+.wd-bal-coins{border-color:rgba(167,139,250,0.3);background:rgba(245,240,255,0.6);}
+.wd-bal-arrow{font-size:1.1rem;color:var(--muted);flex-shrink:0;}
+.wd-bal-icon{font-size:1.4rem;margin-bottom:4px;}
+.wd-bal-val{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);}
+.wd-bal-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-top:2px;}
+
+/* Kadar bar */
+.wd-rate-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--off);border:1.5px solid var(--border);border-radius:12px;
+  padding:9px 14px;margin-bottom:12px;font-size:0.72rem;color:var(--soft);font-weight:700;
+}
+.wd-rate-chip{
+  padding:3px 10px;border-radius:20px;
+  background:rgba(255,209,102,0.1);border:1px solid rgba(255,209,102,0.25);
+  color:var(--gold2);font-weight:800;font-size:0.68rem;white-space:nowrap;
+}
+
+/* Kad pilihan */
+.wd-options-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.wd-option-card{
+  background:white;border:1.5px solid var(--border);border-radius:16px;
+  padding:1.2rem 1rem;text-align:center;position:relative;overflow:hidden;
+}
+.wd-disabled{pointer-events:none;user-select:none;opacity:0.7;}
+.wd-lock-overlay{
+  position:absolute;inset:0;z-index:5;
+  background:rgba(248,250,255,0.82);backdrop-filter:blur(2px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:16px;gap:4px;
+}
+.wd-lock-icon{font-size:1.3rem;}
+.wd-lock-text{font-size:0.6rem;font-weight:900;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+.wd-opt-icon{font-size:1.8rem;margin-bottom:7px;}
+.wd-opt-title{font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:var(--ink);margin-bottom:5px;}
+.wd-opt-desc{font-size:0.65rem;color:var(--soft);line-height:1.4;margin-bottom:8px;}
+.wd-opt-min{font-size:0.62rem;font-weight:800;color:var(--gold2);background:#fef3c7;border-radius:8px;padding:3px 8px;display:inline-block;margin-bottom:10px;}
+.wd-opt-btn{
+  width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--off);font-family:'Nunito',sans-serif;font-size:0.7rem;font-weight:800;
+  color:var(--muted);cursor:not-allowed;
+}
+
+/* Nota bawah */
+.wd-tnc{
+  display:flex;gap:10px;align-items:flex-start;
+  background:rgba(248,250,255,0.8);border:1px solid var(--border);border-radius:12px;
+  padding:10px 14px;font-size:0.68rem;color:var(--soft);line-height:1.6;
+}
+.wd-tnc-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+
+@media(max-width:600px){
+  .wd-banner{flex-direction:column;align-items:flex-start;gap:10px;}
+  .wd-options-grid{grid-template-columns:1fr;}
+  .wd-balance-row{flex-wrap:wrap;}
+  .wd-bal-arrow{display:none;}
+  .wd-bal-card{min-width:calc(33% - 8px);}
+}
+
+/* ══ DOMPET PENULIS — KELUARKAN WANG ══ */
+.penghantaran-section{margin-top:2rem;}
+
+.pg-coming-soon-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  background:linear-gradient(135deg,#0f0f1e,#1a1040,#0f1e2a);
+  border:1.5px solid rgba(255,209,102,0.25);
+  border-radius:20px;padding:1.4rem 1.6rem;margin-bottom:1.2rem;
+  position:relative;overflow:hidden;
+}
+.pg-coming-soon-banner::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 50%,rgba(255,209,102,0.08) 0%,transparent 60%),
+             radial-gradient(circle at 80% 50%,rgba(167,139,250,0.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.pg-cs-left{display:flex;align-items:center;gap:1rem;position:relative;}
+.pg-cs-icon{font-size:2.4rem;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(255,209,102,0.4));}
+.pg-cs-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:white;margin-bottom:4px;}
+.pg-cs-desc{font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.5;max-width:380px;}
+.pg-cs-badge{
+  flex-shrink:0;font-family:'Baloo 2',cursive;font-size:0.72rem;font-weight:800;
+  padding:6px 16px;border-radius:20px;white-space:nowrap;
+  background:linear-gradient(135deg,rgba(255,209,102,0.15),rgba(245,158,11,0.1));
+  border:1.5px solid rgba(255,209,102,0.35);color:var(--gold);
+  letter-spacing:0.5px;
+}
+
+.pg-preview-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.2rem;}
+.pg-preview-card{
+  background:white;border:1.5px solid var(--border);border-radius:16px;
+  padding:1.1rem;text-align:center;position:relative;
+}
+.pg-disabled{opacity:0.55;pointer-events:none;user-select:none;}
+.pg-preview-icon{font-size:1.8rem;margin-bottom:6px;}
+.pg-preview-label{font-family:'Baloo 2',cursive;font-size:0.82rem;font-weight:800;color:var(--ink);margin-bottom:3px;}
+.pg-preview-sub{font-size:0.62rem;color:var(--muted);margin-bottom:6px;}
+.pg-preview-price{font-family:'Baloo 2',cursive;font-size:0.9rem;font-weight:800;color:var(--gold2);background:#fef3c7;border-radius:8px;padding:3px 10px;display:inline-block;}
+
+/* Borang */
+.pg-form-wrap{
+  background:white;border:1.5px solid var(--border);border-radius:20px;
+  padding:1.5rem;position:relative;overflow:hidden;
+}
+.pg-form-disabled{pointer-events:none;user-select:none;}
+.pg-form-overlay{
+  position:absolute;inset:0;z-index:10;
+  background:rgba(248,250,255,0.88);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;border-radius:20px;
+}
+.pg-overlay-content{text-align:center;padding:1rem;}
+.pg-form-title{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:1.2rem;}
+.pg-form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.2rem;}
+.pg-field{display:flex;flex-direction:column;gap:4px;}
+.pg-field-full{grid-column:1/-1;}
+.pg-label{font-size:0.72rem;font-weight:800;color:var(--soft);}
+.pg-input{width:100%;padding:9px 12px;border-radius:11px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:0.85rem;color:var(--ink);background:var(--off);outline:none;}
+.pg-input:disabled{opacity:0.5;cursor:not-allowed;}
+.pg-textarea{min-height:72px;resize:none;}
+
+.pg-pakej-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pg-pakej{
+  flex:1;min-width:80px;border-radius:12px;padding:10px 8px;text-align:center;
+  border:1.5px solid var(--border);background:var(--off);cursor:pointer;transition:0.2s;
+}
+.pg-pakej-disabled{opacity:0.5;cursor:not-allowed;}
+.pg-pakej-icon{font-size:1.3rem;margin-bottom:3px;}
+.pg-pakej-name{font-size:0.65rem;font-weight:800;color:var(--ink);}
+.pg-pakej-price{font-size:0.65rem;color:var(--gold2);font-weight:800;margin-top:3px;}
+
+.pg-total-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,rgba(255,209,102,0.08),rgba(245,158,11,0.04));
+  border:1.5px solid rgba(255,209,102,0.2);border-radius:12px;
+  padding:12px 16px;margin-bottom:1rem;
+}
+.pg-total-label{font-size:0.8rem;font-weight:800;color:var(--soft);}
+.pg-total-val{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--gold2);}
+
+.pg-submit-btn{
+  width:100%;padding:13px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,#374151,#6b7280);
+  color:rgba(255,255,255,0.5);font-family:'Baloo 2',cursive;
+  font-size:0.95rem;font-weight:800;cursor:not-allowed;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+
+@media(max-width:600px){
+  .pg-coming-soon-banner{flex-direction:column;align-items:flex-start;}
+  .pg-preview-row{grid-template-columns:repeat(3,1fr);}
+  .pg-form-grid{grid-template-columns:1fr;}
+  .pg-field-full{grid-column:1;}
+}
+.sijil-section-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:1rem;}
+.sijil-section-title{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);}
+.sijil-section-sub{font-size:0.72rem;color:var(--muted);margin-top:3px;}
+.sijil-count-badge{font-family:'Baloo 2',cursive;font-size:0.78rem;font-weight:800;padding:4px 14px;border-radius:20px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#78350f;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(255,209,102,0.3);}
+.sijil-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+
+/* Sijil kad */
+.sijil-card{border-radius:20px;overflow:hidden;position:relative;cursor:pointer;transition:all 0.25s;border:1.5px solid transparent;}
+.sijil-card.earned{box-shadow:0 6px 24px rgba(124,58,237,0.12);}
+.sijil-card.earned:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(124,58,237,0.2);}
+.sijil-card.locked-card{background:var(--off);border:1.5px dashed var(--border);opacity:0.6;cursor:default;}
+.sijil-card-art{height:110px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.sijil-card-art .sc-icon{font-size:3rem;position:relative;z-index:2;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.15));}
+.sijil-card-art .sc-glow{position:absolute;inset:0;opacity:0.3;}
+.sijil-card-body{padding:12px 14px 14px;background:white;}
+.sijil-card-name{font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:var(--ink);margin-bottom:2px;}
+.sijil-card-desc{font-size:0.65rem;color:var(--muted);line-height:1.4;margin-bottom:8px;}
+.sijil-card-date{font-size:0.62rem;color:var(--soft);font-weight:700;}
+.sijil-download-btn{width:100%;padding:7px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:800;cursor:pointer;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:5px;margin-top:8px;}
+.sijil-download-btn:hover{opacity:0.85;transform:translateY(-1px);}
+.sijil-lock-info{text-align:center;padding:10px 14px 14px;background:white;}
+.sijil-lock-name{font-size:0.78rem;font-weight:800;color:var(--ink);margin-bottom:3px;}
+.sijil-lock-req{font-size:0.65rem;color:var(--muted);}
+.sijil-lock-prog{margin-top:6px;height:4px;background:var(--border);border-radius:3px;overflow:hidden;}
+.sijil-lock-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width 0.8s ease;}
+.sijil-lock-pct{font-size:0.6rem;color:var(--muted);margin-top:3px;text-align:right;font-weight:700;}
+.sijil-admin-badge{position:absolute;top:8px;right:8px;z-index:3;font-size:0.55rem;font-weight:900;padding:2px 7px;border-radius:6px;background:rgba(255,209,102,0.9);color:#78350f;}
+
+/* Modal pratonton sijil */
+.sijil-modal-box{background:white;border-radius:28px;padding:0;width:100%;max-width:560px;position:relative;animation:modalIn 0.3s ease;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;}
+.sijil-preview-wrap{padding:1.5rem 1.5rem 0;flex:1;overflow-y:auto;}
+.sijil-canvas-wrap{border-radius:16px;overflow:hidden;border:2px solid var(--border);margin-bottom:1rem;position:relative;}
+.sijil-canvas-wrap canvas{display:block;width:100%;height:auto;}
+.sijil-modal-actions{padding:1rem 1.5rem 1.5rem;display:flex;gap:10px;border-top:1px solid var(--border);background:white;flex-shrink:0;}
+.sijil-dl-btn{flex:1;padding:12px;border-radius:14px;border:none;font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.2s;}
+.sijil-dl-btn:hover{opacity:0.88;transform:translateY(-1px);}
+.sijil-dl-btn.primary{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;box-shadow:0 4px 16px rgba(124,58,237,0.3);}
+.sijil-dl-btn.ghost{background:var(--off);color:var(--ink);border:1.5px solid var(--border);}
+.sijil-preview-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem;}
+.spm-item{flex:1;min-width:100px;background:var(--off);border-radius:12px;padding:10px 12px;border:1px solid var(--border);}
+.spm-label{font-size:0.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;}
+.spm-val{font-family:'Baloo 2',cursive;font-size:0.9rem;font-weight:800;color:var(--ink);}
+
+@media(max-width:520px){
+  .sijil-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .sijil-card-art{height:90px;}
+  .sijil-card-art .sc-icon{font-size:2.4rem;}
+}
+.notif-btn{position:relative;background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:10px;transition:.2s;display:flex;align-items:center;justify-content:center;}
+.notif-btn:hover{background:rgba(255,255,255,0.1);}
+.notif-bell{font-size:1.3rem;line-height:1;}
+.notif-badge{position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:var(--coral,#ff6b6b);color:white;border-radius:8px;font-size:9px;font-weight:900;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid white;line-height:1;}
+.notif-badge.show{display:flex;}
+
+/* ── NOTIFICATION PANEL ── */
+.notif-panel{position:fixed;top:0;right:-380px;width:370px;height:100vh;background:white;z-index:1200;box-shadow:-8px 0 40px rgba(0,0,0,0.15);transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden;}
+.notif-panel.open{right:0;}
+.notif-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1199;display:none;backdrop-filter:blur(2px);}
+.notif-backdrop.show{display:block;}
+.notif-header{padding:18px 16px 14px;border-bottom:1.5px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.notif-header-title{font-family:'Baloo 2',cursive;font-size:16px;font-weight:800;color:#1a1a2e;}
+.notif-header-actions{display:flex;align-items:center;gap:8px;}
+.notif-mark-all{font-size:11px;font-weight:800;color:#a78bfa;background:rgba(167,139,250,0.1);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;}
+.notif-close-btn{width:28px;height:28px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.notif-filter-row{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid #f1f5f9;flex-shrink:0;overflow-x:auto;}
+.nf-chip{padding:4px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;font-size:11px;font-weight:800;color:#6b7280;cursor:pointer;white-space:nowrap;transition:.15s;}
+.nf-chip.active{border-color:#a78bfa;background:#a78bfa;color:white;}
+.notif-list{flex:1;overflow-y:auto;padding:8px 0;}
+.notif-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #f8fafc;cursor:pointer;transition:.15s;position:relative;}
+.notif-item:hover{background:#fafbff;}
+.notif-item.unread{background:#fafbff;}
+.notif-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#a78bfa,#7c3aed);border-radius:0 2px 2px 0;}
+.ni-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ni-icon.type-announcement{background:linear-gradient(135deg,#fef3c7,#fde68a);}
+.ni-icon.type-achievement{background:linear-gradient(135deg,#d1fae5,#a7f3d0);}
+.ni-icon.type-sijil{background:linear-gradient(135deg,#ede9fe,#ddd6fe);}
+.ni-icon.type-new_follower{background:linear-gradient(135deg,#fce7f3,#fbcfe8);}
+.ni-icon.type-story_completed{background:linear-gradient(135deg,#dbeafe,#bfdbfe);}
+.ni-icon.type-coin_gift{background:linear-gradient(135deg,#fef9c3,#fef08a);}
+.ni-icon.type-login_reward{background:linear-gradient(135deg,#d1fae5,#a7f3d0);}
+.ni-icon.type-default{background:#f1f5f9;}
+.ni-body{flex:1;min-width:0;}
+.ni-msg{font-size:12.5px;color:#374151;line-height:1.5;font-weight:600;}
+.ni-msg strong{color:#1a1a2e;font-weight:800;}
+.ni-time{font-size:10px;color:#9ca3af;margin-top:3px;font-weight:600;}
+.ni-actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.ni-act-btn{font-size:10px;font-weight:800;padding:3px 10px;border-radius:6px;border:none;cursor:pointer;transition:.15s;}
+.ni-act-btn.primary{background:#a78bfa;color:white;}
+.ni-act-btn.ghost{background:#f1f5f9;color:#6b7280;}
+.ni-act-btn:hover{opacity:.85;}
+.notif-empty{text-align:center;padding:3rem 1rem;color:#9ca3af;}
+.notif-empty-icon{font-size:2.5rem;margin-bottom:8px;}
+.notif-empty-text{font-size:13px;font-weight:700;}
+
+@keyframes slideInRight{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — TABLET (≤900px)
+═══════════════════════════════════════ */
+@media(max-width:900px){
+  nav{padding:0 1rem;}
+  .nav-logo{font-size:1.3rem;}
+  .nav-btn{font-size:0.75rem;padding:6px 12px;}
+  .profile-wrap{padding:0 1rem 5rem;}
+  .profile-card{border-radius:16px;padding:1.2rem;}
+  .stats-grid{grid-template-columns:repeat(3,1fr);}
+  .econ-row{flex-wrap:wrap;}
+  .econ-card{min-width:calc(50% - 8px);}
+  .currency-row{flex-wrap:wrap;}
+  .karya-card{padding:0.9rem 1rem;}
+  .reading-grid{grid-template-columns:repeat(3,1fr);}
+  .notif-panel{width:100%;right:-100%;}
+  /* Dompet banner */
+  .wd-banner{flex-direction:column;align-items:flex-start;gap:10px;}
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — MOBILE (≤600px)
+═══════════════════════════════════════ */
+@media(max-width:600px){
+  /* Dompet penulis */
+  .wd-banner{flex-direction:column;align-items:flex-start;}
+  .wd-options-grid{grid-template-columns:1fr;}
+  .wd-balance-row{flex-wrap:wrap;}
+  .wd-bal-arrow{display:none;}
+  .wd-bal-card{min-width:calc(33% - 8px);}
+
+  /* Withdrawal */
+  .pg-coming-soon-banner{flex-direction:column;align-items:flex-start;}
+  .pg-preview-row{grid-template-columns:repeat(3,1fr);}
+  .pg-form-grid{grid-template-columns:1fr;}
+  .pg-field-full{grid-column:1;}
+
+  /* Hamburguer show */
+  .ham-btn{display:flex;}
+  .nav-right .nav-btn,
+  .nav-right #nav-new-story,
+  .nav-right #nav-explore,
+  .nav-right .btn-logout{display:none;}
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — MOBILE (≤520px)
+═══════════════════════════════════════ */
+@media(max-width:520px){
+  /* Nav */
+  nav{padding:0 0.75rem;height:52px;}
+  .nav-logo{font-size:1.05rem;gap:4px;}
+  .nav-logo-badge{font-size:0.55rem;padding:2px 7px;}
+  #nav-new-story{display:none;}
+  .btn-logout{font-size:0.7rem;padding:5px 10px;}
+  .notif-btn{padding:4px 6px;}
+
+  /* Banner */
+  .profile-banner{min-height:130px;}
+  .banner-level{bottom:0.75rem;right:0.75rem;gap:5px;}
+  .bl-writer,.bl-reader{font-size:0.68rem;padding:4px 12px;}
+  .bl-since{font-size:0.62rem;}
+  .bl-rank{font-size:0.62rem;}
+
+  /* Wrap */
+  .profile-wrap{padding:0 0.75rem 4rem;}
+
+  /* Profile card */
+  .profile-card{border-radius:14px;padding:0.85rem 0.85rem 1rem;margin-top:-50px;}
+  .avatar-row{gap:0.6rem;margin-bottom:1rem;}
+
+  /* Writer avatar */
+  .writer-avatar{width:72px;height:72px;font-size:1.9rem;border-radius:18px;border-width:3px;}
+  .avatar-crown{font-size:1.1rem;top:-11px;}
+  .avatar-level-badge{width:22px;height:22px;font-size:0.6rem;border-width:2px;bottom:-6px;right:-6px;}
+
+  /* Reader avatar */
+  .reader-avatar{width:68px;height:68px;font-size:1.8rem;border-radius:16px;border-width:3px;}
+  .avatar-costume,.avatar-accessories{font-size:1.1rem;top:-10px;}
+  .avatar-accessories span{font-size:1.1rem;}
+
+  /* Avatar actions */
+  .avatar-actions{flex-wrap:wrap;gap:5px;}
+  .aa-btn{font-size:0.72rem;padding:7px 11px;border-radius:9px;}
+
+  /* Profile info */
+  .profile-name{font-size:1.1rem;gap:6px;}
+  .profile-handle{font-size:0.72rem;}
+  .profile-bio{font-size:0.78rem;margin-bottom:1rem;line-height:1.6;}
+  .role-badge{font-size:0.6rem;padding:2px 8px;}
+
+  /* Mode tabs */
+  .mode-tabs{gap:4px;padding:4px;border-radius:12px;margin-bottom:1.2rem;}
+  .mode-tab{font-size:0.72rem;padding:7px 6px;border-radius:9px;}
+
+  /* Section headers */
+  .section-header{margin-bottom:0.9rem;}
+  .section-title{font-size:0.95rem;}
+
+  /* Stats grid */
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:7px;}
+  .stat-card{border-radius:12px;padding:10px;}
+  .sc-val{font-size:1.2rem;}
+  .sc-lbl{font-size:0.58rem;}
+
+  /* Economy cards */
+  .economy-row{gap:7px;}
+  .econ-card{min-width:calc(50% - 4px);padding:10px 11px;border-radius:13px;gap:8px;}
+  .econ-icon{font-size:1.5rem;}
+  .econ-val{font-size:1.15rem;}
+  .econ-lbl{font-size:0.62rem;}
+
+  /* Dompet reader */
+  .dompet-card{padding:1rem;border-radius:14px;}
+  .dompet-header{margin-bottom:0.85rem;}
+  .dompet-title{font-size:0.88rem;}
+  .dompet-topup{font-size:0.7rem;padding:5px 12px;}
+  .dompet-balances{grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:0.6rem;}
+  .db-item{padding:8px 6px;border-radius:10px;}
+  .db-icon{font-size:1.1rem;margin-bottom:3px;}
+  .db-val{font-size:0.95rem;}
+  .db-label{font-size:0.58rem;}
+  .coin-rate{font-size:0.65rem;padding:6px 10px;}
+  .coin-convert-btn{font-size:0.65rem;padding:4px 9px;}
+
+  /* Currency row */
+  .currency-row{gap:7px;}
+  .currency-card{min-width:calc(50% - 4px);padding:10px;border-radius:12px;}
+  .cc-icon{font-size:1.3rem;}
+  .cc-val{font-size:0.9rem;}
+  .cc-label{font-size:0.58rem;}
+
+  /* Stat pills */
+  .stats-row{gap:6px;}
+  .stat-pill{padding:7px 10px;min-width:68px;border-radius:16px;}
+  .sp-val{font-size:1rem;}
+  .sp-label{font-size:0.58rem;}
+
+  /* Level bar */
+  .level-bar-wrap{padding:10px 12px;border-radius:12px;}
+  .lb-header{flex-direction:column;gap:1px;margin-bottom:5px;}
+  .lb-title{font-size:0.75rem;}
+  .lb-next{font-size:0.65rem;}
+  .lb-labels{font-size:0.58rem;}
+
+  /* Karya cards */
+  .karya-grid{gap:10px;}
+  .karya-card{padding:0.8rem 0.9rem;border-radius:16px;}
+  .karya-card::before{width:3px;}
+  .kc-cover{width:52px;height:72px;border-radius:9px;font-size:1.4rem;}
+  .kc-title{font-size:0.8rem;}
+  .kc-meta{font-size:0.6rem;gap:5px;}
+  .kc-actions{gap:5px;flex-wrap:wrap;}
+  .kc-btn{font-size:0.68rem;padding:6px 9px;border-radius:8px;}
+
+  /* Reading grid */
+  .reading-grid{grid-template-columns:repeat(2,1fr);gap:7px;}
+
+  /* Achievement */
+  .ach-grid{grid-template-columns:repeat(2,1fr);gap:7px;}
+  .ach-icon{font-size:1.4rem;}
+  .ach-name{font-size:0.62rem;}
+
+  /* Sijil grid */
+  .sijil-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .sijil-card-art{height:88px;}
+  .sijil-card-art .sc-icon{font-size:2.3rem;}
+  .sijil-card-body{padding:10px 11px 12px;}
+  .sijil-card-name{font-size:0.8rem;}
+  .sijil-card-desc{font-size:0.62rem;}
+  .sijil-download-btn{font-size:0.68rem;padding:6px;}
+
+  /* Sijil modal */
+  .sijil-modal-box{border-radius:24px 24px 0 0;max-height:85vh;}
+  .sijil-preview-wrap{padding:1.2rem 1.2rem 0;}
+  .sijil-modal-actions{padding:0.9rem 1.2rem 1.2rem;gap:8px;}
+  .sijil-dl-btn{padding:10px;font-size:0.85rem;border-radius:12px;}
+
+  /* Notif panel */
+  .notif-panel{width:100%;right:-100%;}
+  .notif-item{padding:10px 14px;}
+  .ni-icon{width:36px;height:36px;font-size:16px;}
+  .ni-msg{font-size:12px;}
+
+  /* Misc buttons */
+  .btn-tambah-karya{padding:12px;font-size:0.85rem;border-radius:12px;}
+
+  /* Withdrawal form pg */
+  .pg-coming-soon-banner{padding:1.1rem 1.2rem;gap:0.75rem;border-radius:16px;}
+  .pg-cs-icon{font-size:1.8rem;}
+  .pg-cs-title{font-size:0.88rem;}
+  .pg-cs-desc{font-size:0.65rem;}
+  .pg-cs-badge{font-size:0.65rem;padding:5px 12px;}
+  .pg-preview-row{gap:8px;}
+  .pg-preview-card{padding:0.9rem 0.6rem;border-radius:13px;}
+  .pg-preview-icon{font-size:1.5rem;margin-bottom:5px;}
+  .pg-preview-label{font-size:0.72rem;}
+  .pg-preview-sub{font-size:0.58rem;}
+  .pg-preview-price{font-size:0.78rem;padding:2px 8px;}
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — SMALL PHONE (≤380px)
+═══════════════════════════════════════ */
+@media(max-width:380px){
+  .profile-wrap{padding:0 0.6rem 4rem;}
+  .profile-card{padding:0.75rem;}
+
+  /* Avatar smaller */
+  .writer-avatar{width:62px;height:62px;font-size:1.6rem;border-radius:15px;}
+  .reader-avatar{width:60px;height:60px;font-size:1.55rem;border-radius:14px;}
+
+  .profile-name{font-size:1rem;}
+  .aa-btn{font-size:0.65rem;padding:5px 8px;}
+  .kc-btn{font-size:0.62rem;padding:5px 7px;}
+
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .econ-card{min-width:100%;}
+  .currency-card{min-width:100%;}
+
+  .dompet-balances{grid-template-columns:repeat(3,1fr);}
+  .db-val{font-size:0.85rem;}
+
+  .mode-tab{font-size:0.65rem;padding:6px 4px;}
+
+  .sijil-grid{grid-template-columns:1fr 1fr;}
+  .pg-preview-row{grid-template-columns:repeat(2,1fr);}
+}
+
+/* Safe area inset for iPhone notch */
+@supports(padding-bottom: env(safe-area-inset-bottom)){
+  body{padding-bottom:env(safe-area-inset-bottom);}
+}
+
+/* ── HAMBURGER NAV (mobile) ── */
+.ham-btn{display:none;width:36px;height:36px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0;}
+.ham-line{width:16px;height:2px;background:rgba(255,255,255,0.8);border-radius:2px;transition:.25s;}
+nav.reader-nav .ham-btn{border-color:var(--border);background:var(--off);}
+nav.reader-nav .ham-line{background:var(--ink);}
+.ham-btn.open .ham-line:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.ham-btn.open .ham-line:nth-child(2){opacity:0;}
+.ham-btn.open .ham-line:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mob-menu{display:none;position:fixed;top:52px;left:0;right:0;bottom:0;background:rgba(15,15,30,0.98);backdrop-filter:blur(20px);z-index:99;padding:1.25rem 1rem;flex-direction:column;gap:5px;overflow-y:auto;}
+.mob-menu.show{display:flex;}
+.mob-menu-user{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:10px;}
+.mm-ava{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;background:linear-gradient(135deg,var(--gold),#f59e0b);}
+.mm-name{font-family:'Baloo 2',cursive;font-size:15px;font-weight:800;color:white;}
+.mm-role{font-size:11px;color:rgba(255,255,255,0.4);font-weight:600;}
+.mob-menu-item{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;font-size:14px;font-weight:700;color:rgba(255,255,255,0.6);cursor:pointer;transition:.15s;text-decoration:none;border:none;background:none;width:100%;text-align:left;}
+.mob-menu-item:hover,.mob-menu-item:active{background:rgba(255,255,255,0.06);color:white;}
+.mob-menu-item .mi-icon{font-size:18px;width:24px;text-align:center;}
+.mob-menu-divider{height:1px;background:rgba(255,255,255,0.06);margin:4px 0;}
+.mob-logout{color:rgba(255,107,107,0.8)!important;}
+.mob-logout:hover{background:rgba(255,107,107,0.08)!important;}
+@media(max-width:600px){
+  .ham-btn{display:flex;}
+  .nav-right .nav-btn,
+  .nav-right #nav-new-story,
+  .nav-right #nav-explore,
+  .nav-right .btn-logout{display:none;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav" class="writer-nav">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <a class="nav-logo" href="index.html">Nex<em>Storia</em> 🌏</a>
+    <span class="nav-logo-badge writer" id="nav-badge">✍️ PENULIS</span>
+  </div>
+  <div class="nav-right">
+    <!-- Hamburger (mobile) -->
+    <button class="ham-btn" id="ham-btn" onclick="toggleMobMenu()" aria-label="Menu" style="display:none;">
+      <div class="ham-line"></div>
+      <div class="ham-line"></div>
+      <div class="ham-line"></div>
+    </button>
+    <button class="notif-btn" id="notif-bell-btn" onclick="openNotifPanel()" style="color:white;">
+      <span class="notif-bell">🔔</span>
+      <span class="notif-badge" id="notif-badge"></span>
+    </button>
+    <button class="nav-btn outline-light" id="nav-explore" onclick="window.location.href='nexstoria-explore.html'">🌍 Explore</button>
+    <button class="nav-btn gold" onclick="openNewStoryModal()" id="nav-new-story">+ Cerita Baru</button>
+    <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU (author) -->
+<div class="mob-menu" id="mob-menu">
+  <div class="mob-menu-user">
+    <div class="mm-ava" id="mm-ava">✍️</div>
+    <div>
+      <div class="mm-name" id="mm-name">Penulis</div>
+      <div class="mm-role" id="mm-role">✍️ Penulis NexStoria</div>
+    </div>
+  </div>
+  <div class="mob-menu-item" onclick="openNewStoryModal();closeMobMenu()"><span class="mi-icon">📝</span> Cerita Baru</div>
+  <a href="nexstoria-explore.html" class="mob-menu-item"><span class="mi-icon">🌍</span> Explore</a>
+  <div class="mob-menu-item" onclick="openNotifPanel();closeMobMenu()">
+    <span class="mi-icon">🔔</span> Notifikasi
+    <span id="mm-notif-badge" style="margin-left:auto;background:var(--coral);color:white;border-radius:6px;font-size:9px;font-weight:900;padding:2px 6px;display:none;">0</span>
+  </div>
+  <div class="mob-menu-divider"></div>
+  <div class="mob-menu-item" onclick="switchMode('writer');closeMobMenu()"><span class="mi-icon">✍️</span> Mod Penulis</div>
+  <div class="mob-menu-item" onclick="switchMode('reader');closeMobMenu()"><span class="mi-icon">📖</span> Mod Pembaca</div>
+  <div class="mob-menu-divider"></div>
+  <div class="mob-menu-item mob-logout" onclick="doLogout()"><span class="mi-icon">🚪</span> Log Keluar</div>
+</div>
+
+<!-- BANNER -->
+<div class="profile-banner writer-banner" id="profile-banner">
+  <div id="banner-particles"></div>
+  <div class="banner-level">
+    <span class="bl-badge" id="banner-level-badge">Lv 1</span>
+    <span class="bl-writer" id="banner-mode-badge">✍️ Penulis NexStoria</span>
+    <span class="bl-rank" id="banner-rank">Pemula</span>
+    <span class="bl-since" id="banner-since">Sejak ---</span>
+  </div>
+</div>
+
+<div class="profile-wrap">
+
+  <!-- PROFILE CARD -->
+  <div class="profile-card writer-card" id="profile-card">
+    <div class="avatar-row">
+      <div class="avatar-wrap">
+        <!-- Writer avatar -->
+        <div class="writer-avatar" id="writer-avatar-el">
+          <span id="ava-initial-w">✍️</span>
+          <div class="avatar-crown">👑</div>
+        </div>
+        <!-- Reader avatar (tersembunyi) -->
+        <div class="reader-avatar" id="reader-avatar-el" style="display:none;">
+          <span id="ava-initial-r">👦</span>
+          <div class="avatar-costume" id="avatar-costume">🐰</div>
+          <div class="avatar-level-badge" id="avatar-level-num">1</div>
+        </div>
+      </div>
+
+      <!-- Butang: Mod Penulis -->
+      <div class="avatar-actions" id="actions-writer">
+        <button class="aa-btn aa-edit" onclick="openEditModal()">✏️ Edit Profil</button>
+        <button class="aa-btn aa-new" onclick="openNewStoryModal()">📝 Cerita Baru</button>
+        <a href="nexstoria-author-wallet.html" class="aa-btn" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;color:#78350f;text-decoration:none;">💼 Dompet Penulis</a>
+        <a href="nexstoria-star-shop.html" class="aa-btn" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1.5px solid rgba(255,209,102,0.4);color:#92400e;text-decoration:none;">⭐ Kedai Bintang</a>
+      </div>
+      <!-- Butang: Mod Pembaca -->
+      <div class="avatar-actions" id="actions-reader" style="display:none;">
+        <button class="aa-btn aa-edit" onclick="openEditModal()">✏️ Edit Profil</button>
+        <a href="nexstoria-star-shop.html" class="aa-btn" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1.5px solid rgba(255,209,102,0.4);color:#92400e;text-decoration:none;">⭐ Kedai Bintang</a>
+      </div>
+    </div>
+
+    <h1 class="profile-name" id="p-name">
+      <span id="p-name-text">---</span>
+      <span class="role-badge" id="role-badge" style="background:rgba(167,139,250,0.1);color:var(--lav);border-color:rgba(167,139,250,0.2);">✍️ Penulis</span>
+    </h1>
+    <div class="profile-handle" id="p-handle">@--- · ---</div>
+    <div class="profile-bio" id="p-bio">Memuatkan profil...</div>
+
+    <!-- DOMPET SAYA — di atas mod tabs, satu sahaja -->
+    <!-- DOMPET PENULIS — 3 PANEL BERGABUNG -->
+    <div style="margin-bottom:1.2rem;">
+
+      <!-- Row 1: ⭐ Bintang + 💎 NexCoins -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+
+        <!-- ⭐ Bintang (in-app sahaja) -->
+        <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid rgba(255,209,102,0.35);border-radius:18px;padding:1.1rem;position:relative;overflow:hidden;">
+          <a href="nexstoria-star-shop.html" style="position:absolute;top:8px;right:8px;font-size:0.5rem;font-weight:900;background:rgba(255,209,102,0.35);color:#92400e;padding:3px 8px;border-radius:6px;letter-spacing:0.3px;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,209,102,0.6)'" onmouseout="this.style.background='rgba(255,209,102,0.35)'">⭐ Kedai Bintang →</a>
+          <div style="font-size:1.5rem;margin-bottom:4px;">⭐</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;color:#92400e;" id="dompet-stars">—</div>
+          <div style="font-size:0.65rem;font-weight:800;color:#b45309;margin-bottom:8px;">Bintang Terkumpul</div>
+          <div style="font-size:0.62rem;color:#92400e;line-height:1.6;background:rgba(255,255,255,0.5);border-radius:8px;padding:6px 8px;">
+            <div>📖 +1 setiap kali pembaca habis baca</div>
+            <div>🎭 Buka avatar & kostum</div>
+            <div>🏆 Leaderboard & badge</div>
+          </div>
+        </div>
+
+        <!-- 💎 NexCoins (boleh tukar duit) -->
+        <div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(124,58,237,0.04));border:1.5px solid rgba(167,139,250,0.3);border-radius:18px;padding:1.1rem;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:8px;right:8px;font-size:0.5rem;font-weight:900;background:rgba(167,139,250,0.2);color:var(--lav2);padding:2px 7px;border-radius:6px;letter-spacing:0.3px;">1💎 = RM0.10</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:1.5rem;">💎</div>
+            <button class="dompet-topup" onclick="openTopUpModal()" style="font-size:0.68rem;padding:5px 11px;">+ Top Up</button>
+          </div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;color:var(--lav2);" id="dompet-coins">0</div>
+          <div style="font-size:0.65rem;font-weight:800;color:var(--lav2);margin-bottom:8px;">NexCoins (Diamond)</div>
+          <div style="font-size:0.62rem;color:var(--soft);line-height:1.6;background:rgba(255,255,255,0.5);border-radius:8px;padding:6px 8px;">
+            <div>📚 Buka buku premium</div>
+            <div>💝 Hadiahkan kepada penulis</div>
+            <div>📜 Tebus sijil fizikal</div>
+          </div>
+        </div>
+      </div>
+
+    <!-- MODE TABS -->
+    <div class="mode-tabs">
+      <button class="mode-tab writer-tab active" id="mode-writer" onclick="switchMode('writer')">✍️ Mod Penulis</button>
+      <button class="mode-tab reader-tab" id="mode-reader" onclick="switchMode('reader')">📖 Mod Pembaca</button>
+    </div>
+
+    <!-- Stats: Mod Penulis -->
+    <div id="writer-stats">
+      <div class="stats-grid">
+        <div class="stat-card"><span class="sc-val" style="color:var(--purple)" id="stat-stories">0</span><span class="sc-lbl">Karya</span></div>
+        <div class="stat-card"><span class="sc-val" style="color:var(--gold2)" id="stat-reads">0</span><span class="sc-lbl">Bacaan</span></div>
+        <div class="stat-card"><span class="sc-val" style="color:var(--mint)" id="stat-stars-in">0</span><span class="sc-lbl">⭐ Diterima</span></div>
+        <div class="stat-card"><span class="sc-val" style="color:var(--coral)" id="stat-followers">0</span><span class="sc-lbl">Peminat</span></div>
+      </div>
+      <div class="economy-row">
+        <div class="econ-card stars-in"><span class="econ-icon">⭐</span><div><div class="econ-val" id="eco-stars-in">0</div><div class="econ-lbl">Bintang Masuk (Bulan ini)</div></div></div>
+        <div class="econ-card stars-out"><span class="econ-icon">💜</span><div><div class="econ-val" id="eco-stars-out">0</div><div class="econ-lbl">Bintang Diberi</div></div></div>
+        <div class="econ-card coins-w"><span class="econ-icon">💎</span><div><div class="econ-val" id="eco-coins">0</div><div class="econ-lbl">NexCoins Diterima</div></div></div>
+      </div>
+
+      <!-- LENCANA PENULIS -->
+      <div class="writer-badge-section">
+        <div class="wbs-header">
+          <div>
+            <div class="wbs-title">🏅 Lencana Penulis</div>
+            <div class="wbs-sub">Dikira secara automatik — tiada borang diperlukan!</div>
+          </div>
+          <div class="wbs-count" id="wbs-count">0 / 0 diperoleh</div>
+        </div>
+        <div class="writer-badge-grid" id="writer-badge-grid">
+          <div class="empty-state" style="grid-column:1/-1;padding:1.5rem;"><div class="es-icon">⏳</div><div class="es-title">Memuatkan lencana...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats: Mod Pembaca -->
+    <div id="reader-stats" style="display:none;">
+
+      <div class="level-bar-wrap">
+        <div class="lb-header">
+          <span class="lb-title" id="lb-title">🌟 Level 1 — Pembaca Baru</span>
+          <span class="lb-next" id="lb-next">0 / 100 XP → Level 2</span>
+        </div>
+        <div class="lb-bar"><div class="lb-fill" id="lb-fill" style="width:0%"></div></div>
+        <div class="lb-labels"><span id="lb-from">Level 1</span><span id="lb-pct">0%</span><span id="lb-to">Level 2</span></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-pill"><span class="sp-val" id="stat-cerita">0</span><span class="sp-label">Dibaca</span></div>
+        <div class="stat-pill"><span class="sp-val" id="stat-selesai">0</span><span class="sp-label">Selesai</span></div>
+        <div class="stat-pill"><span class="sp-val" id="stat-bintang-r">—</span><span class="sp-label">Bintang</span></div>
+        <div class="stat-pill"><span class="sp-val" id="stat-streak">—</span><span class="sp-label">Hari Berturut</span></div>
+        <div class="stat-pill"><span class="sp-val" id="stat-ikuti-r">0</span><span class="sp-label">Diikuti</span></div>
+        <div class="stat-pill"><span class="sp-val" id="stat-sijil-r">0</span><span class="sp-label">Sijil</span></div>
+      </div>
+
+      <!-- Pencapaian Pembaca -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:18px;padding:1.2rem;margin-bottom:1rem;">
+        <div style="font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;color:var(--ink);margin-bottom:0.8rem;">🏆 Pencapaian Pembaca</div>
+        <div class="ach-grid" id="reader-ach-grid">
+          <div class="ach-item"><div class="ach-icon">📖</div><div class="ach-name">Pembaca Tekun</div><div class="ach-desc">Baca 10 cerita</div></div>
+          <div class="ach-item locked"><div class="ach-icon">🌟</div><div class="ach-name">Pengumpul Bintang</div><div class="ach-desc">Kumpul 100 ⭐</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+          <div class="ach-item locked"><div class="ach-icon">🌍</div><div class="ach-name">Pembaca Dunia</div><div class="ach-desc">Baca 3 bahasa</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+          <div class="ach-item locked"><div class="ach-icon">💝</div><div class="ach-name">Super Fan</div><div class="ach-desc">Ikuti 10 penulis</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+          <div class="ach-item locked"><div class="ach-icon">📜</div><div class="ach-name">Kolektor Sijil</div><div class="ach-desc">Kumpul 5 sijil</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+          <div class="ach-item locked"><div class="ach-icon">🔥</div><div class="ach-name">Streak Master</div><div class="ach-desc">7 hari berturut</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ WRITER MODE ══ -->
+  <div id="writer-mode">
+    <div style="margin-bottom:1.2rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h3 style="font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;">📚 Karya Saya</h3>
+        <button class="aa-btn aa-new" onclick="openNewStoryModal()">+ Tambah</button>
+      </div>
+      <div class="karya-grid" id="karya-grid">
+        <div class="empty-state"><div class="es-icon">📝</div><div class="es-title">Belum ada karya</div><div class="es-sub">Mulakan cerita pertama kamu sekarang!</div><button onclick="openNewStoryModal()" style="margin-top:12px;padding:9px 24px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'Baloo 2',cursive;font-weight:800;font-size:0.85rem;cursor:pointer;">✍️ Tulis Sekarang</button></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <div>
+          <h3 style="font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;">💜 Penulis Yang Saya Sokong</h3>
+          <p style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Komuniti penulis yang kamu ikuti dan beri bintang</p>
+        </div>
+      </div>
+      <div class="sokong-grid" id="sokong-grid">
+        <div class="empty-state"><div class="es-icon">💜</div><div class="es-title">Belum menyokong penulis lain</div><div class="es-sub">Ikuti dan beri bintang kepada penulis yang kamu kagumi!</div><a href="nexstoria-explore.html" style="display:inline-block;margin-top:12px;padding:9px 24px;border-radius:12px;background:var(--off);border:1.5px solid var(--border);color:var(--purple);font-weight:800;font-size:0.85rem;text-decoration:none;font-family:'Baloo 2',cursive;">🌍 Terokai Penulis</a></div>
+      </div>
+    </div>
+
+    <!-- ══ SIJIL PENULIS ══ -->
+    <div class="sijil-section">
+      <div class="sijil-section-header">
+        <div>
+          <h3 class="sijil-section-title">📜 Sijil Pencapaian Penulis</h3>
+          <p class="sijil-section-sub">Sijil dihasilkan automatik apabila anda mencapai pencapaian tertentu</p>
+        </div>
+        <div class="sijil-count-badge" id="sijil-count-badge">0 sijil</div>
+      </div>
+      <div class="sijil-grid" id="sijil-grid">
+        <div class="empty-state" style="grid-column:1/-1"><div class="es-icon">⏳</div><div class="es-title">Memuatkan sijil...</div></div>
+      </div>
+    </div>
+
+    <!-- Bahagian penghantaran sijil fizikal telah dipindahkan ke nexstoria-author-wallet.html -->
+
+  </div>
+
+  <!-- ══ READER MODE ══ -->
+  <div id="reader-mode" style="display:none;">
+    <div class="reading-section">
+      <div class="rs-title">📖 Sedang Dibaca</div>
+      <div class="reading-grid" id="reading-grid">
+        <div style="grid-column:1/-1;" class="empty-state"><div class="es-icon">📚</div><div class="es-title">Belum ada bacaan</div><a href="nexstoria-explore.html" style="color:var(--sky);font-weight:800;font-size:0.82rem;">Terokai Cerita →</a></div>
+      </div>
+    </div>
+    <div class="reading-section">
+      <div class="rs-title">💜 Penulis Yang Diikuti</div>
+      <div class="sokong-grid" id="following-reader-grid">
+        <div class="empty-state"><div class="es-icon">👥</div><div class="es-title">Belum mengikuti penulis</div><a href="nexstoria-explore.html" style="color:var(--sky);font-weight:800;font-size:0.82rem;">Cari Penulis →</a></div>
+      </div>
+    </div>
+    <div class="reading-section">
+      <div class="rs-title">🏆 Pencapaian</div>
+      <div class="ach-grid">
+        <div class="ach-item"><div class="ach-icon">📖</div><div class="ach-name">Pembaca Tekun</div><div class="ach-desc">Baca 10 cerita</div></div>
+        <div class="ach-item locked"><div class="ach-icon">🌟</div><div class="ach-name">Pengumpul Bintang</div><div class="ach-desc">Kumpul 100 ⭐</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+        <div class="ach-item locked"><div class="ach-icon">🌍</div><div class="ach-name">Pembaca Dunia</div><div class="ach-desc">Baca 3 bahasa</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+        <div class="ach-item locked"><div class="ach-icon">💝</div><div class="ach-name">Super Fan</div><div class="ach-desc">Ikuti 10 penulis</div><div class="ach-desc" style="color:var(--muted);margin-top:3px">🔒 Belum dicapai</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- MODAL EDIT PROFIL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    <div class="modal-title">✏️ Edit Profil</div>
+
+    <!-- Tab Toggle -->
+    <div style="display:flex;gap:6px;background:var(--off);border-radius:12px;padding:4px;margin-bottom:1.2rem;border:1.5px solid var(--border);">
+      <button id="etab-basic" onclick="switchEditTab('basic')" style="flex:1;padding:8px;border-radius:9px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;cursor:pointer;background:linear-gradient(135deg,var(--sky),var(--sky2));color:white;box-shadow:0 2px 6px rgba(56,189,248,0.2);">👤 Maklumat Asas</button>
+      <button id="etab-writer" onclick="switchEditTab('writer')" style="flex:1;padding:8px;border-radius:9px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;cursor:pointer;background:transparent;color:var(--muted);">✍️ Maklumat Penulis</button>
+    </div>
+
+    <!-- TAB: Maklumat Asas (Pembaca) -->
+    <div id="etab-basic-content">
+      <div class="form-group"><label class="form-label">Nama Paparan</label><input class="form-input" id="edit-name" maxlength="40" placeholder="Nama kamu..."></div>
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="edit-username" maxlength="30" placeholder="@username"></div>
+      <div class="form-group"><label class="form-label">Bio Pembaca</label><textarea class="form-input" id="edit-bio" maxlength="200" placeholder="Ceritakan sedikit tentang diri kamu sebagai pembaca..."></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Avatar Emoji</label>
+        <div class="form-emoji-row" id="emoji-picker">
+          <div class="emoji-opt selected" onclick="selectEmoji(this,'👦')">👦</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'👧')">👧</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'🧒')">🧒</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'🦊')">🦊</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'🐱')">🐱</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'🐻')">🐻</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'🌟')">🌟</div>
+          <div class="emoji-opt" onclick="selectEmoji(this,'🎨')">🎨</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Maklumat Penulis -->
+    <div id="etab-writer-content" style="display:none;">
+      <div class="form-group"><label class="form-label">Bio Penulis</label><textarea class="form-input" id="edit-bio-writer" maxlength="300" placeholder="Kongsi perjalanan penulisan kamu, inspirasi, dan gaya menulis..."></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Genre Pilihan</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;" id="genre-picker">
+          <div class="wr-genre" onclick="toggleGenre(this,'Haiwan')">🐾 Haiwan</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Sains')">🔬 Sains</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Dongeng')">🧚 Dongeng</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Teladan')">💡 Teladan</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Misteri')">🔍 Misteri</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Wira')">⚔️ Wira</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Alam')">🌿 Alam</div>
+          <div class="wr-genre" onclick="toggleGenre(this,'Komedi')">😂 Komedi</div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Pautan Instagram (pilihan)</label><input class="form-input" id="edit-ig" maxlength="60" placeholder="@username atau link penuh"></div>
+      <div class="form-group"><label class="form-label">Pautan TikTok (pilihan)</label><input class="form-input" id="edit-tiktok" maxlength="60" placeholder="@username atau link penuh"></div>
+    </div>
+
+    <button class="form-submit" id="save-edit-btn" onclick="saveProfile()">💾 Simpan Profil</button>
+    <div class="modal-msg" id="edit-msg"></div>
+  </div>
+</div>
+
+<!-- MODAL KEDAI TOKEN -->
+
+
+<!-- MODAL PADAM -->
+<div class="modal-overlay" id="deleteStoryModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div style="font-size:3rem;text-align:center;margin-bottom:10px;">🗑️</div>
+    <div style="font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;color:var(--ink);text-align:center;margin-bottom:6px;">Padam Karya Ini?</div>
+    <div style="font-size:0.82rem;color:var(--soft);text-align:center;margin-bottom:0;line-height:1.5;">Karya "<strong id="delete-story-title"></strong>" akan dipadam secara kekal. Tindakan ini <strong>tidak boleh dibatalkan</strong>.</div>
+    <div class="delete-modal-actions">
+      <button class="delete-modal-cancel" onclick="closeModal('deleteStoryModal')">Batal</button>
+      <button class="delete-modal-confirm" id="delete-confirm-btn" onclick="confirmDeleteStory()">Ya, Padam</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SIJIL PRATONTON -->
+<div class="modal-overlay" id="sijilModal">
+  <div class="sijil-modal-box">
+    <button class="modal-close" onclick="closeModal('sijilModal')" style="position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(0,0,0,0.08);border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--soft);display:flex;align-items:center;justify-content:center;">✕</button>
+    <div class="sijil-preview-wrap">
+      <div style="font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:1rem;" id="sijil-modal-title">📜 Sijil Pencapaian</div>
+      <div class="sijil-canvas-wrap">
+        <canvas id="sijil-canvas" width="800" height="560"></canvas>
+      </div>
+      <div class="sijil-preview-meta">
+        <div class="spm-item"><div class="spm-label">Nama Penulis</div><div class="spm-val" id="spm-name">—</div></div>
+        <div class="spm-item"><div class="spm-label">Jenis Sijil</div><div class="spm-val" id="spm-type">—</div></div>
+        <div class="spm-item"><div class="spm-label">Tarikh Diperoleh</div><div class="spm-val" id="spm-date">—</div></div>
+        <div class="spm-item"><div class="spm-label">ID Sijil</div><div class="spm-val" id="spm-id" style="font-size:0.72rem;word-break:break-all;">—</div></div>
+      </div>
+    </div>
+    <div class="sijil-modal-actions">
+      <button class="sijil-dl-btn ghost" onclick="closeModal('sijilModal')">Tutup</button>
+      <button class="sijil-dl-btn primary" id="sijil-dl-btn" onclick="downloadSijil()">⬇️ Muat Turun PNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lkeehgivbuhkwdfrvexm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentMode = 'writer';
+let storyToDeleteId = null;
+
+// ── HELPERS ──
+function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','')+'k' : String(n||0); }
+function fmtDate(d) { if(!d) return '---'; return new Date(d).toLocaleDateString('ms-MY',{year:'numeric',month:'long'}); }
+const covColors = {'Haiwan':'#d1fae5','Sains':'#bfdbfe','Dongeng':'#e9d5ff','Teladan':'#fde68a','Misteri':'#faf5ff','Wira':'#fce7f3','Alam':'#ccfbf1','default':'#f0f9ff'};
+function covBg(cat) { return covColors[cat]||covColors.default; }
+
+// ── BANNER PARTICLES ──
+function genBannerFx(mode) {
+  const c = document.getElementById('banner-particles');
+  c.innerHTML = '';
+  if (mode === 'writer') {
+    const colors = ['#a78bfa','#ffd166','#f472b6','#06d6a0','#38bdf8'];
+    for (let i=0;i<22;i++) {
+      const p=document.createElement('div'); p.className='banner-particle';
+      const s=Math.random()*8+3;
+      p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:${colors[i%5]};opacity:0.3;animation-delay:${Math.random()*4}s;animation-duration:${Math.random()*3+4}s;`;
+      c.appendChild(p);
+    }
+  } else {
+    for (let i=0;i<30;i++) {
+      const s=document.createElement('div'); s.className='banner-star';
+      const sz=Math.random()*3+1;
+      s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;`;
+      c.appendChild(s);
+    }
+  }
+}
+
+// ── MODE SWITCH ──
+function switchMode(mode) {
+  currentMode = mode;
+  const w = mode === 'writer';
+
+  // Tabs
+  document.getElementById('mode-writer').classList.toggle('active', w);
+  document.getElementById('mode-reader').classList.toggle('active', !w);
+
+  // Content
+  document.getElementById('writer-mode').style.display = w ? 'block' : 'none';
+  document.getElementById('reader-mode').style.display = w ? 'none' : 'block';
+  document.getElementById('writer-stats').style.display = w ? 'block' : 'none';
+  document.getElementById('reader-stats').style.display = w ? 'none' : 'block';
+
+  // Avatar
+  document.getElementById('writer-avatar-el').style.display = w ? 'flex' : 'none';
+  document.getElementById('reader-avatar-el').style.display = w ? 'none' : 'flex';
+
+  // Butang
+  document.getElementById('actions-writer').style.display = w ? 'flex' : 'none';
+  document.getElementById('actions-reader').style.display = w ? 'none' : 'flex';
+
+  // Role badge
+  const rb = document.getElementById('role-badge');
+  rb.style.background = w ? 'rgba(167,139,250,0.1)' : 'rgba(56,189,248,0.1)';
+  rb.style.color = w ? 'var(--lav)' : 'var(--sky)';
+  rb.style.borderColor = w ? 'rgba(167,139,250,0.2)' : 'rgba(56,189,248,0.2)';
+  rb.textContent = w ? '✍️ Penulis' : '📖 Pembaca';
+
+  // Nav
+  const nav = document.getElementById('main-nav');
+  nav.className = w ? 'writer-nav' : 'reader-nav';
+  const nb = document.getElementById('nav-badge');
+  nb.className = 'nav-logo-badge ' + (w ? 'writer' : 'reader');
+  nb.textContent = w ? '✍️ PENULIS' : '📖 MOD BACA';
+  document.getElementById('nav-new-story').style.display = w ? '' : 'none';
+  const exp = document.getElementById('nav-explore');
+  exp.className = w ? 'nav-btn outline-light' : 'nav-btn outline-dark';
+
+  // Banner
+  const banner = document.getElementById('profile-banner');
+  banner.className = 'profile-banner ' + (w ? 'writer-banner' : 'reader-banner');
+  const bmb = document.getElementById('banner-mode-badge');
+  bmb.className = w ? 'bl-writer' : 'bl-reader';
+  bmb.textContent = w ? '✍️ Penulis NexStoria' : '📖 Mod Pembaca';
+
+  // Banner level badge + rank
+  const blb = document.getElementById('banner-level-badge');
+  const blr = document.getElementById('banner-rank');
+  if (blb && blr) {
+    const xp = currentUser?._xp || 0;
+    const level = Math.floor(xp / 100) + 1;
+    const rankNames = ['Pemula','Pembaca Baru','Pencinta Cerita','Pembaca Aktif','Pembaca Setia','Pembaca Tegar','Pembaca Mahir'];
+    blb.textContent = 'Lv ' + level;
+    blr.textContent = rankNames[Math.min(level-1, rankNames.length-1)];
+  }
+
+  // Profile card
+  document.getElementById('profile-card').className = 'profile-card ' + (w ? 'writer-card' : 'reader-card');
+
+  // Handle
+  const h = document.getElementById('p-handle');
+  if (h.dataset.base) h.textContent = h.dataset.base + (w ? ' · Penulis sejak '+(h.dataset.since||'---') : ' · Pembaca');
+
+  // Banner particles
+  genBannerFx(mode);
+}
+
+// ── INIT ──
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('nexstoria-login.html'); return; }
+  currentUser = session.user;
+
+  const { data: p } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+
+  // Redirect jika bukan penulis
+  if (!p || !['writer','author'].includes(p.role)) {
+    window.location.replace('nexstoria-reader-profile.html');
+    return;
+  }
+
+  const name = p.full_name || currentUser.email.split('@')[0];
+  const username = p.username || currentUser.email.split('@')[0];
+  const since = fmtDate(p.writer_since || p.created_at);
+  const bio = p.writer_bio || p.bio || 'Penulis NexStoria yang bersemangat! 🌟';
+  const initial = name[0]?.toUpperCase() || '✍️';
+
+  document.getElementById('p-name-text').textContent = name;
+  document.getElementById('p-bio').textContent = bio;
+  document.getElementById('banner-since').textContent = 'Penulis sejak ' + since;
+  document.title = name + ' — NexStoria';
+
+  document.getElementById('ava-initial-w').textContent = initial;
+  document.getElementById('ava-initial-r').textContent = initial;
+
+  const h = document.getElementById('p-handle');
+  h.dataset.base = '@' + username;
+  h.dataset.since = since;
+  h.textContent = '@' + username + ' · Penulis sejak ' + since;
+
+  // Wallet — papar bintang & coins
+  const coins = p.coins || 0;
+  const gems  = p.gems  || 0;
+  const stars  = p.stars  || 0;
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  // Panel baru: dompet-stars & dompet-coins
+  setEl('dompet-stars', stars || '—');
+  setEl('dompet-coins', coins || '0');
+  setEl('dompet-rm',    'RM ' + (coins * 0.10).toFixed(2));
+  setEl('token-val',    coins || '0');
+  setEl('cc-stars',     stars || '—');
+  setEl('eco-coins',    coins);
+  setEl('cc-coins-r',   fmt(coins));
+  // Royalti penulis panel dipindahkan ke nexstoria-author-wallet.html
+
+  // Level
+  const xp = (p.total_stories_read || 0) * 10;
+  currentUser._xp = xp; // simpan untuk banner
+  const level = Math.floor(xp / 100) + 1;
+  const xpIn = xp % 100;
+  const lvNames = ['Pembaca Baru','Pencinta Cerita','Pembaca Aktif','Pembaca Setia','Pembaca Tegar','Pembaca Mahir','Pembaca Pakar'];
+  document.getElementById('lb-title').textContent = `🌟 Level ${level} — ${lvNames[Math.min(level-1,lvNames.length-1)]}`;
+  document.getElementById('lb-next').textContent = `${xpIn} / 100 XP → Level ${level+1}`;
+  document.getElementById('lb-fill').style.width = xpIn + '%';
+  document.getElementById('lb-from').textContent = 'Level ' + level;
+  document.getElementById('lb-pct').textContent = xpIn + '%';
+  document.getElementById('lb-to').textContent = 'Level ' + (level+1);
+  document.getElementById('avatar-level-num').textContent = level;
+  // Update banner level badge
+  const blb = document.getElementById('banner-level-badge');
+  const blr = document.getElementById('banner-rank');
+  if (blb) blb.textContent = 'Lv ' + level;
+  if (blr) { const rankNames = ['Pemula','Pembaca Baru','Pencinta Cerita','Pembaca Aktif','Pembaca Setia','Pembaca Tegar','Pembaca Mahir']; blr.textContent = rankNames[Math.min(level-1,rankNames.length-1)]; }
+
+  // Edit modal
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-username').value = username;
+  document.getElementById('edit-bio').value = p.bio || bio;
+  const wbio = document.getElementById('edit-bio-writer');
+  if (wbio) wbio.value = p.writer_bio || '';
+  // Pre-select genres
+  if (p.genres && Array.isArray(p.genres)) {
+    document.querySelectorAll('#genre-picker .wr-genre').forEach(el => {
+      if (p.genres.includes(el.dataset.genre || el.textContent.replace(/[^a-zA-Z]/g,''))) el.classList.add('selected');
+    });
+  }
+
+  genBannerFx('writer');
+
+  // Simpan profil untuk sistem lencana
+  currentUser._profile = p;
+
+  await Promise.all([loadKarya(), loadFollowing(), loadReaderData(), loadStarEconomy()]);
+  document.getElementById('notif-bell-btn').style.display = 'flex';
+  document.getElementById('ham-btn').style.display = 'flex';
+  document.getElementById('notif-bell-btn').style.display = 'flex';
+  document.getElementById('ham-btn').style.display = 'flex';
+  // Sync mobile menu
+  const _mmAva = document.getElementById('mm-ava');
+  const _mmName = document.getElementById('mm-name');
+  const _mmRole = document.getElementById('mm-role');
+  if (_mmAva) { _mmAva.textContent = currentUser.user_metadata?.avatar?.emoji || '✍️'; }
+  if (_mmName) _mmName.textContent = profileData?.full_name || currentUser.user_metadata?.display_name || 'Penulis';
+  if (_mmRole) _mmRole.textContent = (profileData?.role === 'writer' || profileData?.role === 'author') ? '✍️ Penulis NexStoria' : '📖 Pembaca';
+  await initNotifications(currentUser.id);
+
+  // Auto-switch ke Mod Pembaca jika URL ada ?mode=reader
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('mode') === 'reader') {
+    switchMode('reader');
+    // Scroll ke bahagian mod
+    setTimeout(() => document.getElementById('reader-mode')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  }
+}
+
+// ── LOAD KARYA ──
+async function loadKarya() {
+  const { data: stories } = await sb.from('stories').select('*,cover_url,cover_emoji,cover_bg').eq('author_id', currentUser.id).order('created_at',{ascending:false});
+  document.getElementById('stat-stories').textContent = stories?.length || 0;
+  document.getElementById('stat-reads').textContent = fmt(stories?.reduce((s,r)=>s+(r.reads_count||0),0)||0);
+
+  // Kira dan render lencana penulis
+  const badgeStats = buildWriterBadgeStats(currentUser._profile, stories || []);
+  renderWriterBadges(badgeStats);
+
+  // Kira dan render sijil penulis
+  const adminFlags = currentUser._profile?.admin_sijil || [];
+  renderSijilGrid(badgeStats, adminFlags);
+
+  const grid = document.getElementById('karya-grid');
+  if (!stories || !stories.length) return;
+  grid.innerHTML = '';
+  stories.forEach(s => {
+    const sc = s.status==='published'?'status-published':s.status==='draft'?'status-draft':'status-pending';
+    const sl = s.status==='published'?'Diterbitkan':s.status==='draft'?'Draf':'Menunggu';
+    // Kira panel count dari array panels (bukan total_chapters yang tak wujud)
+    const panelCount = Array.isArray(s.panels) ? s.panels.length : (s.panels ? (typeof s.panels === 'string' ? (JSON.parse(s.panels)||[]).length : 0) : 0);
+    const prog = Math.min(panelCount/Math.max(panelCount+2,5)*100,100);
+    grid.innerHTML += `<div class="karya-card">
+      <div class="kc-top">
+        <div class="kc-cover" style="background:${covBg(s.category)};position:relative;overflow:hidden;">
+          ${s.cover_url ? `<img src="${s.cover_url}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit;" loading="lazy" onerror="this.style.display='none'">` : ''}
+          <span style="position:relative;z-index:1;${s.cover_url ? 'display:none' : ''}">${s.cover_emoji||s.emoji||'📖'}</span>
+        </div>
+        <div class="kc-info">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+            <div class="kc-title">${s.title}</div>
+            <span class="status-badge ${sc}">${sl}</span>
+          </div>
+          <div class="kc-meta"><span>📂 ${s.category}</span><span>🎯 ${s.age_group} thn</span><span>👁 ${fmt(s.reads_count)}</span><span>🖼️ ${panelCount} panel</span></div>
+          <div class="kc-progress-wrap"><div class="kc-progress" style="width:${prog}%"></div></div>
+          <div class="kc-progress-label"><span>Panel ${panelCount}</span><span>${panelCount} panel</span></div>
+        </div>
+      </div>
+      <div class="kc-actions">
+        <button class="kc-btn" onclick="window.location.href='nexstoria-submit.html?edit=${s.id}'">✏️ Edit</button>
+        ${s.status!=='published'?`<button class="kc-btn publish" onclick="publishStory('${s.id}','${s.title.replace(/'/g,"\\'")}',this)">🚀 Terbit</button>`:`<span class="kc-published-tag">✅ Diterbit</span>`}
+        <button class="kc-btn danger" onclick="openDeleteModal('${s.id}','${s.title.replace(/'/g,"\\'")}')">🗑️ Padam</button>
+      </div>
+    </div>`;
+  });
+  grid.innerHTML += `<button class="btn-tambah-karya" onclick="openNewStoryModal()">✨ Tambah Cerita Baru</button>`;
+}
+
+// ── LOAD FOLLOWING ──
+async function loadFollowing() {
+  // Bilangan penulis yang DIIKUTI oleh pengguna ini
+  const { data: follows } = await sb.from('follows')
+    .select('following_id, profiles!follows_following_id_fkey(id,full_name,username,total_stories,stars_received)')
+    .eq('follower_id', currentUser.id).limit(10);
+  const countFollowing = follows?.length || 0;
+  document.getElementById('stat-ikuti-r').textContent = countFollowing;
+
+  // Bilangan PEMINAT (orang yang mengikuti penulis ini)
+  const { count: followersCount } = await sb.from('follows')
+    .select('id', { count: 'exact', head: true })
+    .eq('following_id', currentUser.id);
+  document.getElementById('stat-followers').textContent = followersCount || 0;
+
+  if (!follows || !follows.length) return;
+  const emojis = ['🦋','🦁','🐉','🚀','🌟','🐼','🦊','🌸'];
+  const html = follows.map((f,i) => {
+    const pr = f.profiles; if(!pr) return '';
+    const n = pr.full_name || pr.username || 'Penulis';
+    return `<div class="sokong-item" style="cursor:pointer;" onclick="window.location.href='nexstoria-author-public.html?id=${pr.id}'">
+      <div class="sokong-ava" style="background:${covBg(null)}">${emojis[i%emojis.length]}</div>
+      <div class="sokong-info"><div class="sokong-name">${n}</div><div class="sokong-story">${pr.total_stories||0} cerita · ⭐ ${pr.stars_received||0}</div></div>
+      <div class="sokong-stars">⭐ 0 bulan ini</div>
+    </div>`;
+  }).join('');
+  document.getElementById('sokong-grid').innerHTML = html;
+  document.getElementById('following-reader-grid').innerHTML = html;
+}
+
+// ── LOAD READER DATA ──
+async function loadReaderData() {
+  // Ambil story_id sahaja dari TIGA sumber (tanpa join — elak masalah FK)
+  const [progressRes, libraryRes, bookmarkRes] = await Promise.all([
+    sb.from('reading_progress')
+      .select('story_id, completed, updated_at')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false })
+      .limit(24),
+    sb.from('user_library')
+      .select('story_id, saved_at')
+      .eq('user_id', currentUser.id)
+      .order('saved_at', { ascending: false })
+      .limit(24),
+    sb.from('bookmarks')
+      .select('story_id, created_at')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(24),
+  ]);
+
+  console.log('[ReaderData] progress:', progressRes.data?.length, progressRes.error?.message);
+  console.log('[ReaderData] user_library:', libraryRes.data?.length, libraryRes.error?.message);
+  console.log('[ReaderData] bookmarks:', bookmarkRes.data?.length, bookmarkRes.error?.message);
+
+  const progress = progressRes.data || [];
+  const library = libraryRes.data || [];
+  const bookmarks = bookmarkRes.data || [];
+
+  document.getElementById('stat-cerita').textContent = progress.length;
+  document.getElementById('stat-selesai').textContent = progress.filter(r => r.completed).length;
+
+  // Gabung & nyah-duplikasi
+  const seen = new Set();
+  const items = [];
+
+  for (const l of library) {
+    if (!l.story_id || seen.has(l.story_id)) continue;
+    seen.add(l.story_id);
+    const prog = progress.find(p => p.story_id === l.story_id);
+    items.push({ story_id: l.story_id, completed: prog?.completed || false, source: 'library' });
+  }
+
+  for (const b of bookmarks) {
+    if (!b.story_id || seen.has(b.story_id)) continue;
+    seen.add(b.story_id);
+    const prog = progress.find(p => p.story_id === b.story_id);
+    items.push({ story_id: b.story_id, completed: prog?.completed || false, source: 'library' });
+  }
+
+  for (const p of progress) {
+    if (!p.story_id || seen.has(p.story_id)) continue;
+    seen.add(p.story_id);
+    items.push({ story_id: p.story_id, completed: p.completed, source: 'progress' });
+  }
+
+  const grid = document.getElementById('reading-grid');
+  if (!grid) return;
+
+  if (!items.length) {
+    grid.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.82rem;grid-column:1/-1;">Belum ada buku dibaca atau disimpan.</div>`;
+    return;
+  }
+
+  // Ambil details semua story dalam satu query
+  const storyIds = items.map(i => i.story_id);
+  const { data: stories } = await sb.from('stories')
+    .select('id, title, emoji, cover_emoji, cover_url, category')
+    .in('id', storyIds);
+
+  const storyMap = {};
+  (stories || []).forEach(s => storyMap[s.id] = s);
+
+  grid.innerHTML = items.map(item => {
+    const s = storyMap[item.story_id];
+    if (!s) return '';
+    const statusTag = item.source === 'library' && !item.completed
+      ? '<span style="position:absolute;top:4px;right:4px;font-size:9px;font-weight:800;padding:2px 5px;border-radius:5px;background:rgba(167,139,250,0.85);color:white;">🔖</span>'
+      : item.completed
+        ? '<span style="position:absolute;top:4px;right:4px;font-size:9px;font-weight:800;padding:2px 5px;border-radius:5px;background:rgba(6,214,160,0.85);color:white;">✓</span>'
+        : '';
+    const coverHtml = s.cover_url
+      ? `<img src="${s.cover_url}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit;" loading="lazy" onerror="this.style.display='none'">`
+      : `<span style="position:relative;z-index:1">${s.cover_emoji || s.emoji || '📖'}</span>`;
+    return `
+      <div class="rl-card" onclick="window.location.href='nexstoria-reader.html?id=${s.id}'">
+        <div class="rl-cover" style="background:${covBg(s.category)};position:relative;overflow:hidden;">
+          ${coverHtml}${statusTag}
+        </div>
+        <div class="rl-body"><div class="rl-title">${s.title}</div></div>
+      </div>`;
+  }).join('');
+}
+
+// ── LOAD STAR ECONOMY ──
+async function loadStarEconomy() {
+  const firstDay = new Date(); firstDay.setDate(1); firstDay.setHours(0,0,0,0);
+  const [{ data: sIn }, { data: sOut }] = await Promise.all([
+    sb.from('star_transactions').select('amount').eq('to_user_id', currentUser.id).gte('created_at', firstDay.toISOString()),
+    sb.from('star_transactions').select('amount').eq('from_user_id', currentUser.id)
+  ]);
+  const totalIn = sIn?.reduce((s,r)=>s+(r.amount||0),0)||0;
+  document.getElementById('eco-stars-in').textContent = totalIn;
+  document.getElementById('stat-stars-in').textContent = totalIn;
+  document.getElementById('cc-stars').textContent = totalIn || '—';
+  document.getElementById('stat-bintang-r').textContent = totalIn || '—';
+  document.getElementById('eco-stars-out').textContent = sOut?.reduce((s,r)=>s+(r.amount||0),0)||0;
+}
+
+// ── NEW STORY ──
+function openNewStoryModal() { window.location.href = 'nexstoria-submit.html'; }
+
+// ── EDIT MODAL TAB SWITCH ──
+function switchEditTab(tab) {
+  const isBasic = tab === 'basic';
+  document.getElementById('etab-basic-content').style.display = isBasic ? 'block' : 'none';
+  document.getElementById('etab-writer-content').style.display = isBasic ? 'none' : 'block';
+  const btnBasic = document.getElementById('etab-basic');
+  const btnWriter = document.getElementById('etab-writer');
+  if (btnBasic && btnWriter) {
+    btnBasic.style.background = isBasic ? 'linear-gradient(135deg,var(--sky),var(--sky2))' : 'transparent';
+    btnBasic.style.color = isBasic ? 'white' : 'var(--muted)';
+    btnBasic.style.boxShadow = isBasic ? '0 2px 6px rgba(56,189,248,0.2)' : 'none';
+    btnWriter.style.background = !isBasic ? 'linear-gradient(135deg,var(--purple),var(--purple2))' : 'transparent';
+    btnWriter.style.color = !isBasic ? 'white' : 'var(--muted)';
+    btnWriter.style.boxShadow = !isBasic ? '0 2px 6px rgba(124,58,237,0.2)' : 'none';
+  }
+}
+
+let _selectedEmoji = '👦';
+function selectEmoji(el, emoji) {
+  document.querySelectorAll('#emoji-picker .emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  _selectedEmoji = emoji;
+}
+
+function toggleGenre(el, genre) {
+  el.classList.toggle('selected');
+  el.dataset.genre = genre;
+}
+
+// ── EDIT PROFIL ──
+function openEditModal() { document.getElementById('editModal').classList.add('open'); }
+async function saveProfile() {
+  const btn=document.getElementById('save-edit-btn'), msg=document.getElementById('edit-msg');
+  const name=document.getElementById('edit-name').value.trim();
+  const username=document.getElementById('edit-username').value.trim();
+  const bio=document.getElementById('edit-bio').value.trim();
+  const writerBio = (document.getElementById('edit-bio-writer')?.value||'').trim();
+  const ig = (document.getElementById('edit-ig')?.value||'').trim();
+  const tiktok = (document.getElementById('edit-tiktok')?.value||'').trim();
+  const selectedGenres = [...document.querySelectorAll('#genre-picker .wr-genre.selected')].map(el=>el.dataset.genre||el.textContent.replace(/[^\w]/g,''));
+
+  if (!name) { msg.style.color='var(--coral)'; msg.textContent='⚠️ Nama tidak boleh kosong.'; return; }
+  btn.disabled=true; btn.textContent='Menyimpan...';
+
+  const updateData = {
+    full_name: name,
+    username: username||null,
+    bio: bio||null,
+    writer_bio: writerBio||bio||null,
+    genres: selectedGenres.length ? selectedGenres : null,
+    social_ig: ig||null,
+    social_tiktok: tiktok||null,
+  };
+
+  const { error } = await sb.from('profiles').update(updateData).eq('id', currentUser.id);
+  if (error) { msg.style.color='var(--coral)'; msg.textContent='❌ '+error.message; }
+  else {
+    document.getElementById('p-name-text').textContent = name;
+    document.getElementById('ava-initial-w').textContent = name[0]?.toUpperCase()||'✍️';
+    document.getElementById('ava-initial-r').textContent = name[0]?.toUpperCase()||'✍️';
+    const h=document.getElementById('p-handle');
+    h.dataset.base = '@'+(username||currentUser.email.split('@')[0]);
+    h.textContent = h.dataset.base + (currentMode==='writer'?' · Penulis sejak '+(h.dataset.since||'---'):' · Pembaca');
+    document.getElementById('p-bio').textContent = (currentMode==='writer'?writerBio:bio)||'Penulis NexStoria yang bersemangat! 🌟';
+    msg.style.color='var(--mint)'; msg.textContent='✅ Profil dikemaskini!';
+    setTimeout(()=>closeModal('editModal'),1200);
+  }
+  btn.disabled=false; btn.textContent='💾 Simpan Profil';
+}
+
+// ── PUBLISH / DELETE ──
+async function publishStory(id, title, btn) {
+  if (!confirm(`Terbitkan "${title}" sekarang?`)) return;
+  btn.disabled=true; btn.textContent='⏳…';
+  const { error } = await sb.from('stories').update({ status:'published' }).eq('id',id).eq('author_id',currentUser.id);
+  if (error) { btn.disabled=false; btn.textContent='🚀 Terbit'; showToast('❌ Gagal menerbitkan.'); return; }
+  btn.replaceWith(Object.assign(document.createElement('span'),{className:'kc-published-tag',textContent:'✅ Diterbit'}));
+  showToast(`🚀 "${title}" berjaya diterbitkan!`);
+}
+function openDeleteModal(id, title) {
+  storyToDeleteId=id;
+  document.getElementById('delete-story-title').textContent=title;
+  document.getElementById('delete-confirm-btn').disabled=false;
+  document.getElementById('delete-confirm-btn').textContent='Ya, Padam';
+  document.getElementById('deleteStoryModal').classList.add('open');
+}
+async function confirmDeleteStory() {
+  if (!storyToDeleteId) return;
+  const btn=document.getElementById('delete-confirm-btn');
+  btn.disabled=true; btn.textContent='Mempadam…';
+  const { error } = await sb.from('stories').delete().eq('id',storyToDeleteId).eq('author_id',currentUser.id);
+  if (error) { btn.disabled=false; btn.textContent='Ya, Padam'; alert('Ralat: '+error.message); return; }
+  closeModal('deleteStoryModal'); storyToDeleteId=null;
+  showToast('🗑️ Karya berjaya dipadam.'); loadKarya();
+}
+
+// ── UTILS ──
+function openKedaiModal() { openTopUpModal(); }
+function openTopUpModal() {
+  const nexcoins = document.getElementById('db-coins')?.textContent || '0';
+  const stars    = document.getElementById('db-stars-r')?.textContent || '0';
+  const el1 = document.getElementById('topup-current-gems');
+  const el2 = document.getElementById('topup-current-coins');
+  if (el1) el1.textContent = nexcoins + ' 💎';
+  if (el2) el2.textContent = stars + ' ⭐';
+  const modal = document.getElementById('topup-modal');
+  if (modal) modal.style.display = 'flex';
+}
+function closeTopUpModal() {
+  const modal = document.getElementById('topup-modal');
+  if (modal) modal.style.display = 'none';
+}
+document.addEventListener('click', e => {
+  const modal = document.getElementById('topup-modal');
+  if (e.target === modal) closeTopUpModal();
+});
+
+
+// ── ⭐ BINTANG POPUP (bunga api) — sama seperti reader ──
+function showStarPopup(label) {
+  const popup = document.createElement('div');
+  popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;text-align:center;animation:starPopAnim 1.8s ease forwards;';
+  popup.innerHTML = `
+    <div style="font-size:3.5rem;display:block;margin-bottom:6px;">⭐</div>
+    <div style="font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:900;color:#92400e;background:rgba(255,255,255,0.95);border-radius:14px;padding:8px 20px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">${label || '+1 Bintang!'}</div>`;
+  for (let i = 0; i < 18; i++) {
+    const c = document.createElement('div');
+    const colors = ['#ffd166','#ff6b6b','#a78bfa','#06d6a0','#38bdf8','#f472b6'];
+    const size = Math.random() * 8 + 5;
+    c.style.cssText = `position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:${colors[i%colors.length]};top:50%;left:50%;animation:confettiA${i%3} ${0.8+Math.random()*0.8}s ease forwards;`;
+    popup.appendChild(c);
+  }
+  if (!document.getElementById('star-popup-styles-a')) {
+    const st = document.createElement('style');
+    st.id = 'star-popup-styles-a';
+    st.textContent = `
+      @keyframes starPopAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5);}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2);}70%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-80%) scale(0.9);}}
+      @keyframes confettiA0{0%{transform:translate(0,0);opacity:1;}100%{transform:translate(-40px,-80px);opacity:0;}}
+      @keyframes confettiA1{0%{transform:translate(0,0);opacity:1;}100%{transform:translate(50px,-90px) rotate(360deg);opacity:0;}}
+      @keyframes confettiA2{0%{transform:translate(0,0);opacity:1;}100%{transform:translate(-60px,-70px) scale(0.3);opacity:0;}}
+    `;
+    document.head.appendChild(st);
+  }
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 2000);
+}
+
+// window.showStarPopup boleh dipanggil dari reader.html juga
+window.showStarPopup = showStarPopup;
+
+// ── HAD BUKU HARIAN (10 BUKU/HARI) — dikongsi dengan reader ──
+const DAILY_LIMIT = 10;
+const DAILY_KEY_PREFIX = 'nx_daily_books_';
+
+function getTodayKey() { return DAILY_KEY_PREFIX + new Date().toISOString().slice(0,10); }
+function getDailyBooksRead() { return parseInt(localStorage.getItem(getTodayKey()) || '0'); }
+function setDailyBooksRead(n) { localStorage.setItem(getTodayKey(), n); }
+
+window.recordBookRead = function(storyId) {
+  const key = 'nx_read_' + new Date().toISOString().slice(0,10) + '_' + storyId;
+  if (localStorage.getItem(key)) return { ok: true, alreadyCounted: true };
+  localStorage.setItem(key, '1');
+  const count = getDailyBooksRead() + 1;
+  setDailyBooksRead(count);
+  if (count >= DAILY_LIMIT) {
+    showDailyLimitModal();
+    return { ok: false, limitReached: true, count };
+  }
+  showStarPopup('+1 Bintang!');
+  return { ok: true, count };
+};
+
+window.canReadBook = function(storyId) {
+  const key = 'nx_read_' + new Date().toISOString().slice(0,10) + '_' + storyId;
+  if (localStorage.getItem(key)) return true;
+  return getDailyBooksRead() < DAILY_LIMIT;
+};
+
+function showDailyLimitModal() {
+  let modal = document.getElementById('daily-limit-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'daily-limit-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+    modal.innerHTML = `
+      <div style="background:white;border-radius:28px;padding:2rem;max-width:360px;width:100%;text-align:center;animation:modalIn 0.3s ease;box-shadow:0 24px 60px rgba(0,0,0,0.25);">
+        <div style="font-size:3.5rem;margin-bottom:0.75rem;">📚</div>
+        <div style="font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:0.5rem;">Had Bacaan Hari Ini Tercapai!</div>
+        <div style="font-size:0.82rem;color:var(--soft);line-height:1.7;margin-bottom:1.2rem;">Kamu telah membaca <strong>10 buku</strong> hari ini 🎉<br>Guna 💎 NexCoins untuk terus membaca, atau kembali esok!</div>
+        <div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(124,58,237,0.04));border:1.5px solid rgba(167,139,250,0.2);border-radius:14px;padding:0.9rem;margin-bottom:1rem;font-size:0.78rem;color:var(--soft);">
+          💎 Diamond yang digunakan akan masuk terus ke akaun penulis buku tersebut.
+        </div>
+        <button onclick="openTopUpModal();document.getElementById('daily-limit-modal').style.display='none';" style="width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'Nunito';font-size:0.88rem;font-weight:800;cursor:pointer;margin-bottom:8px;">💎 Top Up NexCoins</button>
+        <button onclick="document.getElementById('daily-limit-modal').style.display='none';" style="width:100%;padding:10px;border-radius:12px;border:none;background:var(--off);color:var(--soft);font-family:'Nunito';font-size:0.8rem;font-weight:800;cursor:pointer;">Datang Esok 👋</button>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+}
+
+// ══════════════════════════════════════════
+// SISTEM SIJIL PENULIS
+// ══════════════════════════════════════════
+
+const SIJIL_DEFS = [
+  // ─── 1. LANGKAH PERTAMA — Gangsa ───
+  {
+    id: 'langkah_pertama',
+    icon: '✍️',
+    name: 'Sijil Langkah Pertama',
+    desc: 'Tahniah! Anda telah berani berkongsi karya pertama sebagai penulis rasmi NexStoria.',
+    trigger: 'karya',
+    threshold: 1,
+    gred: 'Gangsa',
+    gradient: ['#7c5c3a','#c8956c'],
+    bgGradient: ['#3d2410','#7c5c3a','#c8956c'],
+    glowColor: 'rgba(200,149,108,0.5)',
+    borderColor: '#d4956a',
+    ribbon: '🟤 LANGKAH PERTAMA',
+    reqText: stat => `${stat} / 1 karya diterbitkan`,
+  },
+  // ─── 2. PENULIS PRODUKTIF — Zamrud ───
+  {
+    id: 'penulis_produktif',
+    icon: '📚',
+    name: 'Sijil Penulis Produktif',
+    desc: 'Konsisten menghasilkan kandungan — 5 cerita berjaya diterbitkan!',
+    trigger: 'karya',
+    threshold: 5,
+    gred: 'Zamrud',
+    gradient: ['#064e3b','#059669'],
+    bgGradient: ['#022c22','#065f46','#059669'],
+    glowColor: 'rgba(5,150,105,0.5)',
+    borderColor: '#34d399',
+    ribbon: '🟢 PENULIS PRODUKTIF',
+    reqText: stat => `${stat} / 5 karya diterbitkan`,
+  },
+  // ─── 3. TARIKAN PEMBACA — Perak ───
+  {
+    id: 'tarikan_pembaca',
+    icon: '👁️',
+    name: 'Sijil Tarikan Pembaca',
+    desc: 'Karya anda mula dikenali — jumlah bacaan telah mencapai 1,000!',
+    trigger: 'reads',
+    threshold: 1000,
+    gred: 'Perak',
+    gradient: ['#374151','#9ca3af'],
+    bgGradient: ['#1f2937','#4b5563','#9ca3af'],
+    glowColor: 'rgba(156,163,175,0.4)',
+    borderColor: '#d1d5db',
+    ribbon: '⚪ TARIKAN PEMBACA',
+    reqText: stat => `${fmt(stat)} / 1,000 bacaan`,
+  },
+  // ─── 4. PILIHAN RAMAI — Emas ───
+  {
+    id: 'pilihan_ramai',
+    icon: '🌟',
+    name: 'Sijil Pilihan Ramai',
+    desc: 'Karya anda sedang tular! 10,000 bacaan — kegemaran komuniti!',
+    trigger: 'reads',
+    threshold: 10000,
+    gred: 'Emas',
+    gradient: ['#78350f','#f59e0b'],
+    bgGradient: ['#451a03','#92400e','#f59e0b'],
+    glowColor: 'rgba(245,158,11,0.5)',
+    borderColor: '#fcd34d',
+    ribbon: '🟡 PILIHAN RAMAI',
+    reqText: stat => `${fmt(stat)} / 10,000 bacaan`,
+  },
+  // ─── 5. LEGENDA NEXSTORIA — Platinum ───
+  {
+    id: 'legenda_nexstoria',
+    icon: '💎',
+    name: 'Sijil Legenda NexStoria',
+    desc: 'Pencapaian luar biasa! 100,000 bacaan — kasta tertinggi platform.',
+    trigger: 'reads',
+    threshold: 100000,
+    gred: 'Platinum',
+    gradient: ['#1e293b','#64748b'],
+    bgGradient: ['#0f172a','#1e293b','#475569'],
+    glowColor: 'rgba(226,232,240,0.3)',
+    borderColor: '#e2e8f0',
+    ribbon: '💎 LEGENDA NEXSTORIA',
+    reqText: stat => `${fmt(stat)} / 100,000 bacaan`,
+    special: 'platinum',
+  },
+  // ─── 6. SENTUHAN KALBU — Merah Jambu ───
+  {
+    id: 'sentuhan_kalbu',
+    icon: '💖',
+    name: 'Sijil Sentuhan Kalbu',
+    desc: 'Penceritaan anda berjaya menyentuh emosi — 100 Like dikumpulkan!',
+    trigger: 'likes',
+    threshold: 100,
+    gred: 'Merah Jambu',
+    gradient: ['#831843','#ec4899'],
+    bgGradient: ['#500724','#9d174d','#ec4899'],
+    glowColor: 'rgba(236,72,153,0.5)',
+    borderColor: '#f9a8d4',
+    ribbon: '🌸 SENTUHAN KALBU',
+    reqText: stat => `${fmt(stat)} / 100 like`,
+  },
+  // ─── 7. KARYA DISAYANGI — Ungu ───
+  {
+    id: 'karya_disayangi',
+    icon: '💜',
+    name: 'Sijil Karya Disayangi',
+    desc: 'Peminat tegar anda terus berkembang — 1,000 Like luar biasa!',
+    trigger: 'likes',
+    threshold: 1000,
+    gred: 'Ungu',
+    gradient: ['#3b0764','#8b5cf6'],
+    bgGradient: ['#1e0040','#4c1d95','#7c3aed'],
+    glowColor: 'rgba(139,92,246,0.5)',
+    borderColor: '#c4b5fd',
+    ribbon: '🟣 KARYA DISAYANGI',
+    reqText: stat => `${fmt(stat)} / 1,000 like`,
+  },
+  // ─── 8. KARYA BERKUALITI — Biru Langit ───
+  {
+    id: 'karya_berkualiti',
+    icon: '⭐',
+    name: 'Sijil Karya Berkualiti',
+    desc: 'Bukan sahaja popular, tetapi berkualiti tinggi — rating 4.5★ dengan ≥50 penilai!',
+    trigger: 'rating',
+    threshold: 4.5,
+    thresholdRaters: 50,
+    gred: 'Biru Langit',
+    gradient: ['#0c4a6e','#38bdf8'],
+    bgGradient: ['#082f49','#0369a1','#0ea5e9'],
+    glowColor: 'rgba(56,189,248,0.5)',
+    borderColor: '#7dd3fc',
+    ribbon: '🔵 KARYA BERKUALITI',
+    reqText: (stat, raters) => `Rating: ${stat}★ (${raters||0} / 50 penilai diperlukan)`,
+  },
+  // ─── 9. BINTANG KEJAYAAN — Emas Gelap ───
+  {
+    id: 'bintang_kejayaan',
+    icon: '🪙',
+    name: 'Sijil Bintang Kejayaan',
+    desc: 'Pembaca sanggup berbelanja untuk menyokong anda — 500 Bintang diterima!',
+    trigger: 'stars',
+    threshold: 500,
+    gred: 'Emas Gelap',
+    gradient: ['#1c1c1c','#7c5c00'],
+    bgGradient: ['#0a0a0a','#3d2b00','#7c5c00'],
+    glowColor: 'rgba(255,209,102,0.4)',
+    borderColor: '#ffd166',
+    ribbon: '🪙 BINTANG KEJAYAAN',
+    reqText: stat => `${fmt(stat)} / 500 bintang`,
+  },
+  // ─── 10. PILIHAN EDITOR — Obsidian ───
+  {
+    id: 'pilihan_editor',
+    icon: '👑',
+    name: 'Sijil Pilihan Editor',
+    desc: 'Karya elit — dipilih oleh pasukan NexStoria sebagai Masterpiece bulan ini.',
+    trigger: 'admin',
+    threshold: 1,
+    gred: 'Obsidian',
+    gradient: ['#000000','#1a1a1a'],
+    bgGradient: ['#000000','#0d0d0d','#1a1a1a'],
+    glowColor: 'rgba(255,209,102,0.35)',
+    borderColor: '#ffd166',
+    ribbon: '⚫ PILIHAN EDITOR',
+    reqText: () => 'Diberikan manual oleh Editor NexStoria',
+    adminOnly: true,
+    special: 'obsidian',
+  },
+];
+
+let _activeSijil = null;
+
+function checkSijilEarned(def, stats, adminFlags) {
+  if (def.trigger === 'admin')  return adminFlags?.includes(def.id) || false;
+  if (def.trigger === 'karya')  return (stats.published || 0) >= def.threshold;
+  if (def.trigger === 'reads')  return (stats.reads || 0) >= def.threshold;
+  if (def.trigger === 'stars')  return (stats.stars || 0) >= def.threshold;
+  if (def.trigger === 'likes')  return (stats.likes || 0) >= def.threshold;
+  if (def.trigger === 'rating') return (stats.rating || 0) >= def.threshold && (stats.raters || 0) >= (def.thresholdRaters || 50);
+  return false;
+}
+
+function getSijilProgress(def, stats) {
+  if (def.trigger === 'admin') return { val: 0, pct: 0, extra: '' };
+  const map = {
+    karya:  stats.published || 0,
+    reads:  stats.reads     || 0,
+    stars:  stats.stars     || 0,
+    likes:  stats.likes     || 0,
+    rating: stats.rating    || 0,
+  };
+  const val = map[def.trigger] || 0;
+  let pct;
+  if (def.trigger === 'rating') {
+    // Dua syarat: rating dan bilangan penilai
+    const raterPct  = Math.min(100, Math.round(((stats.raters||0) / (def.thresholdRaters||50)) * 100));
+    const ratingMet = val >= def.threshold;
+    pct = ratingMet ? raterPct : Math.round((val / def.threshold) * 60); // max 60% jika rating tak cukup
+    return { val, pct, raters: stats.raters || 0 };
+  }
+  pct = Math.min(100, Math.round((val / def.threshold) * 100));
+  return { val, pct, raters: 0 };
+}
+
+function renderSijilGrid(stats, adminFlags) {
+  const grid = document.getElementById('sijil-grid');
+  if (!grid) return;
+
+  let earned = 0;
+  const cards = SIJIL_DEFS.map(def => {
+    const isEarned = checkSijilEarned(def, stats, adminFlags);
+    if (isEarned) earned++;
+    const today = new Date().toLocaleDateString('ms-MY',{day:'numeric',month:'long',year:'numeric'});
+
+    if (isEarned) {
+      return `<div class="sijil-card earned" onclick="openSijilPreview('${def.id}')" title="Klik untuk lihat & muat turun">
+        <div class="sijil-card-art" style="background:linear-gradient(135deg,${def.gradient[0]},${def.gradient[1]})">
+          <div class="sc-glow" style="background:radial-gradient(circle,${def.glowColor},transparent 70%)"></div>
+          ${def.special === 'platinum' ? '<div style="position:absolute;inset:0;background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,0.08) 50%,transparent 70%);pointer-events:none"></div>' : ''}
+          ${def.special === 'obsidian' ? '<div style="position:absolute;inset:0;background:linear-gradient(135deg,transparent 20%,rgba(255,209,102,0.06) 50%,transparent 80%);pointer-events:none"></div>' : ''}
+          <div class="sc-icon">${def.icon}</div>
+          <div class="sijil-admin-badge" style="${def.special==='obsidian'?'background:rgba(255,209,102,0.9);color:#78350f;':'background:rgba(255,255,255,0.15);color:white;'}">${def.adminOnly ? '👑 KHAS' : def.gred}</div>
+        </div>
+        <div class="sijil-card-body">
+          <div class="sijil-card-name">${def.name}</div>
+          <div class="sijil-card-desc">${def.desc}</div>
+          <div class="sijil-card-date">🗓️ ${today}</div>
+          <button class="sijil-download-btn" style="background:linear-gradient(135deg,${def.gradient[0]},${def.gradient[1]});color:white;" onclick="event.stopPropagation();openSijilPreview('${def.id}')">⬇️ Muat Turun Sijil</button>
+        </div>
+      </div>`;
+    } else {
+      const { val, pct, raters } = getSijilProgress(def, stats);
+      const reqText = def.reqText ? def.reqText(val, raters) : `${val} / ${def.threshold}`;
+      return `<div class="sijil-card locked-card">
+        <div class="sijil-card-art" style="background:linear-gradient(135deg,#e2e8f0,#cbd5e1)">
+          <div class="sc-icon" style="opacity:0.35;filter:grayscale(1)">${def.icon}</div>
+          <div class="sijil-admin-badge" style="background:rgba(100,116,139,0.6);color:white;">${def.gred}</div>
+        </div>
+        <div class="sijil-lock-info">
+          <div class="sijil-lock-name">🔒 ${def.name}</div>
+          <div class="sijil-lock-req">${reqText}</div>
+          ${pct > 0 ? `<div class="sijil-lock-prog"><div class="sijil-lock-fill" style="width:${pct}%;background:linear-gradient(90deg,${def.gradient[0]},${def.gradient[1]})"></div></div><div class="sijil-lock-pct">${pct}%</div>` : ''}
+        </div>
+      </div>`;
+    }
+  }).join('');
+
+  grid.innerHTML = cards;
+  const badge = document.getElementById('sijil-count-badge');
+  if (badge) badge.textContent = earned + ' / 10 sijil';
+  // Kemas kini stat pill
+  const sijilPill = document.getElementById('stat-sijil-r');
+  if (sijilPill) sijilPill.textContent = earned;
+}
+
+// ── CANVAS SIJIL RENDERER ──
+function drawSijil(def, authorName, dateStr, certId) {
+  const canvas = document.getElementById('sijil-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 800, H = 560;
+  canvas.width = W; canvas.height = H;
+
+  // ── Latar belakang mengikut warna sijil ──
+  const bgColors = def.bgGradient || [def.gradient[0], def.gradient[1]];
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bgColors.forEach((c, i) => bg.addColorStop(i / (bgColors.length - 1), c));
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Star particles (lebih untuk platinum & obsidian)
+  const starCount = def.special ? 120 : 70;
+  for (let i = 0; i < starCount; i++) {
+    const x = (Math.sin(i * 137.5) * 0.5 + 0.5) * W;
+    const y = (Math.cos(i * 97.3) * 0.5 + 0.5) * H;
+    const r = Math.random() * 1.5 + 0.3;
+    const alpha = def.special === 'platinum' ? 0.7 : 0.4;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Glow orb
+  const glow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 280);
+  glow.addColorStop(0, def.glowColor || 'rgba(167,139,250,0.25)');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  // Kilauan platinum/obsidian
+  if (def.special) {
+    const shimmer = ctx.createLinearGradient(0, 0, W, H);
+    shimmer.addColorStop(0, 'transparent');
+    shimmer.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+    shimmer.addColorStop(1, 'transparent');
+    ctx.fillStyle = shimmer;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // ── Bingkai luar ──
+  ctx.strokeStyle = def.borderColor || def.gradient[0];
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = 0.6;
+  roundRect(ctx, 18, 18, W-36, H-36, 24, false, true);
+  ctx.globalAlpha = 1;
+
+  // Bingkai dalam
+  ctx.strokeStyle = def.gradient[1];
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.3;
+  roundRect(ctx, 30, 30, W-60, H-60, 18, false, true);
+  ctx.globalAlpha = 1;
+
+  // Ornamen penjuru
+  const corners = [[50,50],[W-50,50],[50,H-50],[W-50,H-50]];
+  const ornament = def.special === 'obsidian' ? '#ffd166' : def.borderColor || def.gradient[0];
+  corners.forEach(([cx,cy]) => {
+    ctx.fillStyle = ornament;
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // ── Logo NexStoria ──
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillStyle = def.special === 'obsidian' ? '#ffd166' : (def.borderColor || def.gradient[0]);
+  ctx.textAlign = 'center';
+  ctx.globalAlpha = 0.9;
+  ctx.fillText('✦ NexStoria Malaysia ✦', W/2, 72);
+  ctx.globalAlpha = 1;
+
+  // Garis pemisah atas
+  const sepGrad = ctx.createLinearGradient(W/2-180, 0, W/2+180, 0);
+  sepGrad.addColorStop(0, 'transparent');
+  sepGrad.addColorStop(0.5, def.borderColor || def.gradient[0]);
+  sepGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = sepGrad;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.5;
+  ctx.beginPath(); ctx.moveTo(W/2-180, 82); ctx.lineTo(W/2+180, 82); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // ── Ikon utama ──
+  ctx.font = '90px serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = def.glowColor || def.gradient[0];
+  ctx.shadowBlur = 30;
+  ctx.fillText(def.icon, W/2, 190);
+  ctx.shadowBlur = 0;
+
+  // ── Label gred ──
+  const ribbonBg = def.special === 'obsidian'
+    ? ctx.createLinearGradient(W/2-90, 0, W/2+90, 0)
+    : ctx.createLinearGradient(W/2-90, 0, W/2+90, 0);
+  if (def.special === 'obsidian') {
+    ribbonBg.addColorStop(0, 'rgba(255,209,102,0.1)');
+    ribbonBg.addColorStop(0.5, 'rgba(255,209,102,0.25)');
+    ribbonBg.addColorStop(1, 'rgba(255,209,102,0.1)');
+  } else {
+    ribbonBg.addColorStop(0, 'rgba(255,255,255,0.05)');
+    ribbonBg.addColorStop(0.5, 'rgba(255,255,255,0.15)');
+    ribbonBg.addColorStop(1, 'rgba(255,255,255,0.05)');
+  }
+  ctx.fillStyle = ribbonBg;
+  roundRect(ctx, W/2-90, 203, 180, 28, 14, true, false);
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillStyle = def.special === 'obsidian' ? '#ffd166' : (def.borderColor || def.gradient[0]);
+  ctx.textAlign = 'center';
+  ctx.fillText(def.ribbon, W/2, 221);
+
+  // ── "SIJIL PENCAPAIAN" ──
+  ctx.font = '800 12px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillText('S I J I L   P E N C A P A I A N', W/2, 256);
+
+  // ── Nama sijil ──
+  ctx.font = 'bold 30px serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = def.glowColor || def.gradient[0];
+  ctx.shadowBlur = 18;
+  ctx.fillText(def.name, W/2, 298);
+  ctx.shadowBlur = 0;
+
+  // ── "Diberikan kepada" ──
+  ctx.font = '13px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillText('Diberikan kepada', W/2, 334);
+
+  // ── Nama penulis ──
+  ctx.font = 'bold 28px serif';
+  const nameGrad = ctx.createLinearGradient(W/2-180, 0, W/2+180, 0);
+  const c1 = def.special === 'obsidian' ? '#ffd166' : (def.borderColor || def.gradient[0]);
+  const c2 = def.special === 'obsidian' ? '#f59e0b' : def.gradient[1];
+  nameGrad.addColorStop(0, c1);
+  nameGrad.addColorStop(1, c2);
+  ctx.fillStyle = nameGrad;
+  ctx.shadowColor = def.glowColor;
+  ctx.shadowBlur = 16;
+  ctx.fillText(authorName, W/2, 372);
+  ctx.shadowBlur = 0;
+
+  // ── Keterangan ──
+  ctx.font = '13px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  // Potong teks panjang
+  const maxW = W - 120;
+  let desc = def.desc;
+  if (ctx.measureText(desc).width > maxW) {
+    while (ctx.measureText(desc + '…').width > maxW && desc.length > 0) desc = desc.slice(0,-1);
+    desc += '…';
+  }
+  ctx.fillText(desc, W/2, 406);
+
+  // Garis pemisah bawah
+  ctx.globalAlpha = 0.3;
+  ctx.strokeStyle = def.borderColor || def.gradient[0];
+  ctx.beginPath(); ctx.moveTo(W/2-220, 430); ctx.lineTo(W/2+220, 430); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // ── Tarikh + ID ──
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.textAlign = 'left';
+  ctx.fillText('🗓️ ' + dateStr, 60, 454);
+  ctx.textAlign = 'right';
+  ctx.fillText('ID: ' + certId, W-60, 454);
+
+  // ── Watermark bawah ──
+  ctx.font = 'italic 11px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.textAlign = 'center';
+  ctx.fillText('Platform Cerita Kanak-kanak No.1 di Malaysia — nexstoria.com', W/2, 490);
+
+  // Bintang emas (obsidian)
+  if (def.special === 'obsidian') {
+    ['✦','✧','✦'].forEach((s, i) => {
+      ctx.font = `${14 - i*2}px serif`;
+      ctx.fillStyle = 'rgba(255,209,102,0.6)';
+      ctx.textAlign = 'center';
+      ctx.fillText(s, W/2 - 60 + i*60, 510);
+    });
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w, y, x+w, y+r, r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x, y+h, x, y+h-r, r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x, y, x+r, y, r);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+// ── BUKA PRATONTON SIJIL ──
+function openSijilPreview(defId) {
+  const def = SIJIL_DEFS.find(d => d.id === defId);
+  if (!def) return;
+  _activeSijil = def;
+
+  const authorName = document.getElementById('p-name-text')?.textContent || 'Penulis NexStoria';
+  const dateStr = new Date().toLocaleDateString('ms-MY', {day:'numeric', month:'long', year:'numeric'});
+  const certId = 'NS-' + defId.toUpperCase() + '-' + (currentUser?.id?.slice(0,6)||'XXXXX').toUpperCase();
+
+  // Update meta
+  document.getElementById('sijil-modal-title').textContent = '📜 ' + def.name;
+  document.getElementById('spm-name').textContent = authorName;
+  document.getElementById('spm-type').textContent = def.ribbon;
+  document.getElementById('spm-date').textContent = dateStr;
+  document.getElementById('spm-id').textContent = certId;
+
+  // Draw canvas
+  drawSijil(def, authorName, dateStr, certId);
+
+  document.getElementById('sijilModal').classList.add('open');
+}
+
+// ── MUAT TURUN SIJIL ──
+function downloadSijil() {
+  const canvas = document.getElementById('sijil-canvas');
+  if (!canvas || !_activeSijil) return;
+  const btn = document.getElementById('sijil-dl-btn');
+  btn.textContent = '⏳ Menyediakan...';
+  btn.disabled = true;
+  setTimeout(() => {
+    const link = document.createElement('a');
+    const authorName = (document.getElementById('p-name-text')?.textContent || 'penulis').replace(/\s+/g,'-').toLowerCase();
+    link.download = `sijil-nexstoria-${_activeSijil.id}-${authorName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '✅ Dimuat Turun!';
+    setTimeout(() => { btn.textContent = '⬇️ Muat Turun PNG'; btn.disabled = false; }, 2000);
+  }, 200);
+}
+
+// ── SISTEM LENCANA PENULIS ──
+const WRITER_BADGES = [
+  // Karya
+  { id:'karya_1',   icon:'📝', name:'Penulis Sulung',    desc:'Terbitkan 1 karya',        cat:'karya',    key:'published', threshold:1 },
+  { id:'karya_3',   icon:'📚', name:'Penulis Produktif', desc:'Terbitkan 3 karya',        cat:'karya',    key:'published', threshold:3 },
+  { id:'karya_10',  icon:'🏛️', name:'Penulis Veteran',   desc:'Terbitkan 10 karya',       cat:'karya',    key:'published', threshold:10 },
+  // Bacaan
+  { id:'baca_100',  icon:'👁️', name:'Dibaca Ramai',      desc:'Kumpul 100 bacaan',        cat:'bacaan',   key:'reads',     threshold:100 },
+  { id:'baca_1k',   icon:'🔥', name:'Karya Viral',       desc:'Kumpul 1,000 bacaan',      cat:'bacaan',   key:'reads',     threshold:1000 },
+  { id:'baca_10k',  icon:'🌟', name:'Penulis Popular',   desc:'Kumpul 10,000 bacaan',     cat:'bacaan',   key:'reads',     threshold:10000 },
+  // Bintang
+  { id:'star_10',   icon:'⭐', name:'Dicintai Pembaca',  desc:'Terima 10 bintang',        cat:'bintang',  key:'stars',     threshold:10 },
+  { id:'star_100',  icon:'💫', name:'Bintang Gemilang',  desc:'Terima 100 bintang',       cat:'bintang',  key:'stars',     threshold:100 },
+  { id:'star_500',  icon:'✨', name:'Penulis Bersinar',  desc:'Terima 500 bintang',       cat:'bintang',  key:'stars',     threshold:500 },
+  // Pengikut
+  { id:'fol_10',    icon:'💜', name:'Diikuti Ramai',     desc:'10 pengikut setia',        cat:'pengikut', key:'followers', threshold:10 },
+  { id:'fol_50',    icon:'🎯', name:'Pengaruh Besar',    desc:'50 pengikut setia',        cat:'pengikut', key:'followers', threshold:50 },
+  { id:'fol_100',   icon:'👑', name:'Penulis Berpengaruh','desc':'100 pengikut setia',    cat:'pengikut', key:'followers', threshold:100 },
+  // Karya Lengkap (ada chapter/episod)
+  { id:'bio_done',  icon:'🎨', name:'Profil Lengkap',    desc:'Lengkapkan bio penulis',   cat:'profil',   key:'bio',       threshold:1 },
+  { id:'genre_set', icon:'🗂️', name:'Ada Identiti',      desc:'Pilih genre penulisan',    cat:'profil',   key:'genres',    threshold:1 },
+];
+
+function renderWriterBadges(stats) {
+  const grid = document.getElementById('writer-badge-grid');
+  if (!grid) return;
+
+  let earned = 0;
+  const html = WRITER_BADGES.map(b => {
+    const val = stats[b.key] || 0;
+    const isEarned = val >= b.threshold;
+    if (isEarned) earned++;
+    const pct = Math.min(100, Math.round((val / b.threshold) * 100));
+    const showBar = !isEarned && pct > 0;
+    return `<div class="wb-item ${isEarned ? 'earned' : 'locked'}" title="${b.name}">
+      ${isEarned ? '<div class="wb-earned-stamp">✓ DIPEROLEH</div>' : ''}
+      <div class="wb-icon">${b.icon}</div>
+      <div class="wb-name">${b.name}</div>
+      <div class="wb-desc">${b.desc}</div>
+      ${showBar ? `<div class="wb-progress"><div class="wb-progress-fill" style="width:${pct}%"></div></div><div class="wb-pct">${val} / ${b.threshold}</div>` : ''}
+      ${isEarned ? '' : (!showBar ? `<div class="wb-pct" style="margin-top:6px">0 / ${b.threshold}</div>` : '')}
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = html;
+  document.getElementById('wbs-count').textContent = `${earned} / ${WRITER_BADGES.length} diperoleh`;
+}
+
+function buildWriterBadgeStats(profileData, karyaData) {
+  const totalPublished = (karyaData || []).filter(s => s.status === 'published').length;
+  const totalReads = (karyaData || []).reduce((s, k) => s + (k.reads_count || k.read_count || 0), 0);
+  const totalLikes = (karyaData || []).reduce((s, k) => s + (k.likes_count || k.likes || 0), 0);
+  const totalStars = profileData?.stars_received || profileData?.total_stars || 0;
+  const totalFollowers = profileData?.followers_count || profileData?.total_followers || 0;
+  const hasBio = (profileData?.writer_bio || profileData?.bio || '').trim().length > 10 ? 1 : 0;
+  const hasGenres = (profileData?.genres?.length || 0) > 0 ? 1 : 0;
+  // Rating: ambil purata daripada karya yang diterbitkan
+  const ratedStories = (karyaData || []).filter(k => k.status === 'published' && k.rating_count > 0);
+  const totalRaters = ratedStories.reduce((s, k) => s + (k.rating_count || 0), 0);
+  const avgRating = totalRaters > 0
+    ? ratedStories.reduce((s, k) => s + ((k.avg_rating || 0) * (k.rating_count || 0)), 0) / totalRaters
+    : 0;
+  return {
+    published: totalPublished,
+    reads: totalReads,
+    likes: totalLikes,
+    stars: totalStars,
+    followers: totalFollowers,
+    rating: Math.round(avgRating * 10) / 10,
+    raters: totalRaters,
+    bio: hasBio,
+    genres: hasGenres,
+  };
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(msg) {
+  let t=document.getElementById('toast');
+  if (!t) { t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a1a2e;color:white;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;transition:.3s cubic-bezier(.175,.885,.32,1.275);opacity:0;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.transform='translateX(-50%) translateY(0)'; t.style.opacity='1';
+  setTimeout(()=>{ t.style.transform='translateX(-50%) translateY(60px)'; t.style.opacity='0'; },3000);
+}
+async function doLogout() { await sb.auth.signOut(); window.location.href='nexstoria-login.html'; }
+document.addEventListener('click', e=>{ 
+  if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+  if(e.target.id === 'topup-modal') closeTopUpModal();
+});
+
+init();
+// ── NOTIFICATION SYSTEM ──
+let _notifData = [];
+let _notifFilter = 'all';
+let _notifSub = null;
+
+async function initNotifications(userId) {
+  await loadNotifications(userId);
+  // Realtime subscription
+  _notifSub = sb.channel('notif-' + userId)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'notifications', filter:`user_id=eq.${userId}` },
+      payload => {
+        _notifData.unshift(payload.new);
+        renderNotifList();
+        updateNotifBadge();
+        // Auto popup for sijil & achievement
+        if (['sijil','achievement'].includes(payload.new.type)) {
+          showNotifToast(payload.new);
+          if (payload.new.type === 'sijil' && typeof showSijilNotif === 'function') {
+            const sFound = (typeof SIJIL_LIST !== 'undefined') ? SIJIL_LIST.find(s => payload.new.message.includes(s.name)) : null;
+            if (sFound) setTimeout(() => showSijilNotif(sFound), 1500);
+          }
+        }
+      })
+    .subscribe();
+}
+
+async function loadNotifications(userId) {
+  const { data } = await sb.from('notifications')
+    .select('*').eq('user_id', userId)
+    .order('created_at', { ascending: false }).limit(50);
+  _notifData = data || [];
+  renderNotifList();
+  updateNotifBadge();
+}
+
+function updateNotifBadge() {
+  const unread = _notifData.filter(n => !n.is_read).length;
+  document.querySelectorAll('.notif-badge').forEach(b => {
+    b.textContent = unread > 9 ? '9+' : unread;
+    b.classList.toggle('show', unread > 0);
+  });
+}
+
+function openNotifPanel() {
+  document.getElementById('notif-panel').classList.add('open');
+  document.getElementById('notif-backdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeNotifPanel() {
+  document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('notif-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function filterNotif(el, filter) {
+  document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  _notifFilter = filter;
+  renderNotifList();
+}
+
+const NOTIF_ICONS = {
+  announcement:'📢', achievement:'🏆', sijil:'📜',
+  new_follower:'💝', story_completed:'📖', coin_gift:'💎',
+  login_reward:'🎁', default:'🔔'
+};
+
+function getFiltered() {
+  if (_notifFilter === 'all') return _notifData;
+  if (_notifFilter === 'social') return _notifData.filter(n => ['new_follower','story_completed','coin_gift'].includes(n.type));
+  return _notifData.filter(n => n.type === _notifFilter);
+}
+
+function fmtNotifTime(ts) {
+  const diff = Date.now() - new Date(ts);
+  const m = Math.floor(diff/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+  if (d > 0) return d + ' hari lalu';
+  if (h > 0) return h + ' jam lalu';
+  if (m > 0) return m + ' minit lalu';
+  return 'Baru sahaja';
+}
+
+function renderNotifList() {
+  const list = document.getElementById('notif-list');
+  const filtered = getFiltered();
+  if (!filtered.length) {
+    list.innerHTML = '<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div class="notif-empty-text">Tiada notifikasi</div></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(n => {
+    const icon = NOTIF_ICONS[n.type] || NOTIF_ICONS.default;
+    const typeClass = 'type-' + (n.type || 'default');
+    const actions = buildNotifActions(n);
+    return `<div class="notif-item ${n.is_read ? '' : 'unread'}" id="ni-${n.id}" onclick="markOneRead('${n.id}')">
+      <div class="ni-icon ${typeClass}">${icon}</div>
+      <div class="ni-body">
+        <div class="ni-msg">${n.message}</div>
+        <div class="ni-time">${fmtNotifTime(n.created_at)}</div>
+        ${actions ? `<div class="ni-actions">${actions}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildNotifActions(n) {
+  if (n.type === 'sijil') return `<button class="ni-act-btn primary" onclick="event.stopPropagation();openSijilFromNotif()">📜 Lihat Sijil</button>`;
+  if (n.type === 'achievement') return `<button class="ni-act-btn primary" onclick="event.stopPropagation();switchTab(document.querySelector('[onclick*=achievements]'),'achievements')">🏆 Lihat Pencapaian</button>`;
+  if (n.type === 'announcement') return ``;
+  if (n.type === 'new_follower') return `<button class="ni-act-btn ghost" onclick="event.stopPropagation()">👥 Lihat Profil</button>`;
+  if (n.type === 'coin_gift') return `<button class="ni-act-btn ghost" onclick="event.stopPropagation()">💎 Lihat Dompet</button>`;
+  return '';
+}
+
+function openSijilFromNotif() {
+  closeNotifPanel();
+  if (typeof openSijilModal === 'function') openSijilModal();
+}
+
+async function markOneRead(id) {
+  const n = _notifData.find(x => x.id == id);
+  if (!n || n.is_read) return;
+  n.is_read = true;
+  await sb.from('notifications').update({ is_read: true }).eq('id', id);
+  document.getElementById('ni-' + id)?.classList.remove('unread');
+  updateNotifBadge();
+}
+
+async function markAllRead() {
+  const ids = _notifData.filter(n => !n.is_read).map(n => n.id);
+  if (!ids.length) return;
+  _notifData.forEach(n => n.is_read = true);
+  await sb.from('notifications').update({ is_read: true }).in('id', ids);
+  renderNotifList();
+  updateNotifBadge();
+  showToast('✅ Semua notifikasi telah dibaca');
+}
+
+function showNotifToast(n) {
+  const icon = NOTIF_ICONS[n.type] || '🔔';
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:70px;right:16px;background:white;border:1.5px solid #e5e7eb;border-radius:16px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;z-index:9999;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.12);animation:slideInRight .3s ease;cursor:pointer;';
+  t.innerHTML = `<span style="font-size:22px;flex-shrink:0">${icon}</span><div><div style="font-size:12px;font-weight:800;color:#1a1a2e;margin-bottom:2px;">${n.type==='sijil'?'📜 Sijil Baru!':n.type==='achievement'?'🏆 Pencapaian Baru!':'🔔 Notifikasi'}</div><div style="font-size:11px;color:#6b7280;line-height:1.4;">${n.message.slice(0,80)}${n.message.length>80?'…':''}</div></div><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#9ca3af;font-size:14px;cursor:pointer;flex-shrink:0;padding:0;line-height:1;">✕</button>`;
+  t.onclick = (e) => { if(e.target.tagName!=='BUTTON'){ openNotifPanel(); t.remove(); }};
+  document.body.appendChild(t);
+  setTimeout(() => t?.remove(), 5000);
+}
+
+function switchTab(el, id) {
+  // Author profile — scroll to karya section
+  if (id === 'achievements') {
+    document.getElementById('karya-grid')?.scrollIntoView({ behavior:'smooth' });
+  }
+}
+
+// ── HAMBURGER ──
+function toggleMobMenu() {
+  const btn = document.getElementById('ham-btn');
+  const menu = document.getElementById('mob-menu');
+  btn.classList.toggle('open');
+  menu.classList.toggle('show');
+  document.body.style.overflow = menu.classList.contains('show') ? 'hidden' : '';
+}
+function closeMobMenu() {
+  document.getElementById('ham-btn')?.classList.remove('open');
+  document.getElementById('mob-menu')?.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ===== KALKULATOR PENDAPATAN =====
+// (Dipindahkan ke nexstoria-author-wallet.html)
+
+</script>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-backdrop" id="notif-backdrop" onclick="closeNotifPanel()"></div>
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-header">
+    <div class="notif-header-title">🔔 Notifikasi</div>
+    <div class="notif-header-actions">
+      <button class="notif-mark-all" onclick="markAllRead()">✓ Baca Semua</button>
+      <button class="notif-close-btn" onclick="closeNotifPanel()">✕</button>
+    </div>
+  </div>
+  <div class="notif-filter-row">
+    <div class="nf-chip active" data-filter="all" onclick="filterNotif(this,'all')">Semua</div>
+    <div class="nf-chip" data-filter="announcement" onclick="filterNotif(this,'announcement')">📢 Pengumuman</div>
+    <div class="nf-chip" data-filter="achievement" onclick="filterNotif(this,'achievement')">🏆 Pencapaian</div>
+    <div class="nf-chip" data-filter="sijil" onclick="filterNotif(this,'sijil')">📜 Sijil</div>
+    <div class="nf-chip" data-filter="social" onclick="filterNotif(this,'social')">👥 Sosial</div>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty"><div class="notif-empty-icon">🔔</div><div class="notif-empty-text">Memuatkan…</div></div>
+  </div>
+</div>
+
+<!-- MODAL PREVIEW SIJIL -->
+<div class="modal-overlay" id="sijilModal">
+  <div class="modal-box" style="max-width:600px;padding:0;overflow:hidden;border-radius:24px;">
+    <button class="modal-close" onclick="closeModal('sijilModal')" style="position:absolute;top:12px;right:12px;z-index:10;background:rgba(0,0,0,0.4);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    <!-- Canvas sijil -->
+    <canvas id="sijil-canvas" style="width:100%;display:block;border-radius:24px 24px 0 0;"></canvas>
+    <div style="padding:1.2rem 1.5rem;background:white;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Baloo 2',cursive;font-size:0.9rem;font-weight:800;color:var(--ink);" id="sijil-modal-title">Sijil Pencapaian</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;" id="sijil-modal-date">—</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="downloadSijil()" style="padding:9px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:6px;">⬇️ Muat Turun</button>
+        <button onclick="shareSijil()" style="padding:9px 16px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--soft);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;cursor:pointer;">🔗 Kongsi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOP UP / BELI DIAMOND MODAL -->
+<div id="topup-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);z-index:600;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:white;border-radius:28px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.25);animation:modalIn 0.28s ease;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0f0f1e 0%,#1e1040 50%,#0f1a2e 100%);padding:1.5rem 1.5rem 1.2rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 20% 60%,rgba(167,139,250,0.15),transparent 55%),radial-gradient(circle at 80% 30%,rgba(56,189,248,0.12),transparent 55%);pointer-events:none;"></div>
+      <button onclick="closeTopUpModal()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div style="font-size:2.2rem;margin-bottom:6px;">💎</div>
+      <div style="font-family:'Baloo 2',cursive;font-size:1.15rem;font-weight:800;color:white;margin-bottom:3px;">Beli Diamond NexStoria</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);line-height:1.5;">Diamond digunakan untuk membeli item eksklusif, buka konten premium, dan menyokong penulis kegemaran kamu!</div>
+      <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;">
+        <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:8px 16px;text-align:center;">
+          <div style="font-size:0.6rem;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;">NexCoins Saya</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:#7dd3fc;" id="au-topup-gems">0 💎</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badan -->
+    <div style="padding:1.3rem 1.5rem 1.5rem;">
+
+      <!-- Banner Akan Datang -->
+      <div style="background:linear-gradient(135deg,rgba(255,209,102,0.08),rgba(245,158,11,0.04));border:1.5px solid rgba(255,209,102,0.25);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+        <span style="font-size:1.4rem;">🚧</span>
+        <div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.82rem;font-weight:800;color:var(--ink);">Ciri Pembelian Akan Diaktifkan</div>
+          <div style="font-size:0.68rem;color:var(--soft);line-height:1.5;">Pembayaran dalam talian akan tersedia tidak lama lagi. Nantikan pengumuman kami!</div>
+        </div>
+      </div>
+
+      <!-- Kadar -->
+      <div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.2);border-radius:11px;padding:8px 14px;display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">
+        <span style="font-size:1rem;">📊</span>
+        <div style="font-size:0.68rem;color:var(--soft);font-weight:700;line-height:1.6;">
+          <span style="color:var(--mint);font-weight:800;">1 💎 NexCoin = RM 0.10</span>
+        </div>
+      </div>
+
+      <!-- Pakej 2×2 -->
+      <div style="font-size:0.72rem;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pakej NexCoins Tersedia</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+
+        <div style="background:linear-gradient(135deg,rgba(6,214,160,0.08),rgba(6,214,160,0.03));border:1.5px solid rgba(6,214,160,0.3);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--mint),#059669);color:white;padding:2px 8px;border-radius:6px;white-space:nowrap;">🌱 PERMULAAN</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">10</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:6px;">Diamond</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--mint);background:rgba(6,214,160,0.1);border-radius:7px;padding:3px 6px;">RM 1.00</div>
+        </div>
+
+        <div style="background:var(--off);border:1.5px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">50</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:6px;">Diamond</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--sky);background:rgba(56,189,248,0.08);border-radius:7px;padding:3px 6px;">RM 5.00</div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(124,58,237,0.04));border:1.5px solid rgba(167,139,250,0.3);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;padding:2px 8px;border-radius:6px;white-space:nowrap;">🔥 POPULAR</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">150</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:6px;">Diamond</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--lav);background:rgba(167,139,250,0.1);border-radius:7px;padding:3px 6px;">RM 15.00</div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(255,209,102,0.08),rgba(245,158,11,0.04));border:1.5px solid rgba(255,209,102,0.25);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--sun),#f59e0b);color:#78350f;padding:2px 8px;border-radius:6px;white-space:nowrap;">💰 NILAI TERBAIK</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎💎💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">350</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:6px;">Diamond</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--gold2);background:rgba(255,209,102,0.12);border-radius:7px;padding:3px 6px;">RM 35.00</div>
+        </div>
+
+      </div>
+
+      <!-- Kaedah bayaran -->
+      <div style="font-size:0.72rem;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Kaedah Pembayaran (Akan Datang)</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.1rem;opacity:0.55;">
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">📱 Touch 'n Go</div>
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">💳 Kad Kredit/Debit</div>
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">🏦 FPX Online Banking</div>
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">💚 GrabPay</div>
+        <div style="border:1.5px solid rgba(238,77,45,0.25);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:#ee4d2d;background:rgba(238,77,45,0.05);display:flex;align-items:center;gap:5px;">🛍️ Shopee eWallet</div>
+      </div>
+
+      <!-- Nota ibu bapa -->
+      <div style="background:rgba(248,250,255,0.9);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start;margin-bottom:1.1rem;">
+        <span style="font-size:1rem;flex-shrink:0;">👨‍👩‍👧</span>
+        <div style="font-size:0.68rem;color:var(--soft);line-height:1.6;">
+          <strong style="color:var(--ink);">Perhatian Ibu Bapa:</strong> Pembelian Diamond memerlukan kelulusan dan PIN ibu bapa. Pastikan kanak-kanak mendapat kebenaran sebelum membuat pembelian.
+        </div>
+      </div>
+
+      <button disabled style="width:100%;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,#374151,#6b7280);color:rgba(255,255,255,0.5);font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:8px;">
+        🔒 Pembelian Belum Dibuka
+      </button>
+      <div style="text-align:center;font-size:0.68rem;color:var(--muted);margin-top:8px;">Nantikan pengumuman — ciri ini akan diaktifkan tidak lama lagi!</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOP UP / BELI DIAMOND MODAL -->
+<div id="topup-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);z-index:500;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:white;border-radius:28px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.25);animation:modalIn 0.28s ease;">
+
+    <!-- Header gradien -->
+    <div style="background:linear-gradient(135deg,#0f0f1e 0%,#1e1040 50%,#0f1a2e 100%);padding:1.5rem 1.5rem 1.2rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 20% 60%,rgba(167,139,250,0.15),transparent 55%),radial-gradient(circle at 80% 30%,rgba(56,189,248,0.12),transparent 55%);pointer-events:none;"></div>
+      <button onclick="closeTopUpModal()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div style="font-size:2.2rem;margin-bottom:6px;">💎</div>
+      <div style="font-family:'Baloo 2',cursive;font-size:1.15rem;font-weight:800;color:white;margin-bottom:3px;">Beli Diamond NexStoria</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);line-height:1.5;">Diamond digunakan untuk membeli item eksklusif, buka konten premium, dan menyokong penulis kegemaran kamu!</div>
+      <!-- Baki semasa -->
+      <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:80px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:8px 12px;text-align:center;">
+          <div style="font-size:0.6rem;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;">NexCoins Saya</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:#7dd3fc;" id="topup-current-gems">0 💎</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badan modal -->
+    <div style="padding:1.3rem 1.5rem 1.5rem;max-height:70vh;overflow-y:auto;">
+
+      <!-- Banner Akan Datang -->
+      <div style="background:linear-gradient(135deg,rgba(255,209,102,0.08),rgba(245,158,11,0.04));border:1.5px solid rgba(255,209,102,0.25);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:1.1rem;">
+        <span style="font-size:1.4rem;">🚧</span>
+        <div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.82rem;font-weight:800;color:var(--ink);">Ciri Pembelian Akan Diaktifkan</div>
+          <div style="font-size:0.68rem;color:var(--soft);line-height:1.5;">Pembayaran dalam talian akan tersedia tidak lama lagi. Nantikan pengumuman kami!</div>
+        </div>
+      </div>
+
+      <!-- Kadar penukaran -->
+      <div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.2);border-radius:11px;padding:8px 14px;display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">
+        <span style="font-size:1rem;">📊</span>
+        <div style="font-size:0.68rem;color:var(--soft);font-weight:700;line-height:1.6;">
+          <span style="color:var(--mint);font-weight:800;">1 💎 NexCoin = RM 0.10</span>
+        </div>
+      </div>
+
+      <!-- Pakej Diamond 2x2 -->
+      <div style="font-size:0.72rem;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pakej NexCoins Tersedia</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+
+        <!-- Pakej Starter RM1 -->
+        <div style="background:linear-gradient(135deg,rgba(6,214,160,0.08),rgba(6,214,160,0.03));border:1.5px solid rgba(6,214,160,0.3);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--mint),#059669);color:white;padding:2px 8px;border-radius:6px;white-space:nowrap;">🌱 PERMULAAN</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">10</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:8px;">NexCoins</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--mint);background:rgba(6,214,160,0.1);border-radius:7px;padding:3px 6px;">RM 1.00</div>
+        </div>
+
+        <!-- Pakej 50 -->
+        <div style="background:var(--off);border:1.5px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">50</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:8px;">NexCoins</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--sky);background:rgba(56,189,248,0.08);border-radius:7px;padding:3px 6px;">RM 5.00</div>
+        </div>
+
+        <!-- Pakej Popular -->
+        <div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(124,58,237,0.04));border:1.5px solid rgba(167,139,250,0.3);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--lav),var(--lav2));color:white;padding:2px 8px;border-radius:6px;white-space:nowrap;">🔥 POPULAR</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">150</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:8px;">NexCoins</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--lav);background:rgba(167,139,250,0.1);border-radius:7px;padding:3px 6px;">RM 15.00</div>
+        </div>
+
+        <!-- Pakej Nilai Terbaik -->
+        <div style="background:linear-gradient(135deg,rgba(255,209,102,0.08),rgba(245,158,11,0.04));border:1.5px solid rgba(255,209,102,0.25);border-radius:14px;padding:12px 8px;text-align:center;position:relative;opacity:0.7;pointer-events:none;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:900;background:linear-gradient(135deg,var(--sun),#f59e0b);color:#78350f;padding:2px 8px;border-radius:6px;white-space:nowrap;">💰 NILAI TERBAIK</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;">💎💎💎</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--ink);">350</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:8px;">NexCoins</div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.75rem;font-weight:800;color:var(--gold2);background:rgba(255,209,102,0.12);border-radius:7px;padding:3px 6px;">RM 35.00</div>
+        </div>
+
+      </div>
+
+      <!-- Kaedah bayaran -->
+      <div style="font-size:0.72rem;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Kaedah Pembayaran (Akan Datang)</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.1rem;opacity:0.55;">
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">📱 Touch 'n Go</div>
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">💳 Kad Kredit/Debit</div>
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">🏦 FPX Online Banking</div>
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:var(--soft);display:flex;align-items:center;gap:5px;">💚 GrabPay</div>
+        <div style="border:1.5px solid rgba(238,77,45,0.25);border-radius:10px;padding:7px 12px;font-size:0.72rem;font-weight:800;color:#ee4d2d;background:rgba(238,77,45,0.05);display:flex;align-items:center;gap:5px;">🛍️ Shopee eWallet</div>
+      </div>
+
+      <!-- Nota ibu bapa -->
+      <div style="background:rgba(248,250,255,0.9);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start;margin-bottom:1.1rem;">
+        <span style="font-size:1rem;flex-shrink:0;">👨‍👩‍👧</span>
+        <div style="font-size:0.68rem;color:var(--soft);line-height:1.6;">
+          <strong style="color:var(--ink);">Perhatian Ibu Bapa:</strong> Pembelian Diamond memerlukan kelulusan dan PIN ibu bapa. Pastikan kanak-kanak mendapat kebenaran sebelum membuat pembelian.
+        </div>
+      </div>
+
+      <!-- Butang utama — disabled -->
+      <button disabled style="width:100%;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,#374151,#6b7280);color:rgba(255,255,255,0.5);font-family:'Baloo 2',cursive;font-size:0.95rem;font-weight:800;cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:8px;">
+        🔒 Pembelian Belum Dibuka
+      </button>
+      <div style="text-align:center;font-size:0.68rem;color:var(--muted);margin-top:8px;">Nantikan pengumuman — ciri ini akan diaktifkan tidak lama lagi!</div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
