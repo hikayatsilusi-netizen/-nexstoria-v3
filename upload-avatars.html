@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<title>NexStoria Avatar Uploader</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #0f0f23; color: #fff; }
+  h1 { color: #a78bfa; }
+  .status { background: #1a1a2e; padding: 15px; border-radius: 8px; margin: 10px 0; font-size: 13px; }
+  .ok { border-left: 4px solid #22c55e; }
+  .err { border-left: 4px solid #ef4444; }
+  .pending { border-left: 4px solid #f59e0b; }
+  button { background: #7c3aed; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 10px 0; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #log { background: #1a1a2e; padding: 15px; border-radius: 8px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+  .progress { background: #2a2a4e; border-radius: 4px; margin: 15px 0; }
+  .progress-bar { background: #7c3aed; height: 20px; border-radius: 4px; transition: width 0.3s; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  input[type="file"] { display: block; margin: 10px 0; padding: 8px; background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 4px; width: 100%; }
+</style>
+</head>
+<body>
+<h1>🎭 NexStoria Avatar Uploader</h1>
+<p style="color:#aaa">Upload Avatar 2–17 ke Cloudinary (Avatar 1 sudah berjaya). Pilih semua fail dari zip <code>avatar-emoji.zip</code> → folder Emoji.</p>
+
+<div>
+  <label style="color:#a78bfa; font-weight:bold">Pilih fail avatar (boleh pilih semua sekaligus):</label>
+  <input type="file" id="fileInput" accept=".jpg,.JPG,.jpeg" multiple>
+</div>
+
+<button id="uploadBtn" onclick="startUpload()" disabled>🚀 Mula Upload</button>
+
+<div class="progress">
+  <div class="progress-bar" id="progressBar" style="width:0%">0%</div>
+</div>
+
+<div id="log">Tunggu fail dipilih...<br></div>
+
+<script>
+const CLOUD_NAME = 'dotejpjfv';
+const UPLOAD_PRESET = 'nexstoria_unsigned';
+const FOLDER = 'nexstoria_avatars';
+
+// Avatar 1 dah uploaded, skip
+const SKIP = ['Avatar 1.JPG', 'Avatar_1.JPG'];
+
+// Map nama fail → public_id
+function getPublicId(filename) {
+  // "Avatar 2.JPG" → "Avatar_2"
+  return filename.replace(/\.JPG$/i, '').replace(/ /g, '_');
+}
+
+const fileInput = document.getElementById('fileInput');
+const btn = document.getElementById('uploadBtn');
+const log = document.getElementById('log');
+const bar = document.getElementById('progressBar');
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length > 0) {
+    btn.disabled = false;
+    addLog(`✅ ${fileInput.files.length} fail dipilih`, '#22c55e');
+  }
+});
+
+function addLog(msg, color = '#fff') {
+  const d = new Date().toLocaleTimeString();
+  log.innerHTML += `<span style="color:${color}">[${d}] ${msg}</span><br>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+async function uploadFile(file, publicId) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('public_id', publicId);
+  formData.append('folder', FOLDER);
+  formData.append('overwrite', 'true');
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Upload gagal');
+  }
+  return await res.json();
+}
+
+async function startUpload() {
+  btn.disabled = true;
+  const files = Array.from(fileInput.files);
+  
+  // Filter: skip yang dah ada, sort by name
+  const toUpload = files.filter(f => !SKIP.includes(f.name));
+  toUpload.sort((a, b) => a.name.localeCompare(b.name));
+
+  addLog(`📁 Akan upload ${toUpload.length} fail...`, '#a78bfa');
+  
+  let done = 0;
+  const results = [];
+
+  for (const file of toUpload) {
+    const pid = getPublicId(file.name);
+    addLog(`⬆️ Mengupload ${file.name} → ${pid}...`, '#f59e0b');
+    try {
+      const result = await uploadFile(file, pid);
+      done++;
+      const pct = Math.round((done / toUpload.length) * 100);
+      bar.style.width = pct + '%';
+      bar.textContent = pct + '%';
+      addLog(`✅ ${file.name} → ${result.secure_url}`, '#22c55e');
+      results.push({ file: file.name, url: result.secure_url, status: 'ok' });
+    } catch (e) {
+      addLog(`❌ ${file.name} → ${e.message}`, '#ef4444');
+      results.push({ file: file.name, status: 'error', error: e.message });
+    }
+    // Small delay to avoid rate limiting
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  const ok = results.filter(r => r.status === 'ok').length;
+  addLog(`\n🎉 Selesai! ${ok}/${toUpload.length} berjaya diupload.`, '#22c55e');
+  
+  if (ok === toUpload.length) {
+    addLog('✨ Semua avatar sudah di Cloudinary! Boleh close halaman ini.', '#a78bfa');
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
