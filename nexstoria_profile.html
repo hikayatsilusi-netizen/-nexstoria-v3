@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NexStoria - Profil</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+  <script>
+    const NexStoriaConfig = {
+      supabase: {
+        url: "https://lkeehgivbuhkwdfrvexm.supabase.co",
+        anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s",
+      },
+      cloudinary: { cloudName: "dotejpjfv", uploadPreset: "nexstoria_unsigned" },
+    };
+    window.NexStoriaConfig = NexStoriaConfig;
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@600;800&display=swap');
+    :root {
+      --nx-bg:#EBF6FA; --nx-card:#ffffff; --nx-border:rgba(0,0,0,0.08);
+      --nx-text:#2C2C2A; --nx-muted:#5F5E5A; --nx-blue:#378ADD;
+      --nx-purple:#7F77DD; --nx-teal:#1D9E75; --nx-orange:#FF8C00;
+      --nx-amber:#BA7517; --nx-pink:#E85D75; --r-md:12px; --r-lg:16px;
+      --font:'Nunito',sans-serif; --font-d:'Baloo 2',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font);background:var(--nx-bg);-webkit-font-smoothing:antialiased;}
+
+    /* HEADER */
+    .header{background:var(--nx-card);border-bottom:0.5px solid var(--nx-border);padding:0.75rem 1rem;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;}
+    .logo{font-family:var(--font-d);font-size:24px;font-weight:800;text-decoration:none;display:flex;}
+    .logo .n{color:#FF8C00;}.logo .e{color:#378ADD;}.logo .x{color:#1D9E75;}.logo .s{color:#7F77DD;}.logo .t{color:#FF8C00;}.logo .o{color:#378ADD;}.logo .r{color:#1D9E75;}.logo .i{color:#7F77DD;}.logo .a{color:#2C2C2A;}
+    .hamburger{display:flex;flex-direction:column;justify-content:center;width:32px;height:32px;cursor:pointer;z-index:102;}
+    .hamburger span{display:block;width:24px;height:3px;background:var(--nx-text);margin:2px auto;border-radius:2px;transition:all 0.3s ease;}
+    .hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+    .hamburger.active span:nth-child(2){opacity:0;}
+    .hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(7px,-6px);}
+    .mobile-nav{position:fixed;top:0;left:0;width:100%;height:100vh;background:var(--nx-card);z-index:99;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2rem;transform:translateX(100%);transition:transform 0.3s ease;}
+    .mobile-nav.active{transform:translateX(0);}
+    .nav-link{font-size:20px;font-weight:700;color:var(--nx-text);text-decoration:none;padding:0.75rem 2rem;border-radius:99px;}
+    .nav-link.active{background:#E6F1FB;color:var(--nx-blue);}
+    .nav-link.logout{border:2px solid var(--nx-border);color:var(--nx-muted);cursor:pointer;background:none;font-family:var(--font);font-size:20px;}
+    .desktop-nav{display:none;}
+    @media(min-width:769px){.hamburger{display:none;}.desktop-nav{display:flex;gap:0.5rem;}.desktop-nav .nav-link{font-size:14px;padding:0.5rem 1rem;}.desktop-nav .nav-link.logout{font-size:14px;}}
+    @media(max-width:768px){.desktop-nav{display:none;}}
+
+    /* LAYOUT */
+    .wrap{padding:1rem;display:grid;grid-template-columns:280px 1fr 300px;gap:1.25rem;max-width:1400px;margin:0 auto;}
+    @media(max-width:1200px){.wrap{grid-template-columns:260px 1fr;}.right-sidebar{display:none;}}
+    @media(max-width:768px){.wrap{grid-template-columns:1fr;padding:1rem;}.left-sidebar{display:contents;}}
+
+    /* LEFT */
+    .left-sidebar{display:flex;flex-direction:column;gap:1rem;}
+    .profile-card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1.5rem 1rem;text-align:center;}
+    .avatar-ring{width:120px;height:120px;border-radius:50%;background:conic-gradient(#FF8C00,#D4537E,#7F77DD,#1D9E75,#FF8C00);padding:4px;margin:0 auto 1rem;cursor:pointer;transition:transform 0.2s;}
+    .avatar-ring:hover{transform:scale(1.04);}
+    .avatar-inner{width:100%;height:100%;border-radius:50%;background:#f5f3f0;display:flex;align-items:center;justify-content:center;font-size:56px;overflow:hidden;}
+    .avatar-inner img{width:100%;height:100%;object-fit:cover;}
+    .uname{font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--nx-text);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .role-badge{font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:#E6F1FB;color:#0C447C;}
+    .role-badge.writer{background:#EEEDFE;color:#3C3489;}
+    .uhandle{font-size:13px;color:var(--nx-muted);margin-bottom:1rem;}
+    .bio-section{text-align:left;margin-top:1rem;padding-bottom:1rem;border-bottom:0.5px solid var(--nx-border);}
+    .bio-label{font-size:12px;font-weight:700;color:var(--nx-muted);margin-bottom:4px;}
+    .bio-text{font-size:14px;color:var(--nx-text);line-height:1.6;}
+    .edit-profile-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-md);padding:0.75rem 1rem;font-size:14px;font-weight:700;color:var(--nx-muted);cursor:pointer;width:100%;margin-top:1rem;font-family:var(--font);transition:0.2s;}
+    .edit-profile-btn:hover{border-color:var(--nx-blue);color:var(--nx-blue);}
+    .mode-switch{display:flex;gap:6px;background:#F1EFE8;border-radius:10px;padding:3px;margin-top:10px;}
+    .mode-btn{flex:1;padding:6px;border-radius:8px;border:none;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--nx-muted);transition:0.2s;}
+    .mode-btn.active{background:white;color:var(--nx-text);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+    .quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .quick-stat-btn{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-md);padding:0.75rem;text-align:center;cursor:pointer;transition:all 0.2s ease;}
+    .quick-stat-btn:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.08);}
+    .quick-stat-icon{font-size:24px;margin-bottom:4px;}
+    .quick-stat-label{font-size:11px;font-weight:700;color:var(--nx-muted);}
+
+    /* CENTER */
+    .center-content{display:flex;flex-direction:column;gap:1rem;}
+    .journey-banner{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);overflow:hidden;position:relative;}
+    .journey-image{width:100%;height:180px;background:linear-gradient(135deg,#667eea,#764ba2);position:relative;display:flex;align-items:center;justify-content:center;font-size:80px;}
+    .journey-title-overlay{position:absolute;top:1rem;left:1rem;font-family:var(--font-d);font-size:24px;font-weight:800;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3);}
+    .edit-journey-btn{position:absolute;top:1rem;right:1rem;width:32px;height:32px;background:rgba(255,255,255,0.9);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--nx-border);border-radius:var(--r-lg);overflow:hidden;}
+    .stat-box{background:var(--nx-card);padding:1rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .stat-icon{font-size:24px;}.stat-val{font-family:var(--font-d);font-size:28px;font-weight:800;line-height:1;}
+    .stat-lbl{font-size:12px;color:var(--nx-muted);font-weight:600;}
+    .stars .stat-val{color:var(--nx-amber);}.series .stat-val{color:var(--nx-teal);}.coins .stat-val{color:var(--nx-blue);}
+    .topup-badge{display:inline-flex;align-items:center;gap:2px;background:var(--nx-orange);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:4px;cursor:pointer;}
+    .library-card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1rem;}
+    .library-header{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;color:var(--nx-text);margin-bottom:1rem;}
+    .library-item{display:flex;gap:1rem;padding:0.75rem 0;border-bottom:0.5px solid var(--nx-border);cursor:pointer;transition:0.15s;}
+    .library-item:last-child{border-bottom:none;}.library-item:hover{opacity:0.8;}
+    .library-thumb{width:60px;height:80px;border-radius:var(--r-md);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;position:relative;}
+    .library-thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:var(--r-md);}
+    .library-thumb span{position:relative;z-index:1;}
+    .library-info{flex:1;display:flex;flex-direction:column;justify-content:center;}
+    .library-series{font-size:14px;font-weight:700;color:var(--nx-text);margin-bottom:4px;}
+    .library-chapter{font-size:12px;color:var(--nx-muted);margin-bottom:8px;}
+    .progress-bar{height:6px;background:#F1EFE8;border-radius:99px;overflow:hidden;}
+    .progress-fill{height:100%;background:var(--nx-teal);border-radius:99px;}
+    .empty-state{text-align:center;padding:2rem;color:var(--nx-muted);}
+    .empty-state .es-icon{font-size:2.5rem;margin-bottom:8px;}
+    .empty-state .es-title{font-weight:700;font-size:15px;color:var(--nx-text);margin-bottom:4px;}
+    .empty-state .es-sub{font-size:13px;}
+    .empty-state a{color:var(--nx-blue);font-weight:700;text-decoration:none;}
+
+    /* RIGHT */
+    .right-sidebar{display:flex;flex-direction:column;gap:1rem;}
+    .summary-card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1rem;}
+    .summary-title{font-size:16px;font-weight:700;color:var(--nx-text);margin-bottom:1rem;}
+    .level-display{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
+    .level-info h3{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--nx-text);}
+    .level-info p{font-size:13px;color:var(--nx-muted);}
+    .level-badge{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7F77DD,#534AB7);display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-d);font-size:20px;font-weight:800;}
+    .xp-display{display:flex;justify-content:space-between;font-size:12px;color:var(--nx-muted);margin-bottom:4px;}
+    .xp-bar{height:8px;background:#F1EFE8;border-radius:99px;overflow:hidden;margin-bottom:1rem;}
+    .xp-fill{height:100%;background:linear-gradient(90deg,#FF8C00,#FFD700);border-radius:99px;transition:width 1s ease;}
+    .reading-limit h4{font-size:14px;font-weight:700;color:var(--nx-text);margin-bottom:0.5rem;}
+    .limit-info{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--nx-muted);}
+    .notif-card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1rem;}
+    .notif-header{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:var(--nx-text);margin-bottom:1rem;}
+    .notif-item{display:flex;align-items:flex-start;gap:12px;padding:0.75rem 0;border-bottom:0.5px solid var(--nx-border);}
+    .notif-item:last-child{border-bottom:none;}
+    .notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+    .notif-text{font-size:13px;color:var(--nx-text);line-height:1.5;}.notif-text b{color:var(--nx-blue);}
+    .notif-time{font-size:11px;color:var(--nx-muted);margin-top:2px;}
+    .friends-card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1rem;}
+    .friends-header{font-size:16px;font-weight:700;color:var(--nx-text);margin-bottom:1rem;}
+    .friends-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    .friend-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+    .friend-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;transition:transform 0.2s;}
+    .friend-avatar:hover{transform:scale(1.08);}
+    .friend-status{position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:#1D9E75;border:3px solid white;}
+    .friend-status.offline{background:#888780;}
+    .friend-name{font-size:11px;font-weight:700;color:var(--nx-muted);text-align:center;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .following-card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1rem;}
+    .following-header{font-size:16px;font-weight:700;color:var(--nx-text);margin-bottom:1rem;}
+    .following-item{display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:0.5px solid var(--nx-border);}
+    .following-item:last-child{border-bottom:none;}
+    .following-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform 0.2s;}
+    .following-avatar:hover{transform:scale(1.08);}
+    .following-info{flex:1;}
+    .following-name{font-size:14px;font-weight:700;color:var(--nx-text);}
+    .following-handle{font-size:12px;color:var(--nx-muted);}
+    .unfollow-btn{font-size:11px;font-weight:700;padding:4px 12px;border-radius:99px;border:0.5px solid var(--nx-border);background:none;color:var(--nx-muted);cursor:pointer;font-family:var(--font);transition:0.2s;}
+    .unfollow-btn:hover{border-color:var(--nx-pink);color:var(--nx-pink);}
+
+    /* POPUPS */
+    .popup-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+    .popup-overlay.active{display:flex;}
+    .popup-container{background:white;border-radius:var(--r-lg);padding:1.5rem;max-width:360px;width:100%;max-height:80vh;overflow-y:auto;position:relative;animation:popupIn 0.3s ease;}
+    @keyframes popupIn{from{opacity:0;transform:scale(0.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .popup-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:0.5px solid var(--nx-border);}
+    .popup-title{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--nx-text);display:flex;align-items:center;gap:8px;}
+    .popup-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--nx-muted);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+    .popup-close:hover{background:#F1EFE8;}
+    .leaderboard-list{display:flex;flex-direction:column;gap:8px;}
+    .leaderboard-item{display:flex;align-items:center;gap:12px;padding:0.75rem;border-radius:var(--r-md);background:#F1EFE8;}
+    .leaderboard-item.gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:white;}
+    .leaderboard-item.silver{background:linear-gradient(135deg,#C0C0C0,#A0A0A0);color:white;}
+    .leaderboard-item.bronze{background:linear-gradient(135deg,#CD7F32,#B87333);color:white;}
+    .leaderboard-item.me{background:#FAEEDA;}
+    .leaderboard-rank{font-family:var(--font-d);font-size:20px;font-weight:800;width:32px;text-align:center;}
+    .leaderboard-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,0.3);}
+    .leaderboard-info{flex:1;}.leaderboard-name{font-size:15px;font-weight:700;}
+    .leaderboard-points{font-size:13px;font-weight:700;color:var(--nx-amber);}
+    .leaderboard-item.gold .leaderboard-points,.leaderboard-item.silver .leaderboard-points,.leaderboard-item.bronze .leaderboard-points{color:white;}
+    .achievements-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+    .achievement-item{border:0.5px solid var(--nx-border);border-radius:var(--r-md);padding:1rem;text-align:center;}
+    .achievement-item.unlocked{background:#FAEEDA;border-color:#FFD700;}
+    .achievement-icon{font-size:32px;margin-bottom:8px;}.achievement-name{font-size:13px;font-weight:700;color:var(--nx-text);margin-bottom:4px;}.achievement-desc{font-size:11px;color:var(--nx-muted);}
+    .badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    .badge-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:1rem;border:0.5px solid var(--nx-border);border-radius:var(--r-md);text-align:center;}
+    .badge-item.unlocked{background:#FAEEDA;border-color:#FFD700;}
+    .badge-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;}
+    .badge-name{font-size:12px;font-weight:700;color:var(--nx-text);}
+    .topup-coming{text-align:center;background:#FAEEDA;border-radius:var(--r-md);padding:10px;font-size:13px;font-weight:700;color:var(--nx-amber);margin-bottom:12px;}
+    .topup-rate{font-size:12px;color:var(--nx-muted);margin-bottom:1rem;text-align:center;}
+    .topup-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+    .topup-option{border:2px solid var(--nx-border);border-radius:var(--r-md);padding:1rem;text-align:center;cursor:not-allowed;opacity:0.6;position:relative;}
+    .topup-option.popular{border-color:var(--nx-pink);}
+    .topup-popular-tag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--nx-pink);color:white;font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;}
+    .topup-diamonds{font-size:24px;margin-bottom:4px;}.topup-amount{font-family:var(--font-d);font-size:22px;font-weight:800;color:var(--nx-text);}
+    .topup-bonus{font-size:11px;color:var(--nx-teal);font-weight:700;margin-top:2px;}
+    .topup-price{font-size:14px;font-weight:700;color:var(--nx-blue);margin-top:8px;padding-top:8px;border-top:1px dashed var(--nx-border);}
+    .form-group{margin-bottom:1rem;}
+    .form-label{font-size:12px;font-weight:700;color:var(--nx-muted);display:block;margin-bottom:5px;}
+    .form-input{width:100%;padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--nx-border);font-family:var(--font);font-size:14px;color:var(--nx-text);outline:none;transition:0.2s;}
+    .form-input:focus{border-color:var(--nx-blue);}
+    textarea.form-input{resize:vertical;min-height:80px;}
+    .form-save-btn{width:100%;padding:12px;border-radius:var(--r-md);border:none;background:var(--nx-blue);color:white;font-family:var(--font-d);font-size:16px;font-weight:800;cursor:pointer;transition:0.2s;}
+    .form-save-btn:disabled{opacity:0.5;cursor:not-allowed;}
+    .form-msg{font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
+    .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+    .emoji-opt{width:36px;height:36px;border-radius:8px;border:1px solid var(--nx-border);background:#F1EFE8;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:0.15s;}
+    .emoji-opt.selected,.emoji-opt:hover{border-color:var(--nx-blue);background:#E6F1FB;}
+    #nx-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(44,44,42,0.95);border-radius:99px;padding:10px 20px;font-size:13px;font-weight:700;color:white;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="nexstoria-explore.html" class="logo">
+      <span class="n">N</span><span class="e">e</span><span class="x">x</span><span class="s">S</span><span class="t">t</span><span class="o">o</span><span class="r">r</span><span class="i">i</span><span class="a">a</span>
+    </a>
+    <nav class="desktop-nav">
+      <a href="nexstoria-explore.html" class="nav-link">🧭 Teroka</a>
+      <a href="nexstoria_profile.html" class="nav-link active">👤 Profil</a>
+      <a href="nexstoria_buku_saya.html" class="nav-link" id="nav-buku">📚 Buku Saya</a>
+      <a href="#" class="nav-link">🎁 Ganjaran</a>
+      <button class="nav-link logout" onclick="doLogout()">→ Log Keluar</button>
+    </nav>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="nexstoria-explore.html" class="nav-link">🧭 Teroka</a>
+    <a href="nexstoria_profile.html" class="nav-link active">👤 Profil</a>
+    <a href="nexstoria_buku_saya.html" class="nav-link">📚 Buku Saya</a>
+    <a href="#" class="nav-link">🎁 Ganjaran</a>
+    <button class="nav-link logout" onclick="doLogout()">→ Log Keluar</button>
+  </nav>
+
+  <div class="wrap">
+    <!-- LEFT -->
+    <div class="left-sidebar">
+      <div class="profile-card">
+        <div class="avatar-ring" onclick="openPopup('editProfilePopup')">
+          <div class="avatar-inner" id="avatar-inner"><span id="avatar-emoji">👤</span></div>
+        </div>
+        <div class="uname"><span id="display-name">…</span><span class="role-badge" id="role-badge">Pembaca</span></div>
+        <div class="uhandle" id="user-handle">@pengguna</div>
+        <div class="bio-section">
+          <div class="bio-label">Bio ✏️</div>
+          <div class="bio-text" id="user-bio">Memuatkan…</div>
+        </div>
+        <button class="edit-profile-btn" onclick="openPopup('editProfilePopup')"><span>⚙️</span><span>Edit Profil</span></button>
+        <div class="mode-switch" id="mode-switch" style="display:none;">
+          <button class="mode-btn active" id="btn-reader-mode" onclick="setMode('reader')">📖 Pembaca</button>
+          <button class="mode-btn" id="btn-writer-mode" onclick="setMode('writer')">✍️ Penulis</button>
+        </div>
+      </div>
+      <div class="quick-stats">
+        <div class="quick-stat-btn" onclick="openPopup('leaderboardPopup')"><div class="quick-stat-icon">🏆</div><div class="quick-stat-label">Leaderboard</div></div>
+        <div class="quick-stat-btn" onclick="openPopup('achievementsPopup')"><div class="quick-stat-icon">🏅</div><div class="quick-stat-label">Pencapaian</div></div>
+        <div class="quick-stat-btn" onclick="openPopup('badgesPopup')"><div class="quick-stat-icon">🎖️</div><div class="quick-stat-label">Badge Saya</div></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-content">
+      <div class="journey-banner">
+        <div class="journey-image">
+          <div class="journey-title-overlay">Pengembaraan Saya</div>
+          <button class="edit-journey-btn">✏️</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box stars"><span class="stat-icon">⭐</span><div class="stat-val" id="stat-stars">—</div><div class="stat-lbl">NexStars</div></div>
+        <div class="stat-box series"><span class="stat-icon" id="stat2-icon">📚</span><div class="stat-val" id="stat-series">—</div><div class="stat-lbl" id="stat2-lbl">Siri Saya Baca</div></div>
+        <div class="stat-box coins"><span class="stat-icon">💎</span><div class="stat-val" id="stat-coins">0</div><div class="stat-lbl">Nexcoins</div><span class="topup-badge" onclick="openPopup('topupPopup')">+ Top Up</span></div>
+      </div>
+      <!-- Reader library -->
+      <div class="library-card" id="reader-library">
+        <div class="library-header"><span>📚</span><span>Library (<span id="library-count">0</span>)</span></div>
+        <div id="library-list"><div class="empty-state"><div class="es-icon">📚</div><div class="es-title">Library kosong</div><div class="es-sub">Mula baca cerita! <a href="nexstoria-explore.html">Terokai →</a></div></div></div>
+      </div>
+      <!-- Writer karya (hidden default) -->
+      <div class="library-card" id="writer-karya" style="display:none;">
+        <div class="library-header"><span>✍️</span><span>Karya Saya (<span id="karya-count">0</span>)</span><button onclick="window.location.href='nexstoria-submit.html'" style="margin-left:auto;background:var(--nx-orange);color:white;border:none;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);">+ Tambah</button></div>
+        <div id="karya-list"><div class="empty-state"><div class="es-icon">✍️</div><div class="es-title">Belum ada karya</div><div class="es-sub">Mula tulis cerita pertama!</div></div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-sidebar">
+      <div class="summary-card">
+        <div class="summary-title">Ringkasan Pencapaian</div>
+        <div class="level-display">
+          <div class="level-info"><h3 id="level-title">TAHAP 1</h3><p id="level-name">Pembaca Baru</p></div>
+          <div class="level-badge" id="level-badge">1</div>
+        </div>
+        <div class="xp-display"><span id="xp-pct">0%</span><span id="xp-label">0/100 XP</span></div>
+        <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+        <div class="reading-limit">
+          <h4>Had Bacaan Harian</h4>
+          <div class="limit-info"><span>📚</span><span><span id="daily-read">0</span>/10 Buku</span></div>
+          <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" id="daily-fill" style="width:0%;background:var(--nx-blue);"></div></div>
+          <p style="font-size:11px;color:var(--nx-muted);margin-top:4px;" id="daily-msg">Reset pada 12 pagi.</p>
+        </div>
+      </div>
+      <div class="notif-card">
+        <div class="notif-header"><span>🔔</span><span>Notifikasi</span></div>
+        <div id="notif-list"><div class="notif-item"><div class="notif-icon" style="background:#E6F1FB;">📬</div><div class="notif-text">Selamat datang ke NexStoria!</div></div></div>
+      </div>
+      <div class="friends-card">
+        <div class="friends-header">Rakan-rakan</div>
+        <div class="friends-grid" id="friends-grid"><div style="grid-column:1/-1;font-size:13px;color:var(--nx-muted);text-align:center;padding:1rem;">Belum ada rakan-rakan</div></div>
+      </div>
+      <div class="following-card">
+        <div class="following-header">Penulis Diikuti</div>
+        <div id="following-list"><div style="font-size:13px;color:var(--nx-muted);text-align:center;padding:1rem;">Belum mengikuti penulis</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: Leaderboard -->
+  <div class="popup-overlay" id="leaderboardPopup" onclick="closePopupOnOverlay(event,'leaderboardPopup')">
+    <div class="popup-container">
+      <div class="popup-header"><div class="popup-title">🏆 Leaderboard</div><button class="popup-close" onclick="closePopup('leaderboardPopup')">✕</button></div>
+      <div class="leaderboard-list" id="lb-list"><div style="text-align:center;padding:1.5rem;color:var(--nx-muted);">Memuatkan…</div></div>
+    </div>
+  </div>
+
+  <!-- POPUP: Pencapaian -->
+  <div class="popup-overlay" id="achievementsPopup" onclick="closePopupOnOverlay(event,'achievementsPopup')">
+    <div class="popup-container">
+      <div class="popup-header"><div class="popup-title">🏅 Pencapaian</div><button class="popup-close" onclick="closePopup('achievementsPopup')">✕</button></div>
+      <div class="achievements-grid" id="ach-grid"><div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--nx-muted);">Memuatkan…</div></div>
+    </div>
+  </div>
+
+  <!-- POPUP: Badge -->
+  <div class="popup-overlay" id="badgesPopup" onclick="closePopupOnOverlay(event,'badgesPopup')">
+    <div class="popup-container">
+      <div class="popup-header"><div class="popup-title">🎖️ Badge Saya</div><button class="popup-close" onclick="closePopup('badgesPopup')">✕</button></div>
+      <div class="badges-grid" id="badges-grid"><div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--nx-muted);">Memuatkan…</div></div>
+    </div>
+  </div>
+
+  <!-- POPUP: Topup -->
+  <div class="popup-overlay" id="topupPopup" onclick="closePopupOnOverlay(event,'topupPopup')">
+    <div class="popup-container">
+      <div class="popup-header"><div class="popup-title">💎 Topup Nexcoins</div><button class="popup-close" onclick="closePopup('topupPopup')">✕</button></div>
+      <div class="topup-coming">🚧 Pembelian akan dibuka tidak lama lagi!</div>
+      <div class="topup-rate">📌 Kadar: RM1.00 = 10 NexCoins</div>
+      <div class="topup-grid">
+        <div class="topup-option"><div class="topup-diamonds">💎</div><div class="topup-amount">50</div><div class="topup-price">RM5.00</div></div>
+        <div class="topup-option"><div class="topup-diamonds">💎💎</div><div class="topup-amount">100</div><div class="topup-price">RM10.00</div></div>
+        <div class="topup-option popular"><div class="topup-popular-tag">POPULAR</div><div class="topup-diamonds">💎💎💎</div><div class="topup-amount">250</div><div class="topup-bonus">+25 BONUS</div><div class="topup-price">RM25.00</div></div>
+        <div class="topup-option"><div class="topup-diamonds">💎💎💎💎</div><div class="topup-amount">500</div><div class="topup-bonus">+75 BONUS</div><div class="topup-price">RM50.00</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: Edit Profil -->
+  <div class="popup-overlay" id="editProfilePopup" onclick="closePopupOnOverlay(event,'editProfilePopup')">
+    <div class="popup-container">
+      <div class="popup-header"><div class="popup-title">⚙️ Edit Profil</div><button class="popup-close" onclick="closePopup('editProfilePopup')">✕</button></div>
+      <div class="form-group"><label class="form-label">Nama Paparan *</label><input class="form-input" type="text" id="edit-name" placeholder="Nama kamu" maxlength="50"></div>
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" type="text" id="edit-username" placeholder="contoh: pembaca_setia" maxlength="30"></div>
+      <div class="form-group"><label class="form-label">Bio</label><textarea class="form-input" id="edit-bio" placeholder="Ceritakan tentang diri kamu..." maxlength="150"></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Pilih Avatar</label>
+        <div class="emoji-picker">
+          <span class="emoji-opt" onclick="pickEmoji(this,'👦')">👦</span><span class="emoji-opt" onclick="pickEmoji(this,'👧')">👧</span><span class="emoji-opt" onclick="pickEmoji(this,'🧒')">🧒</span><span class="emoji-opt" onclick="pickEmoji(this,'🦸')">🦸</span><span class="emoji-opt" onclick="pickEmoji(this,'🧙')">🧙</span><span class="emoji-opt" onclick="pickEmoji(this,'🐱')">🐱</span><span class="emoji-opt" onclick="pickEmoji(this,'🦊')">🦊</span><span class="emoji-opt" onclick="pickEmoji(this,'🐼')">🐼</span><span class="emoji-opt" onclick="pickEmoji(this,'🐰')">🐰</span><span class="emoji-opt" onclick="pickEmoji(this,'🌸')">🌸</span><span class="emoji-opt" onclick="pickEmoji(this,'🦁')">🦁</span><span class="emoji-opt" onclick="pickEmoji(this,'🐻')">🐻</span>
+        </div>
+      </div>
+      <button class="form-save-btn" id="save-profile-btn" onclick="saveProfile()">💾 Simpan</button>
+      <div class="form-msg" id="edit-msg"></div>
+    </div>
+  </div>
+
+  <div id="nx-toast"></div>
+
+  <script>
+    const sb = supabase.createClient(NexStoriaConfig.supabase.url, NexStoriaConfig.supabase.anonKey);
+    let currentUser = null, userProfile = null, selectedEmoji = '👦';
+
+    const fmt = n => (n||0).toLocaleString('ms-MY');
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    function timeAgo(ts) {
+      if(!ts) return 'Baru sahaja';
+      const d=Math.floor((Date.now()-new Date(ts))/1000);
+      if(d<60) return 'Baru sahaja'; if(d<3600) return Math.floor(d/60)+' min lalu';
+      if(d<86400) return Math.floor(d/3600)+' jam lalu'; return Math.floor(d/86400)+' hari lalu';
+    }
+    function showToast(msg) {
+      const t=document.getElementById('nx-toast');
+      t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+      setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(-10px)';},2500);
+    }
+    const covBg=c=>({Dongeng:'linear-gradient(135deg,#f093fb,#f5576c)',Sains:'linear-gradient(135deg,#4facfe,#00f2fe)',Pengembaraan:'linear-gradient(135deg,#fa709a,#fee140)',Misteri:'linear-gradient(135deg,#667eea,#764ba2)'}[c]||'linear-gradient(135deg,#a18cd1,#fbc2eb)');
+    const LEVELS=[{level:1,name:'Pembaca Baru',xp:0},{level:2,name:'Pembaca Aktif',xp:100},{level:3,name:'Pembaca Setia',xp:250},{level:4,name:'Pembaca Mahir',xp:500},{level:5,name:'Penjelajah Galaksi',xp:1000},{level:6,name:'Ikon NexStoria',xp:2000},{level:7,name:'Legenda Bintang',xp:4000}];
+    const BADGES=[{id:'read_1',icon:'🌱',name:'Pembaca Baru',desc:'Baca 1 cerita',type:'stories_read',target:1},{id:'read_10',icon:'📚',name:'Pembaca Setia',desc:'Baca 10 cerita',type:'stories_read',target:10},{id:'read_50',icon:'🏅',name:'Bookworm',desc:'Baca 50 cerita',type:'stories_read',target:50},{id:'streak_7',icon:'🔥',name:'7 Hari Berturut',desc:'Baca 7 hari berturut',type:'streak',target:7},{id:'follow_5',icon:'💝',name:'Peminat Setia',desc:'Ikuti 5 penulis',type:'follows',target:5},{id:'genre_3',icon:'🗺️',name:'Penjelajah Genre',desc:'Baca 3 genre',type:'genres',target:3}];
+
+    async function init() {
+      const {data:{session}} = await sb.auth.getSession();
+      if(!session){window.location.replace('nexstoria-login.html');return;}
+      currentUser=session.user;
+      const {data:p} = await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+      userProfile=p;
+      const isWriter=p&&['author','writer'].includes(p.role);
+      const name=p?.full_name||currentUser.email.split('@')[0];
+      const username=p?.username||currentUser.email.split('@')[0];
+      const bio=p?.bio||'Selamat datang ke NexStoria! 🌟';
+      const stars=p?.stars||p?.stars_received||0;
+      const coins=p?.coins||0;
+      const joinDate=new Date(p?.created_at||currentUser.created_at).toLocaleDateString('ms-MY',{month:'long',year:'numeric'});
+      setEl('display-name',name); setEl('user-handle','@'+username+' · Ahli sejak '+joinDate); setEl('user-bio',bio);
+      document.title=name+' — NexStoria';
+      const rb=document.getElementById('role-badge');
+      if(isWriter){rb.textContent='Penulis';rb.classList.add('writer');}
+      if(p?.avatar_emoji){document.getElementById('avatar-emoji').textContent=p.avatar_emoji;selectedEmoji=p.avatar_emoji;}
+      if(p?.avatar_url){const img=document.createElement('img');img.src=p.avatar_url;const inner=document.getElementById('avatar-inner');inner.innerHTML='';inner.appendChild(img);}
+      setEl('stat-stars',fmt(stars)); setEl('stat-coins',fmt(coins));
+      if(isWriter){document.getElementById('mode-switch').style.display='flex';setEl('stat2-icon','✍️');setEl('stat2-lbl','Karya Saya');}
+      // Level
+      const xp=stars*10; let lvl=LEVELS[0];
+      for(let i=LEVELS.length-1;i>=0;i--){if(xp>=LEVELS[i].xp){lvl=LEVELS[i];break;}}
+      const nextLvl=LEVELS.find(l=>l.xp>xp)||LEVELS[LEVELS.length-1];
+      const pct=lvl===nextLvl?100:Math.round((xp-lvl.xp)/(nextLvl.xp-lvl.xp)*100);
+      setEl('level-title','TAHAP '+lvl.level); setEl('level-name',lvl.name); setEl('level-badge',lvl.level);
+      setEl('xp-pct',pct+'%'); setEl('xp-label',fmt(xp)+' / '+fmt(nextLvl.xp)+' XP');
+      document.getElementById('xp-fill').style.width=pct+'%';
+      // Daily limit
+      const dk='nx_daily_'+new Date().toISOString().slice(0,10);
+      const dailyRead=parseInt(localStorage.getItem(dk)||'0');
+      setEl('daily-read',dailyRead); document.getElementById('daily-fill').style.width=Math.min(100,dailyRead/10*100)+'%';
+      setEl('daily-msg',dailyRead>=10?'⚠️ Had harian tercapai! Cuba lagi esok.':`Masih boleh baca ${10-dailyRead} buku lagi hari ini.`);
+      // Edit modal prefill
+      document.getElementById('edit-name').value=name;
+      document.getElementById('edit-username').value=username;
+      document.getElementById('edit-bio').value=bio;
+      await Promise.all([loadLibrary(),loadFollowing(),loadAchievements(),loadNotifications()]);
+      loadLeaderboard();
+      if(isWriter) loadWriterStats();
+    }
+
+    function setMode(mode) {
+      document.getElementById('btn-reader-mode').classList.toggle('active',mode==='reader');
+      document.getElementById('btn-writer-mode').classList.toggle('active',mode==='writer');
+      document.getElementById('reader-library').style.display=mode==='reader'?'block':'none';
+      document.getElementById('writer-karya').style.display=mode==='writer'?'block':'none';
+      setEl('stat2-icon',mode==='writer'?'✍️':'📚'); setEl('stat2-lbl',mode==='writer'?'Karya Saya':'Siri Saya Baca');
+    }
+
+    async function loadLibrary() {
+      const [pRes,lRes,bRes]=await Promise.all([
+        sb.from('reading_progress').select('story_id,completed,updated_at').eq('user_id',currentUser.id).order('updated_at',{ascending:false}).limit(20),
+        sb.from('user_library').select('story_id,saved_at').eq('user_id',currentUser.id).order('saved_at',{ascending:false}).limit(20),
+        sb.from('bookmarks').select('story_id,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(20),
+      ]);
+      const progress=pRes.data||[],library=lRes.data||[],bookmarks=bRes.data||[];
+      const seen=new Set(),items=[];
+      for(const l of library){if(!l.story_id||seen.has(l.story_id))continue;seen.add(l.story_id);const p=progress.find(x=>x.story_id===l.story_id);items.push({id:l.story_id,completed:p?.completed||false});}
+      for(const b of bookmarks){if(!b.story_id||seen.has(b.story_id))continue;seen.add(b.story_id);const p=progress.find(x=>x.story_id===b.story_id);items.push({id:b.story_id,completed:p?.completed||false});}
+      for(const p of progress){if(!p.story_id||seen.has(p.story_id))continue;seen.add(p.story_id);items.push({id:p.story_id,completed:p.completed});}
+      setEl('library-count',items.length); setEl('stat-series',fmt(items.length));
+      const libEl=document.getElementById('library-list');
+      if(!items.length){libEl.innerHTML='<div class="empty-state"><div class="es-icon">📚</div><div class="es-title">Library kosong</div><div class="es-sub">Mula baca cerita! <a href="nexstoria-explore.html">Terokai →</a></div></div>';return;}
+      const {data:stories}=await sb.from('stories').select('id,title,emoji,cover_emoji,cover_url,cover_bg,category').in('id',items.map(i=>i.id));
+      const stMap={};(stories||[]).forEach(s=>stMap[s.id]=s);
+      libEl.innerHTML=items.slice(0,8).map(item=>{
+        const s=stMap[item.id];if(!s)return'';
+        const pct=item.completed?100:Math.floor(Math.random()*60)+10;
+        const coverHtml=s.cover_url?`<img src="${s.cover_url}" alt="${s.title}" onerror="this.style.display='none'"><span style="position:relative;z-index:1">${s.cover_emoji||s.emoji||'📖'}</span>`:`<span>${s.cover_emoji||s.emoji||'📖'}</span>`;
+        return`<div class="library-item" onclick="window.location.href='nexstoria-reader.html?id=${s.id}'">
+          <div class="library-thumb" style="background:${s.cover_bg||covBg(s.category)}">${coverHtml}</div>
+          <div class="library-info">
+            <div class="library-series">${s.title}</div>
+            <div class="library-chapter">${item.completed?'✅ Selesai':'📖 Sedang baca'} · ${s.category||''}</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function loadWriterStats() {
+      const {data:stories}=await sb.from('stories').select('id,title,cover_emoji,cover_bg,status,category,total_reads,created_at').eq('author_id',currentUser.id).order('created_at',{ascending:false}).limit(10);
+      setEl('karya-count',stories?.length||0); setEl('stat-series',fmt(stories?.length||0));
+      const kEl=document.getElementById('karya-list');
+      if(!stories?.length)return;
+      const stCol={published:'#3B6D11',draft:'var(--nx-amber)',pending:'var(--nx-purple)'};
+      const stLabel={published:'✅ Diterbit',draft:'📝 Draf',pending:'⏳ Semakan'};
+      kEl.innerHTML=stories.map(s=>`<div class="library-item" onclick="window.location.href='nexstoria-edit-story.html?id=${s.id}'">
+        <div class="library-thumb" style="background:${s.cover_bg||covBg(s.category)}">${s.cover_emoji||'📖'}</div>
+        <div class="library-info">
+          <div class="library-series">${s.title}</div>
+          <div class="library-chapter" style="color:${stCol[s.status]||'var(--nx-muted)'};font-weight:700;">${stLabel[s.status]||s.status} · 👁️ ${fmt(s.total_reads||0)}</div>
+        </div>
+      </div>`).join('');
+    }
+
+    async function loadFollowing() {
+      const {data:follows}=await sb.from('follows').select('following_id,profiles!follows_following_id_fkey(id,full_name,username)').eq('follower_id',currentUser.id).limit(10);
+      if(!follows||!follows.length)return;
+      const emojis=['🦋','🦁','🐉','🚀','🌟','🐼','🦊','🌸','🐱','🐻'];
+      const bgs=['#E6F1FB','#FBEAF0','#EAF3DE','#EEEDFE','#FAEEDA'];
+      document.getElementById('following-list').innerHTML=follows.map((f,i)=>{
+        const pr=f.profiles;if(!pr)return'';
+        const n=pr.full_name||pr.username||'Penulis';
+        return`<div class="following-item">
+          <div class="following-avatar" style="background:${bgs[i%bgs.length]}" onclick="window.location.href='nexstoria-author-public.html?id=${pr.id}'">${emojis[i%emojis.length]}</div>
+          <div class="following-info"><div class="following-name">${n}</div><div class="following-handle">@${pr.username||n}</div></div>
+          <button class="unfollow-btn" onclick="unfollowAuthor('${pr.id}',this)">Batal Ikut</button>
+        </div>`;
+      }).join('');
+      document.getElementById('friends-grid').innerHTML=follows.slice(0,6).map((f,i)=>{
+        const pr=f.profiles;if(!pr)return'';
+        return`<div class="friend-item" onclick="window.location.href='nexstoria-author-public.html?id=${pr.id}'">
+          <div class="friend-avatar" style="background:${bgs[i%bgs.length]}">${emojis[i%emojis.length]}<div class="friend-status${i>1?' offline':''}"></div></div>
+          <div class="friend-name">${(pr.full_name||pr.username||'P').split(' ')[0]}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function unfollowAuthor(id,btn){btn.disabled=true;btn.textContent='…';await sb.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',id);btn.closest('.following-item')?.remove();showToast('✅ Berjaya batal ikut');}
+
+    async function loadAchievements() {
+      const [pRes,fRes,prRes]=await Promise.all([
+        sb.from('reading_progress').select('completed,stories(category)').eq('user_id',currentUser.id),
+        sb.from('follows').select('id').eq('follower_id',currentUser.id),
+        sb.from('profiles').select('reading_streak').eq('id',currentUser.id).single(),
+      ]);
+      const progress=pRes.data||[],follows=fRes.data||[];
+      const storiesRead=progress.filter(p=>p.completed).length, streak=prRes.data?.reading_streak||0;
+      const genres=new Set(progress.map(p=>p.stories?.category).filter(Boolean)).size, followCount=follows.length;
+      const unlocked=BADGES.filter(b=>{let v=0;if(b.type==='stories_read')v=storiesRead;else if(b.type==='streak')v=streak;else if(b.type==='genres')v=genres;else if(b.type==='follows')v=followCount;return v>=b.target;}).map(b=>b.id);
+      document.getElementById('ach-grid').innerHTML=BADGES.map(b=>{const ok=unlocked.includes(b.id);return`<div class="achievement-item ${ok?'unlocked':''}"><div class="achievement-icon" style="${ok?'':'opacity:0.35'}">${b.icon}</div><div class="achievement-name" style="${ok?'':'color:var(--nx-muted)'}">${b.name}</div><div class="achievement-desc">${b.desc}</div>${ok?'<div style="font-size:10px;color:var(--nx-teal);font-weight:700;margin-top:3px;">✓ Dicapai</div>':''}</div>`;}).join('');
+      document.getElementById('badges-grid').innerHTML=BADGES.map(b=>{const ok=unlocked.includes(b.id);return`<div class="badge-item ${ok?'unlocked':''}"><div class="badge-icon" style="background:${ok?'#FAEEDA':'#F1EFE8'};${ok?'':'opacity:0.4'}">${b.icon}</div><div class="badge-name">${b.name}</div></div>`;}).join('');
+    }
+
+    async function loadLeaderboard() {
+      const {data:top}=await sb.from('profiles').select('id,full_name,username,stars').order('stars',{ascending:false}).limit(10);
+      if(!top||!top.length)return;
+      const emojis=['🦁','🐱','👩‍🍳','🐻','🦊','🌟','🐼','🐰','🦋','🦸'];
+      const cls=['gold','silver','bronze','','','','','','',''];
+      document.getElementById('lb-list').innerHTML=top.map((p,i)=>{const isMe=p.id===currentUser.id;return`<div class="leaderboard-item ${cls[i]||''} ${isMe?'me':''}"><div class="leaderboard-rank">${i+1}</div><div class="leaderboard-avatar">${emojis[i%emojis.length]}</div><div class="leaderboard-info"><div class="leaderboard-name">${p.full_name||p.username||'Pembaca'}${isMe?' (Anda)':''}</div></div><div class="leaderboard-points">${fmt(p.stars||0)} ⭐</div></div>`;}).join('');
+    }
+
+    async function loadNotifications() {
+      const {data}=await sb.from('notifications').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(5);
+      if(!data||!data.length)return;
+      const icons={achievement:'🏆',sijil:'📜',new_follower:'💝',announcement:'📢',coin_gift:'💎',default:'🔔'};
+      const bgs={achievement:'#FAEEDA',sijil:'#EEEDFE',new_follower:'#FBEAF0',announcement:'#E6F1FB',coin_gift:'#EAF3DE',default:'#F1EFE8'};
+      document.getElementById('notif-list').innerHTML=data.map(n=>`<div class="notif-item"><div class="notif-icon" style="background:${bgs[n.type]||bgs.default}">${icons[n.type]||'🔔'}</div><div><div class="notif-text">${n.message}</div><div class="notif-time">${timeAgo(n.created_at)}</div></div></div>`).join('');
+    }
+
+    function pickEmoji(el,emoji){document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');selectedEmoji=emoji;}
+    async function saveProfile(){
+      const btn=document.getElementById('save-profile-btn'),msg=document.getElementById('edit-msg');
+      const name=document.getElementById('edit-name').value.trim(),username=document.getElementById('edit-username').value.trim(),bio=document.getElementById('edit-bio').value.trim();
+      if(!name){msg.style.color='#E85D75';msg.textContent='⚠️ Nama tidak boleh kosong.';return;}
+      btn.disabled=true;btn.textContent='Menyimpan…';
+      const {error}=await sb.from('profiles').update({full_name:name,username:username||null,bio:bio||null,avatar_emoji:selectedEmoji}).eq('id',currentUser.id);
+      if(error){msg.style.color='#E85D75';msg.textContent='❌ '+error.message;}
+      else{setEl('display-name',name);setEl('user-handle','@'+(username||name)+' · Ahli NexStoria');setEl('user-bio',bio||'Selamat datang ke NexStoria! 🌟');document.getElementById('avatar-emoji').textContent=selectedEmoji;document.getElementById('avatar-inner').innerHTML=`<span id="avatar-emoji">${selectedEmoji}</span>`;msg.style.color='var(--nx-teal)';msg.textContent='✅ Profil berjaya disimpan!';setTimeout(()=>closePopup('editProfilePopup'),1200);}
+      btn.disabled=false;btn.textContent='💾 Simpan';
+    }
+
+    function openPopup(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+    function closePopup(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+    function closePopupOnOverlay(e,id){if(e.target.id===id)closePopup(id);}
+    function toggleMenu(){const h=document.querySelector('.hamburger'),n=document.getElementById('mobileNav');h.classList.toggle('active');n.classList.toggle('active');document.body.style.overflow=n.classList.contains('active')?'hidden':'';}
+    async function doLogout(){await sb.auth.signOut();window.location.href='nexstoria-login.html';}
+
+    init();
+  </script>
+</body>
+</html>
