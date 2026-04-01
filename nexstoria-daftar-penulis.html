@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NexStoria — Daftar Sebagai Penulis</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+  <script>
+    const NexStoriaConfig = {
+      supabase: {
+        url: "https://lkeehgivbuhkwdfrvexm.supabase.co",
+        anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s",
+      },
+    };
+    window.NexStoriaConfig = NexStoriaConfig;
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@600;800&display=swap');
+    :root {
+      --nx-bg:#EBF6FA; --nx-card:#ffffff; --nx-border:rgba(0,0,0,0.08);
+      --nx-text:#2C2C2A; --nx-muted:#5F5E5A; --nx-blue:#378ADD;
+      --nx-purple:#7F77DD; --nx-teal:#1D9E75; --nx-orange:#FF8C00;
+      --nx-amber:#BA7517; --nx-pink:#E85D75; --r-md:12px; --r-lg:16px;
+      --font:'Nunito',sans-serif; --font-d:'Baloo 2',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font);background:var(--nx-bg);-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+    /* HEADER */
+    .header{background:var(--nx-card);border-bottom:0.5px solid var(--nx-border);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+    .logo{font-family:var(--font-d);font-size:24px;font-weight:800;text-decoration:none;display:flex;}
+    .logo .n{color:#FF8C00;}.logo .e{color:#378ADD;}.logo .x{color:#1D9E75;}.logo .s{color:#7F77DD;}.logo .t{color:#FF8C00;}.logo .o{color:#378ADD;}.logo .r{color:#1D9E75;}.logo .i{color:#7F77DD;}.logo .a{color:#2C2C2A;}
+    .back-btn{font-size:13px;font-weight:700;color:var(--nx-muted);text-decoration:none;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--r-md);border:0.5px solid var(--nx-border);background:var(--nx-card);cursor:pointer;transition:0.2s;}
+    .back-btn:hover{border-color:var(--nx-blue);color:var(--nx-blue);}
+
+    /* TOAST */
+    #nx-toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--nx-text);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;z-index:9999;transition:all 0.3s ease;pointer-events:none;white-space:nowrap;}
+
+    /* MAIN LAYOUT */
+    .page{max-width:640px;margin:0 auto;padding:2rem 1rem 4rem;}
+
+    /* STEPPER */
+    .stepper{display:flex;align-items:center;gap:0;margin-bottom:2rem;}
+    .step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+    .step:not(:last-child)::after{content:'';position:absolute;top:16px;left:calc(50% + 16px);right:calc(-50% + 16px);height:2px;background:var(--nx-border);}
+    .step.done:not(:last-child)::after{background:var(--nx-teal);}
+    .step-dot{width:32px;height:32px;border-radius:50%;background:var(--nx-border);color:var(--nx-muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;transition:0.3s;position:relative;z-index:1;}
+    .step.active .step-dot{background:var(--nx-purple);color:#fff;box-shadow:0 0 0 4px rgba(127,119,221,0.2);}
+    .step.done .step-dot{background:var(--nx-teal);color:#fff;}
+    .step-label{font-size:10px;font-weight:700;color:var(--nx-muted);margin-top:6px;text-align:center;}
+    .step.active .step-label{color:var(--nx-purple);}
+    .step.done .step-label{color:var(--nx-teal);}
+
+    /* CARD */
+    .card{background:var(--nx-card);border:0.5px solid var(--nx-border);border-radius:var(--r-lg);padding:1.75rem;margin-bottom:1rem;}
+    .card-icon{font-size:40px;margin-bottom:1rem;}
+    .card-title{font-family:var(--font-d);font-size:22px;font-weight:800;color:var(--nx-text);margin-bottom:6px;}
+    .card-desc{font-size:14px;color:var(--nx-muted);line-height:1.6;margin-bottom:1.5rem;}
+
+    /* FORM */
+    .field{margin-bottom:1.25rem;}
+    .field label{display:block;font-size:12px;font-weight:800;color:var(--nx-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+    .field input{width:100%;padding:0.75rem 1rem;border:0.5px solid var(--nx-border);border-radius:var(--r-md);font-family:var(--font);font-size:15px;font-weight:700;color:var(--nx-text);background:var(--nx-bg);outline:none;transition:0.2s;}
+    .field input:focus{border-color:var(--nx-purple);box-shadow:0 0 0 3px rgba(127,119,221,0.12);}
+    .field .hint{font-size:11px;color:var(--nx-muted);margin-top:5px;}
+    .field input.error{border-color:var(--nx-pink);}
+
+    /* TERMS BOX */
+    .terms-box{background:var(--nx-bg);border:0.5px solid var(--nx-border);border-radius:var(--r-md);padding:1rem 1.25rem;max-height:320px;overflow-y:auto;font-size:13px;color:var(--nx-text);line-height:1.7;margin-bottom:1rem;}
+    .terms-box::-webkit-scrollbar{width:4px;}
+    .terms-box::-webkit-scrollbar-track{background:transparent;}
+    .terms-box::-webkit-scrollbar-thumb{background:var(--nx-border);border-radius:99px;}
+    .terms-section{margin-bottom:1rem;}
+    .terms-section h3{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--nx-purple);margin-bottom:4px;}
+    .terms-section p,.terms-section li{font-size:12px;color:var(--nx-muted);margin-bottom:3px;}
+    .terms-section ul{padding-left:1.2rem;}
+    .terms-scroll-notice{font-size:11px;color:var(--nx-amber);font-weight:700;text-align:center;padding:6px;background:#FAEEDA;border-radius:8px;margin-bottom:0.75rem;display:none;}
+    .terms-scroll-notice.show{display:block;}
+
+    /* AGREE CHECKBOX */
+    .agree-row{display:flex;align-items:flex-start;gap:12px;padding:1rem;background:#F5F3FF;border:0.5px solid var(--nx-purple);border-radius:var(--r-md);cursor:pointer;}
+    .agree-row input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:var(--nx-purple);cursor:pointer;}
+    .agree-row label{font-size:13px;font-weight:700;color:var(--nx-text);cursor:pointer;line-height:1.5;}
+
+    /* EMAIL VERIFY */
+    .verify-status{padding:1rem 1.25rem;border-radius:var(--r-md);margin-bottom:1rem;display:flex;align-items:center;gap:12px;}
+    .verify-status.ok{background:#EAF3DE;border:0.5px solid #A8D87A;}
+    .verify-status.pending{background:#FAEEDA;border:0.5px solid #F6C96A;}
+    .verify-status.ok .vs-icon{font-size:24px;color:#3B6D11;}
+    .verify-status.pending .vs-icon{font-size:24px;color:#633806;}
+    .vs-text{flex:1;}
+    .vs-title{font-size:14px;font-weight:800;color:var(--nx-text);margin-bottom:2px;}
+    .vs-desc{font-size:12px;color:var(--nx-muted);}
+    .resend-btn{font-size:12px;font-weight:700;color:var(--nx-blue);background:none;border:0.5px solid var(--nx-blue);border-radius:99px;padding:4px 12px;cursor:pointer;transition:0.2s;}
+    .resend-btn:hover{background:var(--nx-blue);color:#fff;}
+    .resend-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+    /* BUTTONS */
+    .btn-primary{width:100%;padding:0.85rem;border:none;border-radius:var(--r-md);background:var(--nx-purple);color:#fff;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:0.2s;}
+    .btn-primary:hover:not(:disabled){opacity:0.9;transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+    .btn-secondary{width:100%;padding:0.85rem;border:0.5px solid var(--nx-border);border-radius:var(--r-md);background:none;color:var(--nx-muted);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:0.2s;margin-top:0.75rem;}
+    .btn-secondary:hover{border-color:var(--nx-blue);color:var(--nx-blue);}
+
+    /* SECTION VISIBILITY */
+    .section{display:none;}
+    .section.active{display:block;}
+
+    /* SUCCESS */
+    .success-card{text-align:center;padding:2.5rem 1.75rem;}
+    .success-icon{font-size:64px;margin-bottom:1rem;animation:pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);}
+    @keyframes pop{0%{transform:scale(0.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+    .success-title{font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--nx-text);margin-bottom:8px;}
+    .success-desc{font-size:14px;color:var(--nx-muted);line-height:1.6;margin-bottom:2rem;}
+    .badge-preview{display:inline-flex;align-items:center;gap:8px;background:#EEEDFE;color:#3C3489;font-size:14px;font-weight:800;padding:8px 20px;border-radius:99px;margin-bottom:1.5rem;}
+
+    /* LOADING */
+    #loading-screen{position:fixed;inset:0;background:var(--nx-bg);display:flex;align-items:center;justify-content:center;z-index:9000;flex-direction:column;gap:12px;}
+    .spinner{width:32px;height:32px;border:3px solid var(--nx-border);border-top-color:var(--nx-purple);border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    #loading-screen.hidden{display:none;}
+  </style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div style="font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--nx-muted);">Memuatkan...</div>
+</div>
+
+<div id="nx-toast"></div>
+
+<header class="header">
+  <a href="index.html" class="logo">
+    <span class="n">N</span><span class="e">e</span><span class="x">x</span><span class="s">S</span><span class="t">t</span><span class="o">o</span><span class="r">r</span><span class="i">i</span><span class="a">a</span>
+  </a>
+  <a href="nexstoria_buku_saya.html" class="back-btn">← Buku Saya</a>
+</header>
+
+<div class="page">
+
+  <!-- STEPPER -->
+  <div class="stepper" id="stepper">
+    <div class="step active" id="step-1">
+      <div class="step-dot">1</div>
+      <div class="step-label">Nama Pena</div>
+    </div>
+    <div class="step" id="step-2">
+      <div class="step-dot">2</div>
+      <div class="step-label">Terma</div>
+    </div>
+    <div class="step" id="step-3">
+      <div class="step-dot">3</div>
+      <div class="step-label">Sahkan Emel</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: NAMA PENA -->
+  <div class="section active" id="sec-1">
+    <div class="card">
+      <div class="card-icon">✍️</div>
+      <div class="card-title">Jadi Penulis NexStoria</div>
+      <div class="card-desc">Selamat datang! Untuk menjadi penulis, kamu perlu melengkapkan beberapa langkah mudah. Mulakan dengan nama pena kamu.</div>
+
+      <div class="field">
+        <label>Nama Pena</label>
+        <input type="text" id="input-namapena" placeholder="Contoh: Amirul Hakim" maxlength="40" autocomplete="off">
+        <div class="hint">Nama ini akan terpapar pada karya kamu. Boleh guna nama sebenar atau nama samaran.</div>
+      </div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="input-username" placeholder="Contoh: amirulhakim" maxlength="30" autocomplete="off">
+        <div class="hint">Huruf kecil, nombor, dan garis bawah sahaja. Minimum 3 aksara.</div>
+      </div>
+
+      <button class="btn-primary" onclick="goStep2()">Seterusnya →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 2: TERMA -->
+  <div class="section" id="sec-2">
+    <div class="card">
+      <div class="card-icon">📜</div>
+      <div class="card-title">Terma & Syarat Penulis</div>
+      <div class="card-desc">Sila baca terma berikut sebelum mendaftar sebagai penulis NexStoria.</div>
+
+      <div class="terms-scroll-notice" id="scroll-notice">⬇️ Sila tatal ke bawah untuk membaca keseluruhan terma</div>
+
+      <div class="terms-box" id="terms-box">
+
+        <div class="terms-section">
+          <h3>📜 DOKUMEN INDUK NEXSTORIA — Konstitusi Platform & Terma Syarat Penulis</h3>
+          <p>Status: Rasmi / Mandatori &nbsp;|&nbsp; Versi 1.0 (Mac 2026)</p>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB I: IDENTITI PLATFORM</h3>
+          <p><strong>Perkara 1:</strong> Platform ini secara rasmi dinamakan NexStoria, beroperasi sebagai entiti penerbitan digital dikhaskan untuk pembaca kanak-kanak dan penulis kreatif.</p>
+          <p><strong>Perkara 2:</strong> NexStoria dibina atas dasar "Di Sini Bermulanya Cerita Generasi Seterusnya" — menyediakan ekosistem pembacaan selamat (Safe-for-Kids) yang mendidik nilai murni dan merangsang imaginasi sihat.</p>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB II: KELAYAKAN PENULIS</h3>
+          <p><strong>Perkara 3 — Syarat Umur:</strong></p>
+          <ul>
+            <li>Kanak-kanak (bawah 13 tahun): Wajib mendapat kebenaran bertulis ibu bapa/penjaga.</li>
+            <li>Remaja (13–17 tahun): Boleh daftar mandiri namun dipantau penjaga.</li>
+            <li>Dewasa (18 tahun ke atas): Boleh daftar tanpa syarat tambahan.</li>
+          </ul>
+          <p><strong>Perkara 4 — Integriti Akaun:</strong> Pengguna wajib memberikan maklumat yang benar dan tepat. Sebarang aktiviti di bawah akaun dianggap dilakukan oleh pemilik akaun.</p>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB III: ETIKA KANDUNGAN (SAFE FOR KIDS)</h3>
+          <p><strong>Perkara 6 — Garis Panduan:</strong> NexStoria adalah platform khusus untuk pembaca berumur 7 hingga 13 tahun.</p>
+          <ul>
+            <li><strong>Dilarang:</strong> Unsur keganasan melampau (gore), bahasa kesat, tema dewasa, sensitiviti agama/kaum.</li>
+            <li><strong>Digalakkan:</strong> Mesej positif, nilai pendidikan, dan imaginasi yang sihat.</li>
+          </ul>
+          <p><strong>Perkara 7 — Keaslian:</strong> Penulis menjamin karya adalah 100% asli. Plagiarisme akan mengakibatkan akaun disekat serta-merta tanpa rayuan.</p>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB IV: FORMAT & PENGGUNAAN AI</h3>
+          <p><strong>Perkara 8 — Format:</strong> Karya mestilah dalam format Vertical Scrolling (komik/webtoon) atau Perenggan Pendek (cerpen) untuk kemudahan pembacaan di peranti mudah alih.</p>
+          <p><strong>Perkara 9 — AI:</strong> AI dibenarkan sebagai alat bantuan kreatif (idea plot, latar belakang). <em>Dilarang</em> menghantar karya 100% dihasilkan AI tanpa sentuhan kreativiti manusia.</p>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB V: HAK CIPTA & PEMBAYARAN</h3>
+          <p><strong>Perkara 10:</strong> Hak cipta watak dan cerita kekal milik Penulis. Penulis memberikan lesen eksklusif kepada NexStoria untuk menerbit, mempromosi, dan mengedar karya di platform.</p>
+          <p><strong>Perkara 11 — Sistem Perkongsian Pendapatan:</strong> Penulis menerima pendapatan berdasarkan jumlah Diamond yang terkumpul. Penukaran Diamond ke Ringgit Malaysia (MYR) tertakluk kepada kadar semasa dan had minimum yang ditetapkan dalam Dashboard Penulis.</p>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB VI: SISTEM NEXGUARD (MODERASI)</h3>
+          <p><strong>Perkara 12 — Penalti:</strong></p>
+          <ul>
+            <li>Strike 1: Amaran dan pemadaman kandungan.</li>
+            <li>Strike 2: Penggantungan akaun 30 hari & pembekuan Diamond.</li>
+            <li>Strike 3: Ban kekal dari ekosistem NexStoria.</li>
+          </ul>
+        </div>
+
+        <div class="terms-section">
+          <h3>BAB VII: UNDANG-UNDANG</h3>
+          <p><strong>Perkara 14:</strong> Dokumen ini tertakluk sepenuhnya kepada undang-undang Malaysia, termasuk Akta Komunikasi dan Multimedia 1998. Sebarang pertikaian diselesaikan melalui mediasi atau mahkamah di bawah bidang kuasa Persekutuan Malaysia.</p>
+        </div>
+
+        <div class="terms-section" style="background:#F5F3FF;padding:0.75rem;border-radius:8px;">
+          <p style="font-size:11px;font-weight:700;color:var(--nx-purple);">PENGESAHAN: Dengan mendaftar sebagai penulis NexStoria, kamu dianggap telah membaca, memahami, dan bersetuju untuk mematuhi semua terma yang dinyatakan dalam dokumen ini. — NexStoria Management, Versi 1.0 (Mac 2026)</p>
+        </div>
+
+      </div><!-- /terms-box -->
+
+      <div class="agree-row" onclick="toggleAgree()">
+        <input type="checkbox" id="chk-agree" onclick="event.stopPropagation();updateAgreeState()">
+        <label for="chk-agree">Saya telah membaca dan bersetuju dengan Terma & Syarat Penulis NexStoria.</label>
+      </div>
+
+      <button class="btn-primary" id="btn-terima" onclick="goStep3()" style="margin-top:1rem;" disabled>Seterusnya →</button>
+      <button class="btn-secondary" onclick="goBack(1)">← Kembali</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: SAHKAN EMEL -->
+  <div class="section" id="sec-3">
+    <div class="card">
+      <div class="card-icon">📧</div>
+      <div class="card-title">Sahkan E-mel Kamu</div>
+      <div class="card-desc">Langkah terakhir! Kamu perlu mengesahkan alamat e-mel sebelum boleh mula menulis.</div>
+
+      <div class="verify-status pending" id="vs-pending">
+        <div class="vs-icon">⚠️</div>
+        <div class="vs-text">
+          <div class="vs-title">E-mel belum disahkan</div>
+          <div class="vs-desc" id="vs-email-display">—</div>
+        </div>
+        <button class="resend-btn" id="btn-resend" onclick="resendVerification()">Hantar Semula</button>
+      </div>
+
+      <div class="verify-status ok hidden" id="vs-ok">
+        <div class="vs-icon">✅</div>
+        <div class="vs-text">
+          <div class="vs-title">E-mel telah disahkan!</div>
+          <div class="vs-desc">Kamu sudah boleh meneruskan pendaftaran.</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="btn-daftar" onclick="submitDaftar()" disabled>🚀 Daftar Sebagai Penulis</button>
+      <button class="btn-secondary" onclick="goBack(2)">← Kembali</button>
+      <button class="btn-secondary" id="btn-refresh-verify" onclick="checkVerify()" style="margin-top:0.4rem;">🔄 Semak Semula Status E-mel</button>
+    </div>
+  </div>
+
+  <!-- SECTION SUCCESS -->
+  <div class="section" id="sec-success">
+    <div class="card success-card">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Selamat Datang, Penulis!</div>
+      <div class="success-desc">Pendaftaran kamu berjaya! Kamu kini adalah sebahagian daripada komuniti penulis NexStoria. Mulakan perjalanan kreatif kamu hari ini.</div>
+      <div class="badge-preview">✍️ Penulis NexStoria</div>
+      <button class="btn-primary" onclick="window.location.href='nexstoria_buku_saya.html'">Pergi ke Buku Saya →</button>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  const sb = supabase.createClient(NexStoriaConfig.supabase.url, NexStoriaConfig.supabase.anonKey);
+  let currentUser = null;
+  let userProfile = null;
+  let termsScrolled = false;
+
+  function showToast(msg) {
+    const t = document.getElementById('nx-toast');
+    t.textContent = msg;
+    t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(-10px)'; }, 2500);
+  }
+
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('step-' + i);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      else if (i === n) el.classList.add('active');
+    });
+  }
+
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+  }
+
+  function goBack(to) {
+    setStep(to); showSection(to);
+  }
+
+  /* ─── STEP 1 → 2 ─── */
+  function goStep2() {
+    const namaPena = document.getElementById('input-namapena').value.trim();
+    const username = document.getElementById('input-username').value.trim().toLowerCase();
+
+    if (namaPena.length < 2) { showToast('⚠️ Nama pena terlalu pendek.'); return; }
+    if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+      showToast('⚠️ Username: huruf kecil, nombor & _ sahaja. Min 3 aksara.'); return;
+    }
+
+    setStep(2); showSection(2);
+
+    // Show scroll notice if terms not yet scrolled
+    const box = document.getElementById('terms-box');
+    if (!termsScrolled) {
+      document.getElementById('scroll-notice').classList.add('show');
+      box.addEventListener('scroll', function onScroll() {
+        if (box.scrollTop + box.clientHeight >= box.scrollHeight - 30) {
+          termsScrolled = true;
+          document.getElementById('scroll-notice').classList.remove('show');
+          box.removeEventListener('scroll', onScroll);
+        }
+      });
+    }
+  }
+
+  /* ─── AGREE CHECKBOX ─── */
+  function toggleAgree() {
+    const chk = document.getElementById('chk-agree');
+    chk.checked = !chk.checked;
+    updateAgreeState();
+  }
+  function updateAgreeState() {
+    const agreed = document.getElementById('chk-agree').checked;
+    document.getElementById('btn-terima').disabled = !agreed;
+  }
+
+  /* ─── STEP 2 → 3 ─── */
+  function goStep3() {
+    if (!document.getElementById('chk-agree').checked) {
+      showToast('⚠️ Sila bersetuju dengan terma dahulu.'); return;
+    }
+    setStep(3); showSection(3);
+    checkVerify();
+  }
+
+  /* ─── CHECK EMAIL VERIFY ─── */
+  async function checkVerify() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.replace('nexstoria-login.html'); return; }
+
+    // Refresh session to get latest email_confirmed_at
+    const { data: { user } } = await sb.auth.getUser();
+    currentUser = user;
+
+    const verified = !!user?.email_confirmed_at;
+    document.getElementById('vs-email-display').textContent = user?.email || '';
+
+    document.getElementById('vs-pending').classList.toggle('hidden', verified);
+    document.getElementById('vs-ok').classList.toggle('hidden', !verified);
+    document.getElementById('btn-daftar').disabled = !verified;
+
+    if (verified) showToast('✅ E-mel telah disahkan!');
+  }
+
+  /* ─── RESEND VERIFICATION ─── */
+  async function resendVerification() {
+    const btn = document.getElementById('btn-resend');
+    btn.disabled = true; btn.textContent = 'Menghantar...';
+    try {
+      await sb.auth.resend({ type: 'signup', email: currentUser.email });
+      showToast('📧 E-mel pengesahan dihantar semula! Semak inbox.');
+    } catch (e) {
+      showToast('❌ Gagal hantar e-mel. Cuba lagi.');
+    }
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'Hantar Semula'; }, 10000);
+  }
+
+  /* ─── SUBMIT REGISTRATION ─── */
+  async function submitDaftar() {
+    const btn = document.getElementById('btn-daftar');
+    const namaPena = document.getElementById('input-namapena').value.trim();
+    const username = document.getElementById('input-username').value.trim().toLowerCase();
+
+    btn.disabled = true; btn.textContent = '⏳ Mendaftar...';
+
+    try {
+      // Check username uniqueness
+      const { data: existing } = await sb.from('profiles')
+        .select('id').eq('username', username).neq('id', currentUser.id).maybeSingle();
+
+      if (existing) {
+        showToast('⚠️ Username sudah digunakan. Cuba yang lain.');
+        btn.disabled = false; btn.textContent = '🚀 Daftar Sebagai Penulis';
+        return;
+      }
+
+      const { error } = await sb.from('profiles').update({
+        role: 'writer',
+        full_name: namaPena,
+        username: username,
+      }).eq('id', currentUser.id);
+
+      if (error) throw error;
+
+      // Store terms agreement in localStorage
+      localStorage.setItem('nx_terms_agreed_' + currentUser.id, 'true');
+
+      // Show success
+      document.getElementById('stepper').style.display = 'none';
+      showSection('success');
+      showToast('🎉 Tahniah! Kamu kini penulis NexStoria!');
+
+    } catch (e) {
+      showToast('❌ Ralat: ' + e.message);
+      btn.disabled = false; btn.textContent = '🚀 Daftar Sebagai Penulis';
+    }
+  }
+
+  /* ─── INIT ─── */
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.replace('nexstoria-login.html'); return; }
+
+    currentUser = session.user;
+    const { data: p } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+    userProfile = p;
+
+    // Already a writer — redirect to buku saya
+    if (p && ['author', 'writer'].includes(p.role)) {
+      window.location.replace('nexstoria_buku_saya.html');
+      return;
+    }
+
+    // Pre-fill fields if profile has data
+    if (p?.full_name) document.getElementById('input-namapena').value = p.full_name;
+    if (p?.username) document.getElementById('input-username').value = p.username;
+
+    document.getElementById('loading-screen').classList.add('hidden');
+  }
+
+  // Helper
+  HTMLElement.prototype.hide = function() { this.classList.add('hidden'); };
+  HTMLElement.prototype.show = function() { this.classList.remove('hidden'); };
+
+  init();
+</script>
+</body>
+</html>
