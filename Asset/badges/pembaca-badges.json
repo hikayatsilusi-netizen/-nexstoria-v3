@@ -1,0 +1,37 @@
+{
+  "pembaca_setia": {
+    "name": "Pembaca Setia",
+    "requirement": "200 bacaan",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394546/enminwixqpvkzwj3cbme.png"
+  },
+  "pembaca_konsisten": {
+    "name": "Pembaca Konsisten",
+    "requirement": "7 hari berturut-turut",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394546/u9gisohcfgprjdcxy3uu.png"
+  },
+  "penyokong_penulis": {
+    "name": "Penyokong Penulis",
+    "requirement": "Sokong karya penulis",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394545/z2cuxsdw8js98vv65dnl.png"
+  },
+  "peneroka_cerita": {
+    "name": "Peneroka Cerita",
+    "requirement": "50 cerita dibaca",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394545/npklkdi6gzrbsmyq7sxb.png"
+  },
+  "pembaca_marathon": {
+    "name": "Pembaca Marathon",
+    "requirement": "30 hari berturut-turut",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394545/mse4bq9knsjqbhtcnntl.png"
+  },
+  "pembaca_premium": {
+    "name": "Pembaca Premium",
+    "requirement": "Akaun premium",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394545/lk22g4mcheyfuflso2ri.png"
+  },
+  "pembaca_lagenda": {
+    "name": "Pembaca Lagenda",
+    "requirement": "1000 bintang",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394545/qpr0kmp7sgxztrzmtkwm.png"
+  },
+
