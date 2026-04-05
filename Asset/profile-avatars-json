@@ -1,0 +1,52 @@
+{
+  "profil_1": {
+    "name": "Avatar 1",
+    "stars_required": 10,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403900/ghms3useqnt7unyyvxe5.png"
+  },
+  "profil_2": {
+    "name": "Avatar 2",
+    "stars_required": 20,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403900/rvuhojri5gb54yuz4biw.png"
+  },
+  "profil_3": {
+    "name": "Avatar 3",
+    "stars_required": 30,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403899/z0hea062m1uit43rl1cc.png"
+  },
+  "profil_4": {
+    "name": "Avatar 4",
+    "stars_required": 40,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403897/ugorasxis8thqjtvluqw.png"
+  },
+  "profil_5": {
+    "name": "Avatar 5",
+    "stars_required": 50,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403896/ipwql0sd2wfghfe7xrmn.png"
+  },
+  "profil_6": {
+    "name": "Avatar 6",
+    "stars_required": 60,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403895/i33abnkelyvvnfcxqr42.png"
+  },
+  "profil_7": {
+    "name": "Avatar 7",
+    "stars_required": 70,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403895/lqqrn28hday45xbfwjev.png"
+  },
+  "profil_8": {
+    "name": "Avatar 8",
+    "stars_required": 80,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403889/eg8cbohknuqxkhh2etj4.png"
+  },
+  "profil_9": {
+    "name": "Avatar 9",
+    "stars_required": 90,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403889/dk44mlu83uiovhxma4ws.png"
+  },
+  "profil_10": {
+    "name": "Avatar 10",
+    "stars_required": 100,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775403881/dxtlhxwaqeop0oodlha6.png"
+  }
+}
