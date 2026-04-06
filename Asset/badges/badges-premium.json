@@ -1,0 +1,50 @@
+{
+  "premium_kangaroo_elit": {
+    "name": "Badge Premium Kangaroo – Pembaca Elit",
+    "character": "Kangaroo",
+    "theme": "Kangaroo memegang buku bercahaya dalam bingkai emas bertatah kristal",
+    "usage": ["Badge avatar pembaca elit", "Sijil pembaca aktif", "Item premium NexCoins"],
+    "price": 250,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775454872/hew8cmzexrompoamavdx.png"
+  },
+  "premium_kangaroo_inspirasi": {
+    "name": "Badge Premium Kangaroo – Penulis Inspirasi",
+    "character": "Kangaroo",
+    "theme": "Kangaroo dengan pen bercahaya dan aura bintang",
+    "usage": ["Badge avatar penulis", "Sijil karya unggul", "Item premium NexCoins"],
+    "price": 500,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775454859/c6ra59sfsa5yddaf1zs2.png"
+  },
+  "premium_puteri_legenda": {
+    "name": "Badge Premium Puteri – Pencerita Legenda",
+    "character": "Puteri & Kangaroo",
+    "theme": "Siluet duo legenda di bawah mahkota kristal",
+    "usage": ["Anugerah khas komuniti", "Sijil penulis legenda", "Item eksklusif NexCoins"],
+    "price": 700,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775454871/yfzbmxshz4yg4vjokenr.png"
+  },
+  "premium_puteri_peneroka": {
+    "name": "Badge Premium Puteri – Peneroka Cerita Baharu",
+    "character": "Puteri",
+    "theme": "Puteri pengembara dengan kompas bersinar dan latar dunia fantasi",
+    "usage": ["Badge pembaca muda", "Profil penjelajah cerita", "Item NexCoins untuk pembaca baharu"],
+    "price": 560,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775454870/rvyphdslnvutvlf3pken.png"
+  },
+  "premium_puteri_elit": {
+    "name": "Badge Premium Puteri – Pembaca Elit",
+    "character": "Puteri",
+    "theme": "Puteri dengan buku bercahaya dan bingkai emas bertatah kristal",
+    "usage": ["Avatar pembaca elit versi puteri", "Sijil pembaca cemerlang", "Item NexCoins"],
+    "price": 300,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775454869/yxzqqv6x4idtvijaeu2q.png"
+  },
+  "premium_puteri_inspirasi": {
+    "name": "Badge Premium Puteri – Penulis Inspirasi",
+    "character": "Puteri",
+    "theme": "Puteri dengan pen bercahaya dan banner ungu mewah",
+    "usage": ["Avatar penulis aktif", "Sijil penulis inspirasi", "Item NexCoins"],
+    "price": 500,
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775454975/hlomllazkaphunbj8lvo.png"
+  }
+}
