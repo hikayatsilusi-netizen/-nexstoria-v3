@@ -1,0 +1,57 @@
+{
+  "banner": {
+    "name": "Kangaroo + Puteri (banner)",
+    "description": "Wajah muka depan",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775410099/peeilnffqq2f3ggchg0w.png"
+  },
+  "kangaroo_lambai_tangan": {
+    "name": "Kangaroo Lambai Tangan",
+    "description": "Kangaroo melambai tangan sambil pegang logo NexStoria",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455300/zy3piidkfeimbzjey1pa.png"
+  },
+  "kangaroo_baca_buku": {
+    "name": "Kangaroo Baca Buku",
+    "description": "Kangaroo sedang baca buku bercahaya keluar memancar wajahnya",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455300/inzkaoavk3jeww12jhoa.png"
+  },
+  "kangaroo_kesatria": {
+    "name": "Kangaroo Kesatria",
+    "description": "Kangaroo pegang pedang dengan baju besi, pahlawan gagah",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455300/er3o6dpfwkkpjpz8qgj4.png"
+  },
+  "kangaroo_trofi": {
+    "name": "Kangaroo Trofi",
+    "description": "Kangaroo pegang trofi kemenangan",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455299/u1xugyzi1yvvmrd3pm95.png"
+  },
+  "kangaroo_pelukis": {
+    "name": "Kangaroo Pelukis",
+    "description": "Kangaroo pegang cat warna dan berus sambil kenyit mata",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455299/bcfhgvj9emhsgerltmiy.png"
+  },
+  "puteri_baca_buku": {
+    "name": "Puteri Baca Buku",
+    "description": "Puteri senyum sambil pegang buku bercahaya",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455300/pk2xnvwdr3uypcaigx0h.png"
+  },
+  "puteri_bintang": {
+    "name": "Puteri Bintang",
+    "description": "Puteri pegang tongkat bintang sambil senyum",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455298/aibwikvmacwumxak9m9g.png"
+  },
+  "puteri_saintis": {
+    "name": "Puteri Saintis",
+    "description": "Puteri berkot putih pegang botol kaca berisi bahan kimia",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455298/lh8extgnl59vd147zgkm.png"
+  },
+  "puteri_tradisional": {
+    "name": "Puteri Tradisional",
+    "description": "Puteri memakai pakaian tradisional merah",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455299/f7gtucozufki1xzuhdsa.png"
+  },
+  "puteri_kesatria": {
+    "name": "Puteri Kesatria",
+    "description": "Puteri memakai baju besi sambil berpose dengan pedang",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775455299/b3nlccdd9jn7p5ajb38z.png"
+  }
+}
