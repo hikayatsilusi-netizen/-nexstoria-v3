@@ -1,0 +1,60 @@
+{
+  "nexstoria_terms": [
+    {
+      "name": "NexScroll",
+      "role": "Format cerita bergaya Webtoon + scroll",
+      "audience": ["Kanak-kanak", "Penulis"],
+      "usage": "Baca cerita dalam NexScroll",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775626117/sirdrx86y0fp9sea2ryy.png",
+      "display": true
+    },
+    {
+      "name": "NexCoins",
+      "role": "Mata wang digital untuk hadiah & monetisasi",
+      "audience": ["Kanak-kanak", "Ibu Bapa", "Penulis"],
+      "usage": "Top-up NexCoins untuk sokong penulis",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775625944/h5vtoqtvppd3wiq3jkba.png",
+      "display": true
+    },
+    {
+      "name": "NexStars",
+      "role": "Sistem pencapaian & gamifikasi",
+      "audience": ["Kanak-kanak"],
+      "usage": "Kumpul NexStars untuk sijil pembaca digital",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775625942/cnzggm9wirfsbeobhsaq.png",
+      "display": true
+    },
+    {
+      "name": "NexGuard",
+      "role": "AI tapisan kandungan & parental control",
+      "audience": ["Ibu Bapa"],
+      "usage": "NexGuard pastikan cerita selamat untuk anak",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775625943/fs7nazgf7pzqmwkplmk4.png",
+      "display": true
+    },
+    {
+      "name": "NexWriter",
+      "role": "Identiti penulis kreatif",
+      "audience": ["Penulis Malaysia"],
+      "usage": "Jadi NexWriter, kongsi cerita kamu",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775625943/fxg3cglk7ebalt7zfnnm.png",
+      "display": true
+    },
+    {
+      "name": "NexReader",
+      "role": "Identiti pembaca kanak-kanak",
+      "audience": ["Kanak-kanak"],
+      "usage": "NexReader boleh kumpul NexStars",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775625944/uqw6x4fbqcdx9uvpstw1.png",
+      "display": true
+    },
+    {
+      "name": "NexParent",
+      "role": "Identiti ibu bapa yang memantau",
+      "audience": ["Ibu Bapa"],
+      "usage": "NexParent boleh lihat laporan bacaan anak",
+      "icon": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775625944/kdkb6dkyq4qlzrf4yhpe.png",
+      "display": true
+    }
+  ]
+}
