@@ -1,0 +1,53 @@
+{
+  "penulis_pemula": {
+    "name": "Pemula",
+    "requirement": "1 cerita pertama",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394070/fbfwyb6foob86fsou7h7.png"
+  },
+  "penulis_produktif": {
+    "name": "Produktif",
+    "requirement": "5 cerita",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394070/mlqdaeohq6betobrjqkg.png"
+  },
+  "penulis_dedikasi": {
+    "name": "Dedikasi",
+    "requirement": "Tamat 12 cerita",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394070/zvyzjird9ah5g73w07uo.png"
+  },
+  "penulis_gigih": {
+    "name": "Gigih",
+    "requirement": "20 cerita",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394070/njxsv0j7yegpl6u4gzyx.png"
+  },
+  "penulis_master": {
+    "name": "Master",
+    "requirement": "50 cerita",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394069/ef6v7kzxyejk0etjljjr.png"
+  },
+
+  "comm_disukai": {
+    "name": "Disukai",
+    "requirement": "Disukai 50 peminat",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394079/uizfwmx7ddgyxu85z5gv.png"
+  },
+  "comm_diikuti": {
+    "name": "Diikuti",
+    "requirement": "10 peminat",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394080/z7oegnrrkqrjmdyrq04z.png"
+  },
+  "comm_peminat": {
+    "name": "Peminat",
+    "requirement": "1 peminat",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394082/my6rwiad45kqmiruzpqz.png"
+  },
+  "comm_ikon": {
+    "name": "Ikon",
+    "requirement": "100 peminat",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394082/mshjftvwswnlu7le2pca.png"
+  },
+  "comm_legenda": {
+    "name": "Legenda",
+    "requirement": "500 peminat",
+    "imageUrl": "https://res.cloudinary.com/dotejpjfv/image/upload/v1775394081/wn9u5jquzw4yofqd3hxe.png"
+  }
+}
