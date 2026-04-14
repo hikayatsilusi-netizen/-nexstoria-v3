@@ -1534,6 +1534,38 @@ function addPanelWithData(data) {
   list.appendChild(item);
 }
 
+  function buildPanelElement(id, type, num, opts = {}) {
+  const { imageUrl = null, initialText = '' } = opts;
+  const item = document.createElement('div');
+  item.className = 'panel-item';
+  item.id = id;
+  item.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-num" style="background:${panelTypeColors[type]}22;color:${panelTypeColors[type]}">${num}</div>
+      <div class="panel-type-tabs">
+        ${['standard','dialog','action','narration'].map(t =>
+          `<button class="pt-tab${t===type?' active':''}" onclick="changePanelType('${id}','${t}',this)">${panelTypeLabels[t]}</button>`
+        ).join('')}
+      </div>
+      <button class="panel-del" onclick="deletePanel('${id}')" title="Padam panel">🗑️</button>
+    </div>
+    <div class="panel-body">
+      <div>
+        <div class="img-upload-area${imageUrl?' has-img':''}" id="img-area-${id}" onclick="triggerImgUpload('${id}')">
+          ${imageUrl ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:12px;">` : ''}
+          <div class="img-upload-icon">🖼️</div>
+          <div class="img-upload-text">Klik untuk muat naik gambar panel — max 3MB (JPG/PNG/WebP/GIF)</div>
+          <input type="file" id="img-input-${id}" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="handlePanelImg(event,'${id}')">
+        </div>
+        <div id="img-feedback-${id}-wrap" style="padding:0 2px;"></div>
+      </div>
+      <div>${buildRTE(id, type, initialText)}</div>
+      <div></div>
+    </div>
+  `;
+  return item;
+}
+  
 /* ── FILE LIMITS ── */
 const LIMITS = {
   cover:  { maxBytes: 2 * 1024 * 1024, label: '2MB',  folder: 'story-covers',  types: ['image/jpeg','image/png','image/webp'] },
