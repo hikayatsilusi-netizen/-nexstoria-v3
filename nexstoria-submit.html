@@ -710,26 +710,23 @@ select{cursor:pointer;}
       </div>
     </div>
 
-    <div style="margin-bottom:16px;">
-      <div class="field-label">Kategori <span>*</span> <span style="font-size:11px;font-weight:600;color:var(--muted);">(pilih sehingga 3)</span></div>
-      <div class="chip-row" id="cat-chips">
-        <div class="chip" data-val="Dongeng" onclick="toggleChip(this,'cat')">🏰 Dongeng</div>
-        <div class="chip" data-val="Rakyat" onclick="toggleChip(this,'cat')">🐯 Cerita Rakyat</div>
-        <div class="chip" data-val="Fakta" onclick="toggleChip(this,'cat')">🧠 Fakta</div>
-        <div class="chip" data-val="Ilmu" onclick="toggleChip(this,'cat')">🎓 Ilmu</div>
-        <div class="chip" data-val="Nilai" onclick="toggleChip(this,'cat')">🌈 Nilai</div>
-        <div class="chip" data-val="Misteri" onclick="toggleChip(this,'cat')">🕵️ Misteri</div>
-        <div class="chip" data-val="Haiwan" onclick="toggleChip(this,'cat')">🦁 Haiwan</div>
-        <div class="chip" data-val="Sains" onclick="toggleChip(this,'cat')">🚀 Sains</div>
-        <div class="chip" data-val="Teladan" onclick="toggleChip(this,'cat')">🕌 Teladan</div>
-        <div class="chip" data-val="Wira" onclick="toggleChip(this,'cat')">🛡️ Wira</div>
-        <div class="chip" data-val="Alam" onclick="toggleChip(this,'cat')">🌿 Alam</div>
-      </div>
-      <div class="cat-limit-hint">
-        <span class="cat-limit-count" id="cat-count">0 / 3 dipilih</span>
-        <span class="cat-limit-warn" id="cat-warn">⚠️ Had maksimum 3 kategori!</span>
-      </div>
-    </div>
+    <!-- CATEGORY SELECTION -->
+<div style="margin-bottom:16px;">
+  <div class="field-label">Kategori <span>*</span> <span style="font-size:11px;font-weight:600;color:var(--muted);">(pilih sehingga 3)</span></div>
+  <div class="chip-row" id="cat-chips">
+    <div class="chip" data-val="Humor" onclick="toggleChip(this,'cat')">😂 Humor</div>
+    <div class="chip" data-val="Dongeng" onclick="toggleChip(this,'cat')">🏰 Dongeng</div>
+    <div class="chip" data-val="Sejarah" onclick="toggleChip(this,'cat')">📜 Sejarah</div>
+    <div class="chip" data-val="Misteri" onclick="toggleChip(this,'cat')">🕵️ Misteri</div>
+    <div class="chip" data-val="Legenda" onclick="toggleChip(this,'cat')">🐉 Legenda</div>
+    <div class="chip" data-val="Cerita Rakyat" onclick="toggleChip(this,'cat')">🗿 Cerita Rakyat</div>
+    <div class="chip" data-val="Fiksyen" onclick="toggleChip(this,'cat')">🚀 Fiksyen</div>
+  </div>
+  <div class="cat-limit-hint">
+    <span class="cat-limit-count" id="cat-count">0 / 3 dipilih</span>
+    <span class="cat-limit-warn" id="cat-warn">⚠️ Had maksimum 3 kategori!</span>
+  </div>
+</div>
 
     <div>
       <div class="field-label">Kumpulan Umur <span>*</span></div>
