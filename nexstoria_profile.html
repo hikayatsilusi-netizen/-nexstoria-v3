@@ -3156,9 +3156,9 @@ else showToast('💡 Avatar upload dalam pembangunan');
       });
     }
 
-    function togglePrivacy(el) {
-      el.classList.toggle('off');
-    }
+    function togglePrivacy(el, settingKey) {
+  el.classList.toggle('off');
+}
 
     function savePrivacySettings() {
       const keys = ['profile', 'reading', 'badges', 'share', 'writer-stats', '2fa', 'login-notif'];
@@ -3200,7 +3200,7 @@ init();
           <span class="prv-label">Keterlihatan Profil</span>
           <span class="prv-desc">Benarkan orang lain melihat profil awam anda</span>
         </div>
-        <div class="toggle" id="prv-toggle-profile" onclick="togglePrivacy(this,'profile')"></div>
+        <div class="toggle" id="prv-toggle-profile" onclick="togglePrivacy(this)"></div>
       </div>
       <div class="prv-item">
         <div class="prv-info">
