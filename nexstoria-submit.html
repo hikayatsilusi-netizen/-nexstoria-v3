@@ -1984,7 +1984,24 @@ function toggleChip(chip, type) {
       chip.classList.add('active-cat');
       selectedCat.push(val);
     }
+    const count = selectedCat.length;
+    const countEl = document.getElementById('cat-count');
+    countEl.textContent = `${count} / 3 dipilih`;
+    countEl.classList.toggle('at-max', count >= 3);
 
+    // Disable chips not selected when max reached
+    document.querySelectorAll('#cat-chips .chip').forEach(c => {
+      if (!c.classList.contains('active-cat')) {
+        c.style.opacity = count >= 3 ? '0.5' : '1';
+        c.style.pointerEvents = count >= 3 ? 'none' : 'auto';
+      } else {
+        c.style.opacity = '1';
+        c.style.pointerEvents = 'auto';
+      }
+    });
+  }
+  // ... rest of age/language handling
+}
     // Kemaskini counter dan disable chip yang tak dipilih jika dah 3
     const count = selectedCat.length;
     const countEl = document.getElementById('cat-count');
