@@ -324,21 +324,33 @@ function compressAvatarImage(file) {
 
 // ── KEMASKINI PAPARAN AVATAR DI HALAMAN ──
 function refreshAvatarDisplay(newUrl) {
-  // Kemaskini semua img tag yang ada avatar
-  document.querySelectorAll(
-    '.writer-avatar img, .reader-avatar img, .nav-avatar img, [id*="avatar"] img'
-  ).forEach(img => { img.src = newUrl; });
-
-  // Untuk avatar yang guna initial/emoji — tukar ke gambar
-  ['writer-avatar-el', 'reader-avatar-el', 'nav-avatar-icon'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    let img = el.querySelector('img');
-    if (!img) {
-      img = document.createElement('img');
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;position:absolute;inset:0;';
-      el.appendChild(img);
-    }
+  // Kemaskini avatar di profile header (nexstoria_profile.html)
+  const avatarInner = document.getElementById('avatar-inner');
+  if (avatarInner) {
+    avatarInner.innerHTML = '';
+    const img = document.createElement('img');
     img.src = newUrl;
-  });
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    avatarInner.appendChild(img);
+  }
+
+  // Kemaskini avatar di sidebar mini (nexstoria_buku_saya.html)
+  const avSmInner = document.getElementById('av-sm-inner');
+  if (avSmInner) {
+    avSmInner.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = newUrl;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    avSmInner.appendChild(img);
+  }
+
+  // Kemaskini avatar di navigasi (nexstoria-explore.html)
+  const navAvatar = document.getElementById('nav-avatar-icon');
+  if (navAvatar) {
+    navAvatar.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = newUrl;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    navAvatar.appendChild(img);
+  }
 }
