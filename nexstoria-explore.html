@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>nexstoria-explore.html</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Explore — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<script>
+const NexStoriaConfig = {
+  supabase: {
+    url: "https://lkeehgivbuhkwdfrvexm.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s",
+  },
+  cloudinary: {
+    cloudName: "dotejpjfv",
+    uploadPreset: "nexstoria_unsigned",
+  },
+  emailWorker: {
+    url: "https://nexstoria-email-worker.nexstoria.workers.dev",
+  },
+  app: {
+    name: "NexStoria",
+    version: "1.0.0",
+    env: "production",
+    baseUrl: "https://nexstoria.com",
+  },
+};
+window.NexStoriaConfig = NexStoriaConfig;
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --warm-cream:#FFF8EE;
+  --warm-tan:#F5E6C8;
+  --warm-brown:#C8962A;
+  --warm-dark:#7A4F1A;
+  --yellow-accent:#FFD700;
+  --orange-accent:#FF8C00;
+  --red-accent:#E84545;
+  --purple-accent:#8B5CF6;
+  --card-shadow:0 4px 12px rgba(0,0,0,0.15);
+  --section-radius:20px;
+}
+
+body{
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  background: #1A0A3B;
+  transition: background-image 0.3s ease;
+}
+
+/* Background Image - Kampung */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://res.cloudinary.com/dotejpjfv/image/upload/v1776017842/wz4yj2akc0zmm4mt7edj.jpg');
+  background-size: cover;
+  background-position: center bottom;
+  background-attachment: fixed;
+  z-index: -2;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: -1;
+}
+
+/* Night Mode */
+body.night-mode::before {
+  background-image: url('https://res.cloudinary.com/dotejpjfv/image/upload/v1776017841/pmdiqehzv03jt6gf59ag.jpg');
+}
+
+body.night-mode::after {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* NAV */
+.nav{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;
+  background:linear-gradient(135deg,rgba(26,10,59,0.9),rgba(45,27,107,0.9));
+  backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:100;
+}
+.logo{
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+}
+.logo img{
+  height:32px;
+  width:auto;
+  display:block;
+}
+.nav-search{
+  flex:1;display:flex;align-items:center;
+  background:rgba(255,255,255,0.15);
+  border-radius:50px;padding:8px 16px;gap:8px;
+  border:1px solid rgba(255,255,255,0.2);
+  cursor:pointer;
+}
+.nav-search span{color:rgba(255,255,255,0.7);font-size:14px;}
+.search-icon{color:rgba(255,255,255,0.8);font-size:16px;}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.profile-btn{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.15);border-radius:50px;
+  padding:6px 14px;border:1px solid rgba(255,255,255,0.2);
+  color:white;font-size:14px;font-weight:600;cursor:pointer;
+  white-space:nowrap;
+}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FF8C00);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.hamburger{color:white;font-size:20px;cursor:pointer;padding:4px;}
+
+/* Theme Toggle Button */
+#theme-toggle{
+  background:rgba(255,255,255,0.2);
+  border:1px solid rgba(255,255,255,0.3);
+  border-radius:50px;
+  padding:6px 14px;
+  color:white;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:all 0.2s;
+}
+#theme-toggle:hover{
+  background:rgba(255,255,255,0.3);
+  transform:scale(1.02);
+}
+
+/* CATEGORIES */
+.section{padding:12px 16px;}
+.section-label{
+  font-size:13px;
+  font-weight:800;
+  color:#FFD700;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  text-shadow:0 1px 2px rgba(0,0,0,0.2);
+}
+.cat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.cat-row::-webkit-scrollbar{display:none;}
+.cat-pill{
+  background:linear-gradient(135deg,rgba(255,255,255,0.25),rgba(255,255,255,0.15));
+  backdrop-filter:blur(8px);
+  color:white;font-size:12px;font-weight:700;
+  padding:8px 18px;border-radius:50px;white-space:nowrap;
+  flex-shrink:0;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.3);
+  transition:all 0.2s;
+}
+.cat-pill.active{
+  background:linear-gradient(135deg,#FFD700,#FF8C00);
+  color:#7A4F1A;
+  border-color:transparent;
+}
+
+/* BOOK CARDS */
+.book-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;}
+.book-scroll::-webkit-scrollbar{display:none;}
+.book-card{
+  flex-shrink:0;width:100px;cursor:pointer;
+}
+.book-cover{
+  width:100px;height:130px;border-radius:12px;
+  background:linear-gradient(135deg,#4A90D9,#2C5F9E);
+  position:relative;overflow:hidden;
+  box-shadow:var(--card-shadow);
+  border:2px solid rgba(255,255,255,0.4);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+}
+.book-cover.c1{background:linear-gradient(135deg,#E84545,#9B2020);}
+.book-cover.c2{background:linear-gradient(135deg,#FF8C00,#C05A00);}
+.book-cover.c3{background:linear-gradient(135deg,#8B5CF6,#5B21B6);}
+.book-cover.c4{background:linear-gradient(135deg,#059669,#065F46);}
+.book-cover.c5{background:linear-gradient(135deg,#DB2777,#831843);}
+.book-cover.c6{background:linear-gradient(135deg,#D97706,#92400E);}
+.book-cover.c7{background:linear-gradient(135deg,#0284C7,#075985);}
+.badge-overlay{
+  position:absolute;bottom:6px;left:6px;right:6px;
+  background:rgba(0,0,0,0.7);border-radius:8px;
+  padding:3px 6px;display:flex;align-items:center;gap:4px;
+}
+.badge-overlay span{color:white;font-size:9px;font-weight:700;}
+.book-title{font-size:11px;font-weight:800;color:#FFF8EE;margin-top:6px;line-height:1.2;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.3);}
+.book-reads{font-size:10px;color:#FFD700;margin-top:2px;text-align:center;font-weight:600;}
+.more-btn{
+  flex-shrink:0;width:40px;height:130px;
+  background:linear-gradient(135deg,#FFD700,#FF8C00);
+  border-radius:12px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;font-size:18px;
+  color:#7A4F1A;box-shadow:var(--card-shadow);border:none;
+  align-self:flex-start;margin-top:0;
+}
+
+/* AUTHOR SECTION */
+.author-section{
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
+  border-radius:var(--section-radius);
+  border:1px solid rgba(255,255,255,0.2);
+  padding:12px;margin:0 16px 12px;
+}
+.author-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.author-card{
+  background:rgba(255,255,255,0.9);
+  border-radius:12px;padding:10px;
+  display:flex;gap:8px;align-items:flex-start;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  cursor:pointer;
+  position:relative;
+}
+.author-card.featured{border:2px solid #FFD700;background:#FFFDF0;}
+.new-badge{
+  position:absolute;top:-6px;left:8px;
+  background:linear-gradient(90deg,#FFD700,#FF8C00);
+  color:#7A4F1A;font-size:9px;font-weight:800;
+  padding:2px 8px;border-radius:50px;
+  white-space:nowrap;
+}
+.mini-cover{
+  width:48px;height:60px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.mini-cover.mc1{background:linear-gradient(135deg,#4A90D9,#2C5F9E);}
+.mini-cover.mc2{background:linear-gradient(135deg,#E84545,#9B2020);}
+.author-info h4{font-size:11px;font-weight:800;color:#2D1B00;line-height:1.2;margin-bottom:2px;}
+.author-info p{font-size:9px;color:#8B6914;line-height:1.3;}
+.author-avatar-row{display:flex;align-items:center;gap:4px;margin-top:4px;}
+.a-avatar{width:20px;height:20px;border-radius:50%;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.a-name{font-size:9px;color:#6B21A8;font-weight:700;}
+.follow-btn{
+  font-size:8px;font-weight:700;color:white;
+  background:linear-gradient(90deg,#8B5CF6,#EC4899);
+  border-radius:50px;padding:2px 7px;border:none;cursor:pointer;
+  white-space:nowrap;margin-top:4px;
+}
+.writer-col{display:flex;flex-direction:column;gap:8px;}
+.writer-card{
+  background:rgba(255,255,255,0.9);
+  border-radius:12px;padding:8px;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  cursor:pointer;
+}
+.writer-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:#EDE9FE;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;
+}
+.writer-name{font-size:11px;font-weight:800;color:#2D1B00;}
+.writer-stories{font-size:10px;color:#8B6914;}
+
+/* LIVE BADGE */
+.live-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#E84545;color:white;
+  font-size:12px;font-weight:800;padding:4px 14px;
+  border-radius:50px;margin-bottom:10px;
+}
+.live-dot{width:8px;height:8px;border-radius:50%;background:white;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ALL BOOKS GRID */
+.books-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.grid-book{cursor:pointer;}
+.grid-cover{
+  border-radius:10px;aspect-ratio:3/4;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.15);
+  border:2px solid rgba(255,255,255,0.4);
+  background:linear-gradient(135deg,#4A90D9,#2C5F9E);
+}
+.grid-book-title{
+  font-size:9px;text-align:center;margin-top:4px;
+  font-weight:800;color:#FFF8EE;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;text-shadow:0 1px 1px rgba(0,0,0,0.3);
+}
+
+/* BOTTOM SECTION */
+.bottom-section{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  padding:12px 16px 24px;
+}
+.section-title-sm{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:800;color:#7A4F1A;
+  background:#FFD700;padding:3px 10px;border-radius:50px;
+  margin-bottom:8px;
+}
+.badge-item{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.badge-icon{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,#FFD700,#FF8C00);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.notif-bubble{
+  background:#D1FAE5;border-radius:12px;padding:6px 10px;flex:1;
+}
+.notif-text{font-size:10px;color:#065F46;font-weight:600;line-height:1.3;}
+.load-more{text-align:center;padding:6px;cursor:pointer;}
+.load-more span{font-size:20px;color:#FF8C00;}
+
+.lb-card{
+  background:linear-gradient(135deg,rgba(45,27,107,0.9),rgba(26,10,59,0.9));
+  backdrop-filter:blur(10px);
+  border-radius:16px;padding:10px;
+  border:1px solid rgba(255,255,255,0.2);
+}
+.lb-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;}
+.lb-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:#6B7280;display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0;
+}
+.lb-avatar.gold{background:linear-gradient(135deg,#FFD700,#FF8C00);}
+.lb-user-name{flex:1;color:white;font-size:12px;font-weight:600;}
+.lb-stars{color:#FFD700;font-weight:800;}
+.lb-num{
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:12px;font-weight:800;flex-shrink:0;
+}
+
+/* LOAD MORE BUTTON */
+.load-more-container{text-align:center;margin:20px 0 30px;}
+#load-more{
+  background:linear-gradient(135deg,#FFD700,#FF8C00);
+  color:#7A4F1A;border:none;padding:12px 32px;
+  border-radius:50px;font-family:'Nunito',sans-serif;
+  font-size:14px;font-weight:800;cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  transition:transform 0.2s;
+}
+#load-more:hover{transform:translateY(-2px);}
+#load-more:disabled{opacity:0.6;cursor:not-allowed;}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);
+  display:none;align-items:center;justify-content:center;
+  z-index:1000;padding:20px;backdrop-filter:blur(5px);
+}
+.modal-content{
+  background:white;padding:40px 30px;border-radius:30px;
+  max-width:380px;width:100%;text-align:center;animation:popIn 0.3s;
+}
+@keyframes popIn{from{opacity:0;transform:scale(0.8);}to{opacity:1;transform:scale(1);}}
+.btn-reg{
+  display:block;background:#E84545;color:white;padding:16px;
+  border-radius:15px;text-decoration:none;font-weight:800;
+  margin-top:20px;box-shadow:0 4px 0 #9B2020;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);
+  background:#1A0A3B;color:white;padding:12px 22px;
+  border-radius:14px;font-size:13px;font-weight:700;
+  z-index:9999;transition:all 0.3s;opacity:0;
+  white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.25);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MOBILE MENU */
+#mobile-menu{
+  position:fixed;top:0;right:0;bottom:0;width:250px;
+  background:white;z-index:200;padding:60px 20px 20px;
+  transform:translateX(100%);transition:transform 0.3s;
+  box-shadow:-2px 0 10px rgba(0,0,0,0.1);
+}
+#mobile-menu a, #mobile-menu div{
+  display:block;padding:12px 0;color:#333;
+  text-decoration:none;font-weight:600;
+  border-bottom:1px solid #eee;
+}
+#mobile-menu .logout-item{color:#E84545;}
+
+/* Responsive */
+@media(max-width:600px){
+  .books-grid{grid-template-columns:repeat(3,1fr);}
+  .author-grid{grid-template-columns:1fr;}
+  .bottom-section{grid-template-columns:1fr;}
+  .nav-search span{display:none;}
+  .profile-btn span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="logo" onclick="window.location.href='index.html'">
+    <img src="https://res.cloudinary.com/dotejpjfv/image/upload/v1775572491/ofygtko3ww5yaet6gtuf.png" alt="NexStoria Logo">
+  </div>
+  <div class="nav-search" id="nav-search-btn">
+    <span class="search-icon">🔍</span>
+    <span>Cari cerita...</span>
+  </div>
+  <div class="nav-right">  
+    <!-- Butang Theme Toggle -->
+    <button id="theme-toggle" class="nav-icon-btn" onclick="toggleTheme()">🌙</button>
+    
+    <!-- Guest View (belum login) -->
+    <div id="nav-auth-guest" style="display:flex;gap:8px;">
+      <div class="profile-btn" onclick="window.location.href='nexstoria-login.html'">
+        <div class="avatar">👤</div>
+        <span>Log Masuk</span>
+      </div>
+    </div>
+    
+    <!-- User View (sudah login) -->
+    <div id="nav-auth-user" style="display:none;position:relative;">
+      <div class="profile-btn" id="profile-dropdown-btn">
+        <div class="avatar" id="nav-avatar">👤</div>
+        <span id="nav-username">Profil</span>
+        <span style="font-size:10px;">▼</span>
+      </div>
+      <div id="profile-dropdown" style="display:none;position:absolute;top:100%;right:0;background:white;border-radius:12px;padding:8px;min-width:180px;box-shadow:0 8px 20px rgba(0,0,0,0.15);z-index:200;">
+        <a href="nexstoria_profile.html" style="display:block;padding:8px 12px;color:#333;text-decoration:none;">👤 Profil Saya</a>
+        <a href="nexstoria_buku_saya.html" style="display:block;padding:8px 12px;color:#333;text-decoration:none;">📚 Cerita Saya</a>
+        <a href="nexstoria-settings.html" style="display:block;padding:8px 12px;color:#333;text-decoration:none;">⚙️ Tetapan</a>
+        <hr style="margin:4px 0;">
+        <div onclick="handleLogout()" style="display:block;padding:8px 12px;color:#E84545;cursor:pointer;">🚪 Log Keluar</div>
+      </div>
+    </div>
+    
+    <!-- Hamburger Button (untuk buka mobile menu) -->
+    <div class="hamburger" onclick="toggleMobileMenu()">☰</div>
+  </div>
+</nav>
+
+<!-- MOBILE MENU - Letak di LUAR nav, selepas </nav> -->
+<div id="mobile-menu">
+  <button onclick="closeMobileMenu()" style="position:absolute;top:10px;right:15px;font-size:24px;background:none;border:none;cursor:pointer;">✕</button>
+  <a href="nexstoria_profile.html">👤 Profil Saya</a>
+  <a href="nexstoria_buku_saya.html">📚 Cerita Saya</a>
+  <a href="nexstoria-settings.html">⚙️ Tetapan</a>
+  <a href="nexstoria-login.html" id="mobile-login-link" style="color:#E84545;">🔑 Log Masuk</a>
+  <div id="mobile-logout-btn" style="display:none;color:#E84545;cursor:pointer;" onclick="handleLogout()">🚪 Log Keluar</div>
+</div>
+</nav>
+
+<!-- SEARCH MODAL -->
+<div id="search-modal" class="modal-overlay" onclick="if(event.target===this)closeSearchModal()">
+  <div class="modal-content" style="max-width:320px;">
+    <h3 style="font-family:'Fredoka One';">🔍 Cari Cerita</h3>
+    <input type="text" id="search-input" placeholder="Tajuk cerita..." style="width:100%;padding:12px;margin:12px 0;border-radius:50px;border:1px solid #ddd;font-size:14px;">
+    <button onclick="searchStories()" style="background:#FF8C00;color:white;border:none;padding:10px 20px;border-radius:50px;font-weight:700;cursor:pointer;">Cari</button>
+    <button onclick="closeSearchModal()" style="margin-top:10px;background:none;border:none;color:#999;">Batal</button>
+  </div>
+</div>
+
+<!-- CATEGORIES (Hero removed as requested) -->
+<div class="section" style="padding-top:20px;">
+  <div class="section-label">📂 Kategori</div>
+  <div class="cat-row" id="cat-row">
+    <div class="cat-pill active" data-cat="all" onclick="filterByCategory('all', this)">Semua</div>
+    <div class="cat-pill" data-cat="Humor" onclick="filterByCategory('Humor', this)">😂 Humor</div>
+    <div class="cat-pill" data-cat="Dongeng" onclick="filterByCategory('Dongeng', this)">🏰 Dongeng</div>
+    <div class="cat-pill" data-cat="Sejarah" onclick="filterByCategory('Sejarah', this)">📜 Sejarah</div>
+    <div class="cat-pill" data-cat="Misteri" onclick="filterByCategory('Misteri', this)">🕵️ Misteri</div>
+    <div class="cat-pill" data-cat="Legenda" onclick="filterByCategory('Legenda', this)">🐉 Legenda</div>
+    <div class="cat-pill" data-cat="Cerita Rakyat" onclick="filterByCategory('Cerita Rakyat', this)">🗿 Cerita Rakyat</div>
+    <div class="cat-pill" data-cat="Fiksyen" onclick="filterByCategory('Fiksyen', this)">🚀 Fiksyen</div>
+  </div>
+</div>
+
+<!-- POPULAR SECTION -->
+<div class="section" style="padding-top:0;">
+  <div class="section-label">🔥 Popular</div>
+  <div class="book-scroll" id="popular-scroll">
+    <div style="width:100px;height:130px;background:rgba(255,255,255,0.2);border-radius:12px;animation:pulse 1s infinite;"></div>
+  </div>
+</div>
+
+<!-- PENULIS PILIHAN -->
+<div style="padding:0 12px 12px;">
+  <div class="author-section">
+    <div class="section-label" style="margin-bottom:10px;">✍️ Penulis Pilihan</div>
+    <div class="author-grid" id="author-grid">
+      <div style="padding:20px;text-align:center;color:white;">Memuatkan penulis...</div>
+    </div>
+  </div>
+</div>
+
+<!-- LANGSUNG / LIVE -->
+<div style="padding:0 16px 8px;">
+  <div class="live-badge"><div class="live-dot"></div> Langsung</div>
+  <div class="book-scroll" id="live-scroll">
+    <div style="width:100px;height:120px;background:rgba(255,255,255,0.2);border-radius:12px;"></div>
+  </div>
+</div>
+
+<!-- ALL BOOKS GRID -->
+<div style="padding:8px 16px 12px;">
+  <div class="section-label">📚 Semua Buku</div>
+  <div class="books-grid" id="books-grid"></div>
+</div>
+
+<!-- LOAD MORE -->
+<div class="load-more-container">
+  <button id="load-more" onclick="loadMore()">↓ Muatkan Lagi</button>
+</div>
+
+<!-- BADGES + LEADERBOARD -->
+<div class="bottom-section">
+  <div class="badge-col">
+    <div class="section-title-sm">🏅 Pengumpul Badge</div>
+    <div id="badge-list">
+      <div style="padding:10px;text-align:center;">Memuatkan...</div>
+    </div>
+    <div class="load-more"><span>⬇️</span></div>
+  </div>
+  <div class="lb-col">
+    <div class="section-title-sm">🏆 LeaderBoard</div>
+    <div class="lb-card" id="leaderboard-list">
+      <div style="padding:10px;text-align:center;color:white;">Memuatkan...</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div style="font-size:50px;">🌟</div>
+    <h2 style="font-family:'Fredoka One';">Daftar NexStoria!</h2>
+    <p style="color:var(--warm-dark);margin-top:10px;">Daftar untuk Suka, Komen, atau Kongsi cerita hebat ini bersama rakan-rakan!</p>
+    <a href="nexstoria-login.html" class="btn-reg">Daftar Percuma 🚀</a>
+    <button onclick="closeModal()" style="margin-top:15px;background:none;border:none;color:#999;font-weight:700;cursor:pointer;">Nanti Dahulu</button>
+  </div>
+</div>
+
+<!-- MOBILE MENU -->
+<div id="mobile-menu">
+  <button onclick="closeMobileMenu()" style="position:absolute;top:10px;right:15px;font-size:24px;background:none;border:none;">✕</button>
+  <a href="nexstoria_profile.html">👤 Profil Saya</a>
+  <a href="nexstoria_buku_saya.html">📚 Cerita Saya</a>
+  <a href="nexstoria-login.html" id="mobile-login-link" style="color:#E84545;">🔑 Log Masuk</a>
+  <div id="mobile-logout-btn" style="display:none;color:#E84545;cursor:pointer;" onclick="handleLogout()">🚪 Log Keluar</div>
+</div>
+
+<script>
+const SUPABASE_URL = NexStoriaConfig.supabase.url;
+const SUPABASE_KEY = NexStoriaConfig.supabase.anonKey;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let allStories = [];
+let currentPage = 0;
+const PAGE_SIZE = 12;
+let currentCategory = 'all';
+let currentSearch = '';
+
+// Theme functions
+function initTheme() {
+  const savedTheme = localStorage.getItem('nexstoria_theme');
+  if (savedTheme === 'night') {
+    document.body.classList.add('night-mode');
+    const toggleBtn = document.getElementById('theme-toggle');
+    if (toggleBtn) toggleBtn.innerHTML = '☀️ Siang';
+  }
+}
+
+function toggleTheme() {
+  const btn = document.getElementById('theme-toggle');
+  if (document.body.classList.contains('night-mode')) {
+    document.body.classList.remove('night-mode');
+    localStorage.setItem('nexstoria_theme', 'day');
+    if (btn) btn.innerHTML = '🌙 Malam';
+  } else {
+    document.body.classList.add('night-mode');
+    localStorage.setItem('nexstoria_theme', 'night');
+    if (btn) btn.innerHTML = '☀️ Siang';
+  }
+}
+
+// Genre color mapping
+const genreColors = {
+  'Humor': 'c1', 'Dongeng': 'c2', 'Sejarah': 'c3',
+  'Misteri': 'c4', 'Legenda': 'c5', 'Cerita Rakyat': 'c6', 'Fiksyen': 'c7'
+};
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function openModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+function closeModal() { document.getElementById('auth-modal').style.display = 'none'; }
+
+function formatReads(n) {
+  if (n >= 1000) return (n/1000).toFixed(1).replace('.0','') + 'k';
+  return String(n || 0);
+}
+
+function getGenreColor(cat) { return genreColors[cat] || 'c1'; }
+function goToStory(id) { window.location.href = `nexstoria-reader.html?id=${id}`; }
+function goToAuthor(id) { window.location.href = `nexstoria-author-public.html?id=${id}`; }
+
+function renderBookCard(book, isSmall = false) {
+  const colorClass = getGenreColor(book.category);
+  const coverHtml = book.cover_url 
+    ? `<img src="${book.cover_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
+    : `<span style="position:relative;z-index:1;">${book.cover_emoji || book.emoji || '📖'}</span>`;
+  
+  if (isSmall) {
+    return `
+      <div class="grid-book" data-category="${book.category}" data-id="${book.id}" onclick="goToStory('${book.id}')">
+        <div class="grid-cover ${colorClass}" style="position:relative;overflow:hidden;">${coverHtml}</div>
+        <div class="grid-book-title">${book.title}</div>
+      </div>`;
+  }
+  
+  return `
+    <div class="book-card" data-category="${book.category}" data-id="${book.id}" onclick="goToStory('${book.id}')">
+      <div class="book-cover ${colorClass}" style="position:relative;overflow:hidden;">
+        ${coverHtml}
+        <div class="badge-overlay"><span>📖 ${formatReads(book.reads_count)} bacaan</span></div>
+      </div>
+      <div class="book-title">${book.title}</div>
+      <div class="book-reads">👁 ${formatReads(book.reads_count)}</div>
+    </div>`;
+}
+
+async function loadStories() {
+  try {
+    const { data, error } = await sb.from('stories')
+      .select('id,title,emoji,category,age_group,reads_count,synopsis,cover_url,cover_emoji,cover_bg,created_at')
+      .eq('status', 'published')
+      .order('reads_count', { ascending: false });
+    
+    if (error) throw error;
+    allStories = data || [];
+    renderAllContent();
+  } catch(e) {
+    console.error('Load stories error:', e);
+    document.getElementById('books-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:white;">Ralat memuatkan cerita</div>';
+  }
+}
+
+async function loadPopularBooks() {
+  try {
+    const { data } = await sb.from('stories')
+      .select('id,title,category,reads_count,cover_emoji,emoji,cover_url')
+      .eq('status', 'published')
+      .order('reads_count', { ascending: false })
+      .limit(10);
+    
+    const scroll = document.getElementById('popular-scroll');
+    if (!data || data.length === 0) {
+      scroll.innerHTML = '<div style="color:#999;">Tiada cerita popular</div>';
+      return;
+    }
+    scroll.innerHTML = data.map(book => renderBookCard(book, false)).join('');
+  } catch(e) { console.warn(e); }
+}
+
+async function loadLatestBooks() {
+  try {
+    const { data } = await sb.from('stories')
+      .select('id,title,category,reads_count,cover_emoji,emoji,cover_url')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    const scroll = document.getElementById('live-scroll');
+    if (!data || data.length === 0) {
+      scroll.innerHTML = '<div style="color:#999;">Tiada cerita terkini</div>';
+      return;
+    }
+    scroll.innerHTML = data.map(book => `
+      <div class="book-card" onclick="goToStory('${book.id}')">
+        <div class="book-cover ${getGenreColor(book.category)}" style="position:relative;overflow:hidden;">
+          ${book.cover_url ? `<img src="${book.cover_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">` : `<span>${book.cover_emoji || book.emoji || '📖'}</span>`}
+        </div>
+        <div class="book-title">${book.title}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.warn(e); }
+}
+
+async function loadAuthors() {
+  try {
+    const { data } = await sb.from('profiles')
+      .select('id,full_name,username,avatar_emoji,total_stories')
+      .eq('role', 'author')
+      .order('total_stories', { ascending: false })
+      .limit(8);
+    
+    const grid = document.getElementById('author-grid');
+    if (!data || data.length === 0) {
+      grid.innerHTML = '<div style="padding:20px;text-align:center;color:white;">Belum ada penulis</div>';
+      return;
+    }
+    
+    const leftCol = data.slice(0, 2);
+    const rightCol = data.slice(2, 8);
+    
+    grid.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${leftCol.map(author => `
+          <div class="author-card featured" onclick="goToAuthor('${author.id}')">
+            <div class="new-badge">✍️ Penulis</div>
+            <div class="mini-cover mc1">📚</div>
+            <div class="author-info">
+              <h4>${author.full_name || author.username || 'Penulis'}</h4>
+              <p>📖 ${author.total_stories || 0} cerita</p>
+              <div class="author-avatar-row">
+                <div class="a-avatar">${author.avatar_emoji || '👤'}</div>
+                <div><div class="a-name">${author.full_name?.split(' ')[0] || author.username || 'Penulis'}</div></div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="writer-col">
+        ${rightCol.map(author => `
+          <div class="writer-card" onclick="goToAuthor('${author.id}')">
+            <div class="writer-avatar">${author.avatar_emoji || '👤'}</div>
+            <div><div class="writer-name">${author.full_name || author.username || 'Penulis'}</div><div class="writer-stories">${author.total_stories || 0} Cerita</div></div>
+          </div>
+        `).join('')}
+        <button class="more-btn" style="width:100%;height:32px;border-radius:50px;font-size:14px;" onclick="showToast('🚧 Halaman penulis akan datang')">👉</button>
+      </div>
+    `;
+  } catch(e) { console.warn(e); }
+}
+
+async function loadLeaderboard() {
+  try {
+    const { data } = await sb.from('profiles')
+      .select('id,full_name,username,stars_received')
+      .order('stars_received', { ascending: false })
+      .limit(5);
+    
+    const lbList = document.getElementById('leaderboard-list');
+    if (!data || data.length === 0) {
+      lbList.innerHTML = '<div style="padding:10px;text-align:center;color:white;">Tiada data</div>';
+      return;
+    }
+    
+    lbList.innerHTML = data.map((user, i) => `
+      <div class="lb-row" onclick="goToAuthor('${user.id}')">
+        <div class="lb-avatar ${i === 0 ? 'gold' : ''}">👤</div>
+        <div class="lb-user-name">${user.full_name || user.username || 'Pengguna'}</div>
+        <div class="lb-stars">⭐ ${user.stars_received || 0}</div>
+        <div class="lb-num">${i+1}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.warn(e); }
+}
+
+async function loadBadgesActivity() {
+  try {
+    const { data } = await sb.from('user_badges')
+      .select('user_id, badge_id, unlocked_at, profiles(full_name,username)')
+      .order('unlocked_at', { ascending: false })
+      .limit(6);
+    
+    const badgeList = document.getElementById('badge-list');
+    if (!data || data.length === 0) {
+      badgeList.innerHTML = '<div style="padding:10px;text-align:center;">Tiada aktiviti badge</div>';
+      return;
+    }
+    
+    const badgeIcons = { 'read_1': '🌱', 'read_10': '📚', 'write_1': '✍️', 'streak_7': '🔥' };
+    
+    badgeList.innerHTML = data.map(activity => `
+      <div class="badge-item">
+        <div class="badge-icon">${badgeIcons[activity.badge_id] || '🏅'}</div>
+        <div class="notif-bubble">
+          <div class="notif-text"><span>${activity.profiles?.full_name || activity.profiles?.username || 'Pembaca'} telah mengumpul badge</span></div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.warn(e); }
+}
+
+function renderAllContent() {
+  const filtered = allStories.filter(book => {
+    if (currentCategory !== 'all' && book.category !== currentCategory) return false;
+    if (currentSearch) {
+      const searchLower = currentSearch.toLowerCase();
+      const titleMatch = (book.title || '').toLowerCase().includes(searchLower);
+      const synopsisMatch = (book.synopsis || '').toLowerCase().includes(searchLower);
+      if (!titleMatch && !synopsisMatch) return false;
+    }
+    return true;
+  });
+  
+  const paginated = filtered.slice(0, (currentPage + 1) * PAGE_SIZE);
+  const grid = document.getElementById('books-grid');
+  
+  if (paginated.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:white;">Tiada cerita ditemui</div>';
+  } else {
+    grid.innerHTML = paginated.map(book => renderBookCard(book, true)).join('');
+  }
+  
+  const btn = document.getElementById('load-more');
+  if (paginated.length >= filtered.length) {
+    btn.textContent = '✅ Semua Cerita Dipaparkan';
+    btn.disabled = true;
+  } else {
+    btn.textContent = '↓ Muatkan Lagi';
+    btn.disabled = false;
+  }
+}
+
+function loadMore() { currentPage++; renderAllContent(); }
+
+function filterByCategory(category, el) {
+  currentCategory = category;
+  currentPage = 0;
+  document.querySelectorAll('.cat-pill').forEach(pill => pill.classList.remove('active'));
+  el.classList.add('active');
+  renderAllContent();
+}
+
+function openSearchModal() { document.getElementById('search-modal').style.display = 'flex'; document.getElementById('search-input').focus(); }
+function closeSearchModal() { document.getElementById('search-modal').style.display = 'none'; }
+
+function searchStories() {
+  currentSearch = document.getElementById('search-input').value.trim();
+  currentPage = 0;
+  currentCategory = 'all';
+  document.querySelectorAll('.cat-pill').forEach(pill => {
+    pill.classList.remove('active');
+    if (pill.dataset.cat === 'all') pill.classList.add('active');
+  });
+  closeSearchModal();
+  renderAllContent();
+}
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    currentUser = session.user;
+    const { data: profile } = await sb.from('profiles')
+      .select('full_name, username, avatar_emoji')
+      .eq('id', currentUser.id)
+      .single();
+    
+    document.getElementById('nav-auth-guest').style.display = 'none';
+    document.getElementById('nav-auth-user').style.display = 'block';
+    const name = profile?.full_name || profile?.username || currentUser.email?.split('@')[0] || 'Pengguna';
+    document.getElementById('nav-username').textContent = name;
+    document.getElementById('nav-avatar').textContent = profile?.avatar_emoji || '👤';
+    
+    const mobileLoginLink = document.getElementById('mobile-login-link');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+    if (mobileLoginLink) mobileLoginLink.style.display = 'none';
+    if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+  }
+}
+
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const isOpen = menu.style.transform === 'translateX(0px)';
+  menu.style.transform = isOpen ? 'translateX(100%)' : 'translateX(0px)';
+}
+
+function closeMobileMenu() { document.getElementById('mobile-menu').style.transform = 'translateX(100%)'; }
+
+document.getElementById('profile-dropdown-btn')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dropdown = document.getElementById('profile-dropdown');
+  if (dropdown) dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+});
+
+document.addEventListener('click', () => {
+  const dropdown = document.getElementById('profile-dropdown');
+  if (dropdown) dropdown.style.display = 'none';
+});
+
+document.getElementById('nav-search-btn')?.addEventListener('click', openSearchModal);
+
+async function handleLogout() { await sb.auth.signOut(); window.location.reload(); }
+
+// Initialize
+initTheme();
+initAuth();
+loadStories();
+loadPopularBooks();
+loadLatestBooks();
+loadAuthors();
+loadLeaderboard();
+loadBadgesActivity();
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
