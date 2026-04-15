@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Tetapan & Dompet — NexStoria</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<script>
+// Config
+const NexStoriaConfig = {
+  supabase: {
+    url: "https://lkeehgivbuhkwdfrvexm.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZWVoZ2l2YnVoa3dkZnJ2ZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDg3OTIsImV4cCI6MjA4ODQ4NDc5Mn0.DgNMgoRjNOJK4uh-74lrpkMqM9_fiJi2j81RxQzNx3s",
+  },
+  cloudinary: { cloudName: "dotejpjfv", uploadPreset: "nexstoria_unsigned" },
+  app: { name: "NexStoria", version: "2.4.1" }
+};
+window.NexStoriaConfig = NexStoriaConfig;
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #f5f4f2;
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+  background: linear-gradient(135deg, #1A0A3B, #2D1B6B);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo img {
+  height: 32px;
+  width: auto;
+  cursor: pointer;
+}
+.back-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50px;
+  padding: 6px 14px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-title {
+  flex: 1;
+  color: white;
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+}
+
+/* Layout Kiri-Kanan */
+.settings-layout {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+.settings-sidebar {
+  width: 260px;
+  background: white;
+  border-right: 1px solid #e0deda;
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.sidebar-item:hover {
+  background: #f8f8f8;
+  color: #1a1a1a;
+}
+.sidebar-item.active {
+  background: #EEEDFE;
+  color: #5E4FD4;
+  border-left-color: #5E4FD4;
+}
+.sidebar-icon { font-size: 18px; width: 24px; text-align: center; }
+
+/* Kandungan Kanan */
+.settings-content {
+  flex: 1;
+  padding: 24px 28px;
+  overflow-y: auto;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 16px;
+  border: 0.5px solid #e0deda;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 0.5px solid #e0deda;
+}
+.card-header h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+.card-header p {
+  font-size: 12px;
+  color: #999;
+}
+.card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 0.5px solid #e0deda;
+}
+.card-row:last-child { border-bottom: none; }
+.row-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.row-sub {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+.link-btn {
+  font-size: 13px;
+  color: #5E4FD4;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Toggle Switch */
+.toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 24px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: #5E4FD4; }
+.toggle.off { background: #d0ccc8; }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 3px;
+  transition: left 0.15s;
+}
+.toggle.on::after { left: 23px; }
+.toggle.off::after { left: 3px; }
+
+/* Radio Options */
+.radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.radio.on { border-color: #5E4FD4; }
+.radio.on::after {
+  content: '';
+  width: 9px;
+  height: 9px;
+  background: #5E4FD4;
+  border-radius: 50%;
+}
+.lang-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 0.5px solid #e0deda;
+  cursor: pointer;
+}
+.lang-opt:last-child { border-bottom: none; }
+.badge {
+  font-size: 10px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.badge-purple { background: #EEEDFE; color: #3C3489; }
+
+/* Theme Grid */
+.theme-grid {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+}
+.theme-opt {
+  flex: 1;
+  border: 1.5px solid #e0deda;
+  border-radius: 12px;
+  padding: 12px 8px;
+  cursor: pointer;
+  text-align: center;
+  background: white;
+}
+.theme-opt.on {
+  border-color: #5E4FD4;
+  background: #EEEDFE;
+}
+.theme-thumb {
+  width: 40px;
+  height: 28px;
+  border-radius: 6px;
+  margin: 0 auto 6px;
+}
+.theme-label { font-size: 12px; font-weight: 600; }
+
+/* Wallet */
+.wallet-balance {
+  text-align: center;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #EEEDFE, #E8E6FF);
+}
+.wallet-amount {
+  font-size: 36px;
+  font-weight: 800;
+  color: #5E4FD4;
+}
+.wallet-sub {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+}
+.wallet-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 0.5px solid #e0deda;
+}
+.wallet-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+}
+.wallet-btn.topup {
+  background: #5E4FD4;
+  color: white;
+  border: none;
+}
+.wallet-btn.withdraw {
+  background: white;
+  border: 1.5px solid #059669;
+  color: #059669;
+}
+.wallet-btn.withdraw:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.equivalence-box {
+  text-align: center;
+  padding: 16px 20px;
+  background: #f8f8f8;
+}
+.equivalence-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #5E4FD4;
+}
+.equivalence-sub {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+.rate-row {
+  background: #f8f8f8;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  font-size: 12px;
+  color: #666;
+  border-top: 0.5px solid #e0deda;
+}
+
+/* Sijil Grid */
+.sijil-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+}
+.sijil-card {
+  border: 1.5px solid #e0deda;
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+.sijil-card:hover {
+  transform: translateY(-3px);
+  border-color: #5E4FD4;
+}
+.sijil-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sijil-icon { font-size: 40px; margin-bottom: 8px; }
+.sijil-name {
+  font-family: 'Baloo 2', cursive;
+  font-size: 13px;
+  font-weight: 800;
+}
+.sijil-desc { font-size: 10px; color: #999; margin-top: 4px; }
+.sijil-status {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 8px;
+}
+.status-earned { background: #EAF3DE; color: #3B6D11; }
+.status-locked { background: #f0ede9; color: #999; }
+.claim-btn {
+  width: 100%;
+  padding: 8px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #5E4FD4;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.claim-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* History */
+.tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 0.5px solid #e0deda;
+}
+.tx-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tx-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.tx-icon.topup { background: #EEEDFE; color: #5E4FD4; }
+.tx-icon.withdraw { background: #EAF3DE; color: #059669; }
+.tx-icon.sijil { background: #FEF3CD; color: #D97706; }
+.tx-name { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+.tx-date { font-size: 10px; color: #999; }
+.tx-amount { font-size: 14px; font-weight: 800; }
+.tx-amount.positive { color: #059669; }
+.tx-amount.negative { color: #E84545; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  max-width: 380px;
+  width: 100%;
+  padding: 24px;
+}
+.modal-content h3 {
+  font-family: 'Fredoka One', cursive;
+  margin-bottom: 16px;
+}
+.modal-input {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e0deda;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.modal-btn {
+  width: 100%;
+  padding: 12px;
+  background: #5E4FD4;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.modal-close {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.modal-note {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  margin-top: 12px;
+}
+.info-box {
+  background: #f0f0f0;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 16px;
+}
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.info-row:last-child { margin-bottom: 0; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: #1A0A3B;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 1000;
+  transition: all 0.3s;
+  opacity: 0;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-layout { flex-direction: column; }
+  .settings-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e0deda; display: flex; overflow-x: auto; padding: 8px 12px; gap: 8px; }
+  .sidebar-item { padding: 8px 16px; border-left: none; border-radius: 30px; white-space: nowrap; }
+  .sidebar-item.active { background: #5E4FD4; color: white; }
+  .settings-content { padding: 20px; }
+  .sijil-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="logo" onclick="window.location.href='index.html'">
+    <img src="https://res.cloudinary.com/dotejpjfv/image/upload/v1775572491/ofygtko3ww5yaet6gtuf.png" alt="NexStoria Logo">
+  </div>
+  <a href="javascript:history.back()" class="back-btn">← Kembali</a>
+  <div class="nav-title">⚙️ Tetapan & Dompet</div>
+</nav>
+
+<div class="settings-layout">
+  <!-- Sidebar -->
+  <div class="settings-sidebar" id="settings-sidebar">
+    <div class="sidebar-item active" data-section="wallet">
+      <span class="sidebar-icon">💳</span><span>Dompet & Kewangan</span>
+    </div>
+    <div class="sidebar-item" data-section="sijil">
+      <span class="sidebar-icon">📜</span><span>Sijil Pencapaian</span>
+    </div>
+    <div class="sidebar-item" data-section="bahasa">
+      <span class="sidebar-icon">🌐</span><span>Bahasa</span>
+    </div>
+    <div class="sidebar-item" data-section="tema">
+      <span class="sidebar-icon">🎨</span><span>Tema</span>
+    </div>
+    <div class="sidebar-item" data-section="notifikasi">
+      <span class="sidebar-icon">🔔</span><span>Notifikasi</span>
+    </div>
+    <div class="sidebar-item" data-section="keselamatan">
+      <span class="sidebar-icon">🔒</span><span>Keselamatan</span>
+    </div>
+    <div class="sidebar-item" data-section="tentang">
+      <span class="sidebar-icon">📖</span><span>Tentang</span>
+    </div>
+    <div class="sidebar-item" data-section="akaun">
+      <span class="sidebar-icon">👤</span><span>Akaun</span>
+    </div>
+  </div>
+
+  <!-- Kandungan -->
+  <div class="settings-content" id="settings-content"></div>
+</div>
+
+<!-- Modal Topup -->
+<div id="topup-modal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeTopupModal()">✕</button>
+    <h3>💎 Topup NexCoins</h3>
+    <p style="font-size:12px;color:#666;margin-bottom:12px;">1 NexCoin = RM0.10</p>
+    <input type="number" id="topup-amount" class="modal-input" placeholder="Jumlah NexCoins" min="10" step="10">
+    <p style="font-size:11px;color:#999;margin-bottom:12px;">💰 Bayaran: RM <span id="topup-payment">0.00</span></p>
+    <button class="modal-btn" onclick="processTopup()">💳 Bayar Sekarang</button>
+    <div class="modal-note">* Transaksi selamat melalui FPX / e-Wallet</div>
+  </div>
+</div>
+
+<!-- Modal Withdraw -->
+<div id="withdraw-modal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeWithdrawModal()">✕</button>
+    <h3>💸 Pengeluaran Wang</h3>
+    <p style="font-size:12px;color:#666;margin-bottom:12px;">1 NexCoin = RM0.08 · Minimum RM5.00</p>
+    <input type="number" id="withdraw-amount" class="modal-input" placeholder="Jumlah (RM)" min="5" step="1">
+    <div class="info-box">
+      <div class="info-row"><span>🪙 NexCoins diperlukan:</span><strong id="withdraw-coins">0</strong></div>
+      <div class="info-row"><span>💰 Anda akan terima:</span><strong id="withdraw-receive">RM 0.00</strong></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;">No. Telefon (Touch 'n Go)</label>
+      <input type="tel" id="withdraw-phone" class="modal-input" placeholder="01X-XXXXXXX">
+    </div>
+    <button class="modal-btn" onclick="processWithdraw()">📤 Hantar Permohonan</button>
+    <div class="modal-note">* Pengeluaran diproses dalam 3-5 hari bekerja</div>
+  </div>
+</div>
+
+<!-- Modal Claim Sijil -->
+<div id="claim-modal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeClaimModal()">✕</button>
+    <h3 id="claim-title">📜 Tuntut Sijil Fizikal</h3>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:48px;margin-bottom:8px;" id="claim-icon">📜</div>
+      <div style="font-family:'Baloo 2',cursive;font-size:16px;font-weight:800;" id="claim-name">—</div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;">Nama Penerima</label>
+      <input type="text" id="claim-nama" class="modal-input" placeholder="Nama penuh untuk sijil">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;">Alamat Penghantaran</label>
+      <textarea id="claim-alamat" class="modal-input" rows="3" placeholder="Alamat lengkap"></textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;">No. Telefon</label>
+      <input type="tel" id="claim-phone" class="modal-input" placeholder="01X-XXXXXXX">
+    </div>
+    <div class="info-box">
+      <div class="info-row"><span>🏅 Sijil A4 Laminat</span><span>RM 15</span></div>
+      <div class="info-row"><span>📦 Penghantaran Pos Laju</span><span>RM 8</span></div>
+      <div class="info-row" style="margin-top:8px;padding-top:6px;border-top:1px solid #ddd;"><span><strong>Jumlah</strong></span><span><strong>RM 23</strong></span></div>
+    </div>
+    <button class="modal-btn" onclick="processClaimSijil()">📬 Hantar Permohonan</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const sb = supabase.createClient(NexStoriaConfig.supabase.url, NexStoriaConfig.supabase.anonKey);
+let currentUser = null;
+let userCoins = 1250; // akan diupdate dari DB
+let currentSection = 'wallet';
+
+// Kadar
+const TOPUP_RATE = 0.10;
+const WITHDRAW_RATE = 0.08;
+
+// Data sijil (contoh, nanti sync dengan profile)
+const SIJIL_LIST = [
+  { id: 'read_1', icon: '🌱', name: 'Pembaca Baru', desc: 'Baca cerita pertama', requirement: 'Baca 1 cerita', earned: true },
+  { id: 'read_10', icon: '📚', name: 'Pembaca Setia', desc: 'Baca 10 cerita', requirement: 'Baca 10 cerita', earned: false },
+  { id: 'write_1', icon: '✍️', name: 'Penulis Muda', desc: 'Terbit 1 cerita', requirement: 'Terbit 1 cerita', earned: false },
+  { id: 'streak_7', icon: '🔥', name: '7 Hari Berturut', desc: 'Baca 7 hari berturut', requirement: 'Streak 7 hari', earned: false },
+  { id: 'stars_10', icon: '⭐', name: 'Bintang 10', desc: 'Kumpul 10 bintang', requirement: '10 bintang', earned: true },
+  { id: 'legend', icon: '👑', name: 'Legenda', desc: 'Terbit 10 cerita', requirement: '10 cerita', earned: false }
+];
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function formatCurrency(amount) {
+  return 'RM ' + amount.toFixed(2);
+}
+
+// Helper untuk toggle
+function renderToggle(isOn, id, onChange) {
+  return `<button class="toggle ${isOn ? 'on' : 'off'}" id="${id}" onclick="toggleEl(this, '${onChange}')"></button>`;
+}
+window.toggleEl = function(el, callback) {
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+  if (callback && window[callback]) window[callback](el.classList.contains('on'));
+};
+
+// Modal functions
+function openTopupModal() { document.getElementById('topup-modal').classList.add('open'); }
+function closeTopupModal() { document.getElementById('topup-modal').classList.remove('open'); }
+function openWithdrawModal() { document.getElementById('withdraw-modal').classList.add('open'); }
+function closeWithdrawModal() { document.getElementById('withdraw-modal').classList.remove('open'); }
+function openClaimModal(icon, name) {
+  document.getElementById('claim-icon').textContent = icon;
+  document.getElementById('claim-name').textContent = name;
+  document.getElementById('claim-title').textContent = '📜 Tuntut: ' + name;
+  document.getElementById('claim-modal').classList.add('open');
+}
+function closeClaimModal() { document.getElementById('claim-modal').classList.remove('open'); }
+
+// Event untuk kiraan automatik modal
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'topup-amount') {
+    const val = parseFloat(e.target.value) || 0;
+    document.getElementById('topup-payment').textContent = (val * TOPUP_RATE).toFixed(2);
+  }
+  if (e.target.id === 'withdraw-amount') {
+    const val = parseFloat(e.target.value) || 0;
+    const coinsNeeded = Math.ceil(val / WITHDRAW_RATE);
+    document.getElementById('withdraw-coins').textContent = coinsNeeded;
+    document.getElementById('withdraw-receive').textContent = 'RM ' + val.toFixed(2);
+  }
+});
+
+async function processTopup() {
+  const amount = parseInt(document.getElementById('topup-amount')?.value);
+  if (!amount || amount < 10) { showToast('⚠️ Minimum topup 10 NexCoins'); return; }
+  const payment = amount * TOPUP_RATE;
+  showToast(`🚧 Fungsi topup akan datang. Bayaran: RM${payment.toFixed(2)}`);
+  closeTopupModal();
+}
+
+async function processWithdraw() {
+  const amountRM = parseFloat(document.getElementById('withdraw-amount')?.value);
+  const phone = document.getElementById('withdraw-phone')?.value;
+  if (!amountRM || amountRM < 5) { showToast('⚠️ Minimum pengeluaran RM5.00'); return; }
+  const requiredCoins = Math.ceil(amountRM / WITHDRAW_RATE);
+  if (requiredCoins > userCoins) {
+    showToast(`❌ Baki tidak mencukupi. Perlukan ${requiredCoins} NexCoins.`);
+    return;
+  }
+  if (!phone || phone.length < 9) { showToast('⚠️ Sila masukkan no. telefon yang sah'); return; }
+  showToast(`🚧 Permohonan pengeluaran RM${amountRM.toFixed(2)} akan diproses.`);
+  closeWithdrawModal();
+}
+
+async function processClaimSijil() {
+  const nama = document.getElementById('claim-nama')?.value;
+  const alamat = document.getElementById('claim-alamat')?.value;
+  const phone = document.getElementById('claim-phone')?.value;
+  if (!nama) { showToast('⚠️ Sila masukkan nama penerima'); return; }
+  if (!alamat) { showToast('⚠️ Sila masukkan alamat penghantaran'); return; }
+  if (!phone || phone.length < 9) { showToast('⚠️ Sila masukkan no. telefon yang sah'); return; }
+  showToast(`✅ Permohonan sijil dihantar. Kami akan hubungi anda dalam 3 hari bekerja.`);
+  closeClaimModal();
+}
+
+// Render functions
+function renderWallet() {
+  const totalValue = userCoins * WITHDRAW_RATE;
+  const minWithdrawRM = 5;
+  const requiredCoins = Math.ceil(minWithdrawRM / WITHDRAW_RATE);
+  const canWithdraw = userCoins >= requiredCoins;
+  return `
+    <div class="card">
+      <div class="wallet-balance">
+        <div class="wallet-amount">${userCoins.toLocaleString()} <span style="font-size:14px;">NexCoins</span></div>
+        <div class="wallet-sub">≈ ${formatCurrency(totalValue)}</div>
+      </div>
+      <div class="wallet-actions">
+        <button class="wallet-btn topup" onclick="openTopupModal()">➕ Topup NexCoins</button>
+        <button class="wallet-btn withdraw" onclick="openWithdrawModal()" ${!canWithdraw ? 'disabled' : ''}>💸 Pengeluaran</button>
+      </div>
+      <div class="equivalence-box">
+        <div class="equivalence-value">${formatCurrency(totalValue)}</div>
+        <div class="equivalence-sub">${userCoins.toLocaleString()} NexCoins = ${formatCurrency(totalValue)}</div>
+      </div>
+      <div class="rate-row">
+        <span>💰 Kadar pertukaran</span>
+        <span>1 NexCoin = RM0.08</span>
+      </div>
+      <div class="rate-row">
+        <span>📤 Minimum pengeluaran</span>
+        <span>RM5.00 (≈ ${requiredCoins} NexCoins)</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>📋 Sejarah Transaksi</h2><p>Rekod terkini aktiviti dompet anda</p></div>
+      <div class="tx-item"><div class="tx-left"><div class="tx-icon topup">➕</div><div><div class="tx-name">Topup NexCoins</div><div class="tx-date">15 Apr 2026</div></div></div><div class="tx-amount positive">+100 🪙</div></div>
+      <div class="tx-item"><div class="tx-left"><div class="tx-icon withdraw">💸</div><div><div class="tx-name">Pengeluaran ke TnG</div><div class="tx-date">10 Apr 2026</div></div></div><div class="tx-amount negative">-50 🪙</div></div>
+      <div class="tx-item"><div class="tx-left"><div class="tx-icon sijil">📜</div><div><div class="tx-name">Tebus Sijil Fizikal</div><div class="tx-date">5 Apr 2026</div></div></div><div class="tx-amount negative">-30 🪙</div></div>
+      <div class="card-row"><div class="link-btn" onclick="showToast('🚧 Lihat semua transaksi akan datang')">Lihat Semua →</div></div>
+    </div>
+  `;
+}
+
+function renderSijil() {
+  const earnedCount = SIJIL_LIST.filter(s => s.earned).length;
+  return `
+    <div class="card">
+      <div class="card-header"><h2>🏆 Sijil Pencapaian Anda</h2><p>${earnedCount}/${SIJIL_LIST.length} sijil diperoleh · Sijil layak boleh dituntut fizikal</p></div>
+      <div class="sijil-grid">
+        ${SIJIL_LIST.map(s => `
+          <div class="sijil-card ${s.earned ? '' : 'locked'}">
+            <div class="sijil-icon">${s.icon}</div>
+            <div class="sijil-name">${s.name}</div>
+            <div class="sijil-desc">${s.desc}</div>
+            <span class="sijil-status ${s.earned ? 'status-earned' : 'status-locked'}">${s.earned ? '✓ Layak' : '🔒 Belum diperoleh'}</span>
+            ${s.earned ? `<button class="claim-btn" onclick="openClaimModal('${s.icon}','${s.name}')">📬 Tuntut Sijil Fizikal</button>` : `<div class="claim-btn disabled">${s.requirement}</div>`}
+          </div>
+        `).join('')}
+      </div>
+      <div class="card-row"><div class="link-btn" onclick="showToast('🚧 Semua sijil akan datang')">Lihat Semua Sijil →</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>📬 Cara Tuntutan Sijil Fizikal</h2><p>Sijil berkualiti tinggi akan dihantar ke rumah anda</p></div>
+      <div class="card-row"><div><div class="row-label">🏅 Sijil A4 Laminat</div><div class="row-sub">Cetakan premium glossy</div></div><span>RM 15</span></div>
+      <div class="card-row"><div><div class="row-label">📦 Penghantaran Pos Laju</div><div class="row-sub">Seluruh Malaysia</div></div><span>RM 8</span></div>
+      <div class="card-row"><div class="link-btn" onclick="showToast('🚧 Sijil akan datang')">📜 Contoh Sijil Digital →</div></div>
+    </div>
+  `;
+}
+
+function renderBahasa() {
+  const savedLang = localStorage.getItem('nexstoria_lang') || 'ms';
+  return `
+    <div class="card">
+      <div class="card-header"><h2>🌐 Bahasa Paparan</h2><p>Pilih bahasa untuk aplikasi NexStoria</p></div>
+      <div class="lang-opt" onclick="selectLang('ms')"><div class="radio ${savedLang === 'ms' ? 'on' : ''}"></div><span>🇲🇾</span><span style="flex:1">Bahasa Melayu</span>${savedLang === 'ms' ? '<span class="badge badge-purple">Aktif</span>' : ''}</div>
+      <div class="lang-opt" onclick="selectLang('en')"><div class="radio ${savedLang === 'en' ? 'on' : ''}"></div><span>🇬🇧</span><span style="flex:1">English</span>${savedLang === 'en' ? '<span class="badge badge-purple">Active</span>' : ''}</div>
+      <div class="lang-opt" onclick="selectLang('zh')"><div class="radio ${savedLang === 'zh' ? 'on' : ''}"></div><span>🇨🇳</span><span style="flex:1">中文</span>${savedLang === 'zh' ? '<span class="badge badge-purple">Active</span>' : ''}</div>
+    </div>
+  `;
+}
+
+function renderTema() {
+  const savedTheme = localStorage.getItem('nexstoria_theme') || 'day';
+  return `
+    <div class="card">
+      <div class="card-header"><h2>🎨 Tema Paparan</h2><p>Pilih gaya yang selesa untuk mata anda</p></div>
+      <div class="theme-grid">
+        <div class="theme-opt ${savedTheme === 'day' ? 'on' : ''}" onclick="setTheme('day')"><div class="theme-thumb" style="background:#f8f7f5; border:1px solid #ddd;"></div><div class="theme-label">☀️ Siang</div></div>
+        <div class="theme-opt ${savedTheme === 'night' ? 'on' : ''}" onclick="setTheme('night')"><div class="theme-thumb" style="background:#2C2C2A;"></div><div class="theme-label">🌙 Malam</div></div>
+        <div class="theme-opt ${savedTheme === 'auto' ? 'on' : ''}" onclick="setTheme('auto')"><div class="theme-thumb" style="background:linear-gradient(135deg,#f8f7f5 50%,#2C2C2A 50%);"></div><div class="theme-label">🔄 Auto</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderNotifikasi() {
+  const notifPush = localStorage.getItem('nexstoria_notif_push') !== 'false';
+  const notifEmail = localStorage.getItem('nexstoria_notif_email') === 'true';
+  return `
+    <div class="card">
+      <div class="card-header"><h2>🔔 Notifikasi</h2><p>Urus pemberitahuan yang anda terima</p></div>
+      <div class="card-row"><div><div class="row-label">Notifikasi Push</div><div class="row-sub">Menerima notifikasi di pelayar</div></div>${renderToggle(notifPush, 'notif-push', 'onNotifPushChange')}</div>
+      <div class="card-row"><div><div class="row-label">E-mel Mingguan</div><div class="row-sub">Ringkasan aktiviti setiap minggu</div></div>${renderToggle(notifEmail, 'notif-email', 'onNotifEmailChange')}</div>
+    </div>
+  `;
+}
+
+function renderKeselamatan() {
+  return `
+    <div class="card">
+      <div class="card-header"><h2>🔒 Keselamatan</h2><p>Lindungi akaun anda</p></div>
+      <div class="card-row"><div><div class="row-label">PIN Akses</div><div class="row-sub">Kunci aplikasi dengan PIN 6 digit</div></div>${renderToggle(false, 'pin-access', null)}</div>
+      <div class="card-row"><div><div class="row-label">Pengesahan 2 Langkah (2FA)</div><div class="row-sub">Keselamatan tambahan</div></div>${renderToggle(false, 'two-fa', null)}</div>
+    </div>
+  `;
+}
+
+function renderTentang() {
+  return `
+    <div class="card">
+      <div class="card-header"><h2>📖 Tentang NexStoria</h2><p>Versi ${NexStoriaConfig.app.version}</p></div>
+      <div class="card-row"><div class="link-btn" onclick="showToast('🚧 Halaman akan datang')">Terma Perkhidmatan</div></div>
+      <div class="card-row"><div class="link-btn" onclick="showToast('🚧 Halaman akan datang')">Dasar Privasi</div></div>
+      <div class="card-row"><div class="link-btn" onclick="showToast('support@nexstoria.my')">📧 Hubungi Kami</div></div>
+    </div>
+  `;
+}
+
+function renderAkaun() {
+  return `
+    <div class="card">
+      <div class="card-header"><h2>👤 Akaun</h2><p>Urus akaun anda</p></div>
+      <div class="card-row"><button class="danger-btn" style="background:none;border:none;color:#E84545;font-size:14px;font-weight:700;cursor:pointer;" onclick="handleLogout()">🚪 Log Keluar</button></div>
+      <div class="card-row"><button class="danger-btn" style="background:none;border:none;color:#E84545;font-size:14px;font-weight:700;cursor:pointer;" onclick="confirmDeleteAccount()">🗑️ Padam Akaun</button></div>
+    </div>
+  `;
+}
+
+function renderContent() {
+  const contentDiv = document.getElementById('settings-content');
+  switch(currentSection) {
+    case 'wallet': contentDiv.innerHTML = renderWallet(); break;
+    case 'sijil': contentDiv.innerHTML = renderSijil(); break;
+    case 'bahasa': contentDiv.innerHTML = renderBahasa(); break;
+    case 'tema': contentDiv.innerHTML = renderTema(); break;
+    case 'notifikasi': contentDiv.innerHTML = renderNotifikasi(); break;
+    case 'keselamatan': contentDiv.innerHTML = renderKeselamatan(); break;
+    case 'tentang': contentDiv.innerHTML = renderTentang(); break;
+    case 'akaun': contentDiv.innerHTML = renderAkaun(); break;
+    default: contentDiv.innerHTML = renderWallet();
+  }
+}
+
+function setActiveSection(section) {
+  currentSection = section;
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.section === section);
+  });
+  renderContent();
+}
+
+// Global functions untuk settings
+window.selectLang = function(lang) {
+  localStorage.setItem('nexstoria_lang', lang);
+  showToast(`✅ Bahasa ditukar ke ${lang === 'ms' ? 'Bahasa Melayu' : lang === 'en' ? 'English' : '中文'}`);
+  if (currentSection === 'bahasa') renderContent();
+};
+window.setTheme = function(theme) {
+  localStorage.setItem('nexstoria_theme', theme);
+  if (theme === 'night') document.body.style.background = '#1a1a2e';
+  else if (theme === 'day') document.body.style.background = '#f5f4f2';
+  else if (theme === 'auto') {
+    const hour = new Date().getHours();
+    document.body.style.background = (hour >= 19 || hour < 7) ? '#1a1a2e' : '#f5f4f2';
+  }
+  if (currentSection === 'tema') renderContent();
+};
+window.onNotifPushChange = function(isOn) {
+  localStorage.setItem('nexstoria_notif_push', isOn);
+  showToast(isOn ? '🔔 Notifikasi push dihidupkan' : '🔕 Notifikasi push dimatikan');
+};
+window.onNotifEmailChange = function(isOn) {
+  localStorage.setItem('nexstoria_notif_email', isOn);
+  showToast(isOn ? '📧 E-mel mingguan dihidupkan' : '📧 E-mel mingguan dimatikan');
+};
+window.handleLogout = async function() {
+  await sb.auth.signOut();
+  showToast('🔓 Log keluar berjaya');
+  setTimeout(() => { window.location.href = 'nexstoria-login.html'; }, 1500);
+};
+window.confirmDeleteAccount = function() {
+  if (confirm('⚠️ Tindakan ini TIDAK BOLEH DIBATALKAN. Semua data anda akan dipadam. Teruskan?')) {
+    showToast('🚧 Fungsi akan datang. Sila hubungi support.');
+  }
+};
+
+// Event listeners
+document.querySelectorAll('.sidebar-item').forEach(item => {
+  item.addEventListener('click', () => setActiveSection(item.dataset.section));
+});
+
+// Load user data
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    const { data: profile } = await sb.from('profiles')
+      .select('coins, full_name')
+      .eq('id', currentUser.id)
+      .single();
+    if (profile && profile.coins !== undefined) userCoins = profile.coins;
+    if (profile?.full_name) document.getElementById('claim-nama').value = profile.full_name;
+  }
+  renderContent();
+}
+
+// Apply saved theme
+function applySavedTheme() {
+  const theme = localStorage.getItem('nexstoria_theme') || 'day';
+  if (theme === 'night') document.body.style.background = '#1a1a2e';
+  else if (theme === 'day') document.body.style.background = '#f5f4f2';
+  else if (theme === 'auto') {
+    const hour = new Date().getHours();
+    document.body.style.background = (hour >= 19 || hour < 7) ? '#1a1a2e' : '#f5f4f2';
+  }
+}
+
+applySavedTheme();
+initAuth();
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
