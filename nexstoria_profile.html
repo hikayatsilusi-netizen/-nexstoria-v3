@@ -665,6 +665,54 @@
         text-align: right;
         margin-top: 4px;
     }
+        .folder-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.folder {
+    background: var(--sand2);
+    border-radius: 12px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    position: relative;
+}
+.folder:hover {
+    background: var(--sand3);
+    transform: translateY(-2px);
+}
+.folder-icon {
+    font-size: 32px;
+    margin-bottom: 4px;
+}
+.folder-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    word-break: break-word;
+}
+.folder-badge {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    background: var(--teal);
+    color: white;
+    font-size: 9px;
+    border-radius: 20px;
+    padding: 0px 6px;
+}
+.folder-edit-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    background: none;
+    border: none;
+    font-size: 10px;
+    cursor: pointer;
+    color: var(--text3);
+}
 
     /* ── AKTIVITI ── */
     .activity-list {
@@ -1783,38 +1831,21 @@ Tiada rakan lagi.
 <div>
 <div class="section-title">
 Koleksi Saya
+<div class="section">
+    <div class="grid2">
+        <div>
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📚 Koleksi Saya</span>
+                <button id="add-folder-btn" class="btn" style="font-size: 11px; padding: 4px 12px;">+ Folder Baru</button>
+            </div>
+            <div class="folder-grid" id="folder-grid">
+                <!-- Folder akan dijana oleh JavaScript -->
+            </div>
+            <div class="view-all" id="lihat-semua-koleksi">Lihat Semua ›</div>
+        </div>
+        <!-- ... rest ... -->
+    </div>
 </div>
-<div class="folder-grid">
-<div class="folder" onclick="window.location.href='nexstoria_buku_saya.html'">
-<div class="folder-icon">
-📁
-</div>
-<div class="folder-name">
-Senarai Baca 1
-</div>
-</div>
-<div class="folder" onclick="window.location.href='nexstoria_buku_saya.html'">
-<div class="folder-icon">
-📁
-</div>
-<div class="folder-name">
-Senarai Baca 2
-</div>
-</div>
-<div class="folder" onclick="window.location.href='nexstoria_buku_saya.html'">
-<div class="folder-icon">
-📁
-</div>
-<div class="folder-name">
-Senarai Baca 3
-</div>
-</div>
-</div>
-<div class="view-all" onclick="window.location.href='nexstoria_buku_saya.html'">
-Lihat Semua ›
-</div>
-</div>
-<div>
 <div class="section-title">
 Aktiviti Terkini
 </div>
@@ -2738,7 +2769,7 @@ ${stLabel[s.status] || s.status}
 /* ─────────────────────────────────────────
        FOLLOWING
     ───────────────────────────────────────── */
-async function loadFollowing() {
+async function loadFollowing()loadFolders(); {
 const {
 data: follows
 } = await sb.from('follows')
@@ -3275,6 +3306,208 @@ const img = document.createElement('img'); img.src = newUrl;
 img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
 inner.appendChild(img);
 }
-</script>
+    // ======================= KOLEKSI / FOLDER SYSTEM =======================
+let userFolders = [];     // [{ id, name, stories: [storyId] }]
+let currentFolderId = null;
+let folderEditMode = null; // 'add' or 'edit'
+
+// Load folders from localStorage
+function loadFolders() {
+    const saved = localStorage.getItem('nexstoria_folders_' + currentUser.id);
+    if (saved) {
+        userFolders = JSON.parse(saved);
+    } else {
+        // Default folders
+        userFolders = [
+            { id: 'fav', name: '❤️ Favorit', stories: [] },
+            { id: 'dongeng', name: '🏰 Dongeng', stories: [] },
+            { id: 'misteri', name: '🕵️ Misteri', stories: [] }
+        ];
+        saveFolders();
+    }
+    renderFolders();
+}
+
+function saveFolders() {
+    localStorage.setItem('nexstoria_folders_' + currentUser.id, JSON.stringify(userFolders));
+}
+
+function renderFolders() {
+    const grid = document.getElementById('folder-grid');
+    if (!grid) return;
+    if (userFolders.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text3);">Tiada folder. Tekan + Folder Baru</div>';
+        return;
+    }
+    grid.innerHTML = userFolders.map(folder => `
+        <div class="folder" onclick="openFolderDetail('${folder.id}')">
+            <div class="folder-icon">📁</div>
+            <div class="folder-name">${folder.name}</div>
+            <div class="folder-badge">${folder.stories.length}</div>
+            <button class="folder-edit-btn" onclick="event.stopPropagation(); editFolderName('${folder.id}')">✏️</button>
+        </div>
+    `).join('');
+}
+
+// Open modal to add new folder
+function openAddFolderModal() {
+    folderEditMode = 'add';
+    document.getElementById('folder-modal-title').innerText = '📁 Folder Baru';
+    document.getElementById('folder-name-input').value = '';
+    document.getElementById('folder-story-selector').style.display = 'none';
+    document.getElementById('folder-msg').innerText = '';
+    openPopup('folder-modal');
+}
+
+// Edit folder name directly (simple prompt)
+function editFolderName(folderId) {
+    const folder = userFolders.find(f => f.id === folderId);
+    if (!folder) return;
+    const newName = prompt('Edit nama folder:', folder.name);
+    if (newName && newName.trim()) {
+        folder.name = newName.trim();
+        saveFolders();
+        renderFolders();
+        if (currentFolderId === folderId) {
+            document.getElementById('fd-title').innerText = `📁 ${folder.name}`;
+        }
+        showToast('✅ Nama folder dikemas kini');
+    }
+}
+
+// Open folder detail modal (show stories inside)
+async function openFolderDetail(folderId) {
+    const folder = userFolders.find(f => f.id === folderId);
+    if (!folder) return;
+    currentFolderId = folderId;
+    document.getElementById('fd-title').innerHTML = `📁 ${folder.name}`;
+    
+    // Load story details
+    const storyListDiv = document.getElementById('fd-story-list');
+    if (folder.stories.length === 0) {
+        storyListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text3);">Belum ada cerita dalam folder ini.<br>Tekan "Tambah Cerita"</div>';
+    } else {
+        const { data: stories } = await sb.from('stories')
+            .select('id, title, cover_emoji, category')
+            .in('id', folder.stories);
+        const storyMap = {};
+        (stories || []).forEach(s => storyMap[s.id] = s);
+        storyListDiv.innerHTML = folder.stories.map(storyId => {
+            const s = storyMap[storyId];
+            if (!s) return `<div class="library-item" style="cursor:default;">❓ Cerita tidak ditemui</div>`;
+            return `
+                <div class="library-item" onclick="window.location.href='nexstoria-reader.html?id=${s.id}'">
+                    <div class="library-thumb" style="background:${covBg(s.category)}">${s.cover_emoji || '📖'}</div>
+                    <div class="library-info">
+                        <div class="library-series">${s.title}</div>
+                        <div class="library-chapter">${s.category || ''}</div>
+                    </div>
+                    <button class="btn-del" style="padding:2px 8px;" onclick="event.stopPropagation(); removeStoryFromFolder('${folderId}','${storyId}')">✕</button>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Setup buttons
+    document.getElementById('fd-add-story-btn').onclick = () => openAddStoryToFolder(folderId);
+    document.getElementById('fd-rename-btn').onclick = () => editFolderName(folderId);
+    document.getElementById('fd-delete-btn').onclick = () => deleteFolder(folderId);
+    
+    openPopup('folder-detail-modal');
+}
+
+function closeFolderDetailModal() {
+    closePopup('folder-detail-modal');
+    currentFolderId = null;
+}
+
+async function openAddStoryToFolder(folderId) {
+    // Load user's library or all published stories
+    const { data: stories } = await sb.from('stories')
+        .select('id, title, cover_emoji, category')
+        .eq('status', 'published')
+        .limit(50);
+    if (!stories || stories.length === 0) {
+        showToast('Tiada cerita tersedia');
+        return;
+    }
+    const selectHtml = stories.map(s => `<option value="${s.id}">${s.title} (${s.category || 'Umum'})</option>`).join('');
+    document.getElementById('folder-story-select').innerHTML = selectHtml;
+    document.getElementById('folder-story-selector').style.display = 'block';
+    document.getElementById('folder-modal-title').innerText = '➕ Tambah Cerita ke Folder';
+    document.getElementById('folder-name-input').value = '';
+    document.getElementById('folder-name-input').style.display = 'none';
+    document.querySelector('#folder-modal .form-label[for="folder-name-input"]').style.display = 'none';
+    document.getElementById('folder-save-btn').innerText = '➕ Tambah';
+    folderEditMode = 'addStory';
+    window._tempFolderId = folderId;
+    openPopup('folder-modal');
+}
+
+function removeStoryFromFolder(folderId, storyId) {
+    const folder = userFolders.find(f => f.id === folderId);
+    if (folder) {
+        folder.stories = folder.stories.filter(id => id !== storyId);
+        saveFolders();
+        renderFolders();
+        openFolderDetail(folderId); // refresh modal
+        showToast('🗑️ Cerita dikeluarkan dari folder');
+    }
+}
+
+function deleteFolder(folderId) {
+    if (confirm('Padam folder ini? Cerita di dalamnya tidak akan terhapus, hanya folder akan dibuang.')) {
+        userFolders = userFolders.filter(f => f.id !== folderId);
+        saveFolders();
+        renderFolders();
+        closeFolderDetailModal();
+        showToast('✅ Folder dipadam');
+    }
+}
+
+// Save folder (add new / edit / add story)
+async function saveFolderFromModal() {
+    const nameInput = document.getElementById('folder-name-input');
+    const name = nameInput.value.trim();
+    if (folderEditMode === 'add') {
+        if (!name) { document.getElementById('folder-msg').innerText = '⚠️ Nama folder diperlukan'; return; }
+        const newId = 'folder_' + Date.now();
+        userFolders.push({ id: newId, name: name, stories: [] });
+        saveFolders();
+        renderFolders();
+        closeFolderModal();
+        showToast('✅ Folder "' + name + '" ditambah');
+    } else if (folderEditMode === 'addStory') {
+        const storyId = document.getElementById('folder-story-select').value;
+        if (!storyId) return;
+        const folder = userFolders.find(f => f.id === window._tempFolderId);
+        if (folder && !folder.stories.includes(storyId)) {
+            folder.stories.push(storyId);
+            saveFolders();
+            renderFolders();
+            closeFolderModal();
+            openFolderDetail(window._tempFolderId);
+            showToast('📖 Cerita ditambah ke folder');
+        } else if (folder && folder.stories.includes(storyId)) {
+            document.getElementById('folder-msg').innerText = '⚠️ Cerita sudah ada dalam folder ini';
+            return;
+        }
+    }
+    closeFolderModal();
+}
+
+function closeFolderModal() {
+    closePopup('folder-modal');
+    document.getElementById('folder-name-input').style.display = 'block';
+    document.querySelector('#folder-modal .form-label[for="folder-name-input"]').style.display = 'block';
+    document.getElementById('folder-story-selector').style.display = 'none';
+    document.getElementById('folder-name-input').value = '';
+    folderEditMode = null;
+}
+
+// Event binding for add folder button
+document.getElementById('add-folder-btn')?.addEventListener('click', openAddFolderModal);
+document.getElementById('folder-save-btn')?.addEventListener('click', saveFolderFromModal);
+</script>    
 </body>
 </html>
