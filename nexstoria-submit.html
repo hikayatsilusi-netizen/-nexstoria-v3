@@ -2625,6 +2625,599 @@ const observer = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.4 });
 sections.forEach(id => { const el = document.getElementById(id); if(el) observer.observe(el); });
+<!DOCTYPE html>
+<!--
+  PANDUAN GUNA:
+  Gantikan SEMUA blok <script> yang mengandungi fungsi PDF dalam nexstoria-submit.html
+  dengan skrip di bawah ini. Tampal betul-betul SEBELUM tag </body>.
+
+  Fungsi yang diperbaiki:
+  1. setContentMode()   — tukar panel ↔ PDF
+  2. setPdfTab()        — tukar tab Upload ↔ Link
+  3. handlePdfDrop()    — drag & drop PDF
+  4. handlePdfUpload()  — file input PDF
+  5. processPdfFile()   — proses & render PDF
+  6. renderPdfPage()    — render satu halaman ke canvas
+  7. pdfViewerPage()    — navigasi halaman prev/next
+  8. handleLinkInput()  — proses Google Drive / Dropbox / URL terus
+  9. clearPdf()         — buang PDF yang dimuatkan
+  10. clearPdfLink()    — buang link PDF
+  11. autoCoverFromPdf()— auto set cover dari halaman pertama PDF
+-->
+
+<script>
+/* ════════════════════════════════════════════════════════
+   NEXSTORIA SUBMIT — PDF FIX (Ganti bahagian PDF lama)
+   Letakkan blok ini betul-betul sebelum </body>
+════════════════════════════════════════════════════════ */
+
+// ── Pastikan PDF.js worker siap ──
+(function initPdfWorker() {
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  } else {
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+    });
+  }
+})();
+
+// ── State PDF ──
+var contentMode     = 'panel';
+var pdfStorageUrl   = null;
+var pdfExternalLink = null;
+var pdfTab          = 'upload';
+var pdfDoc          = null;
+var pdfCurrentPage  = 1;
+var pdfCoverDataUrl = null;
+
+/* ═══════════════════════════
+   1. TUKAR MOD KANDUNGAN
+═══════════════════════════ */
+function setContentMode(mode) {
+  contentMode = mode;
+
+  var btnPanel = document.getElementById('mode-btn-panel');
+  var btnPdf   = document.getElementById('mode-btn-pdf');
+  var panelDiv = document.getElementById('mode-panel-content');
+  var pdfDiv   = document.getElementById('mode-pdf-content');
+
+  if (btnPanel) btnPanel.classList.toggle('active', mode === 'panel');
+  if (btnPdf)   btnPdf.classList.toggle('active',   mode === 'pdf');
+  if (panelDiv) panelDiv.style.display = mode === 'panel' ? '' : 'none';
+  if (pdfDiv)   pdfDiv.style.display   = mode === 'pdf'   ? '' : 'none';
+
+  if (typeof updateProgress === 'function') updateProgress();
+}
+
+/* ═══════════════════════════
+   2. TUKAR TAB UPLOAD / LINK
+═══════════════════════════ */
+function setPdfTab(tab) {
+  pdfTab = tab;
+
+  var tabUpload = document.getElementById('pdftab-upload');
+  var tabLink   = document.getElementById('pdftab-link');
+  var secUpload = document.getElementById('pdfsec-upload');
+  var secLink   = document.getElementById('pdfsec-link');
+
+  if (tabUpload) tabUpload.classList.toggle('active', tab === 'upload');
+  if (tabLink)   tabLink.classList.toggle('active',   tab === 'link');
+  if (secUpload) secUpload.style.display = tab === 'upload' ? '' : 'none';
+  if (secLink)   secLink.style.display   = tab === 'link'   ? '' : 'none';
+}
+
+/* ═══════════════════════════════════
+   3. DROP & FILE INPUT HANDLER
+═══════════════════════════════════ */
+function handlePdfDrop(e) {
+  e.preventDefault();
+  var area = document.getElementById('pdf-drop-area');
+  if (area) area.classList.remove('drag');
+  var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) processPdfFile(file);
+}
+
+function handlePdfUpload(e) {
+  var file = e.target && e.target.files && e.target.files[0];
+  if (file) processPdfFile(file);
+}
+
+/* ═══════════════════════════════════════════════
+   4. PROSES PDF UTAMA — upload + render canvas
+═══════════════════════════════════════════════ */
+async function processPdfFile(file) {
+  var fb    = document.getElementById('pdf-upload-feedback');
+  var prevW = document.getElementById('pdf-preview-wrap');
+
+  // Reset
+  pdfDoc          = null;
+  pdfStorageUrl   = null;
+  pdfCoverDataUrl = null;
+  pdfCurrentPage  = 1;
+  if (fb)    fb.innerHTML      = '';
+  if (prevW) prevW.style.display = 'none';
+
+  // Semak jenis fail
+  if (!file || file.type !== 'application/pdf') {
+    setFeedback(fb, '❌ Fail mesti dalam format PDF sahaja (.pdf)', 'error');
+    return;
+  }
+
+  // Semak saiz (20MB)
+  var MAX_BYTES = 20 * 1024 * 1024;
+  if (file.size > MAX_BYTES) {
+    setFeedback(fb, '❌ Fail terlalu besar (' + formatBytes(file.size) + '). Had maksimum: 20MB', 'error');
+    return;
+  }
+
+  // Kemaskini UI — loading state
+  setDropAreaUI('loading', 'Memproses ' + file.name + '…', formatBytes(file.size));
+
+  try {
+    // Semak PDF.js ada
+    if (typeof pdfjsLib === 'undefined') {
+      throw new Error('PDF.js tidak dimuatkan. Sila muat semula halaman.');
+    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Baca fail sebagai ArrayBuffer
+    var arrayBuffer = await new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload  = function(e) { resolve(e.target.result); };
+      reader.onerror = function()  { reject(new Error('Gagal membaca fail')); };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Muatkan PDF
+    setFeedback(fb, '⏳ Membaca PDF…', 'info');
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    pdfCurrentPage = 1;
+
+    // Tunjuk preview wrap SEBELUM render canvas
+    if (prevW) prevW.style.display = 'block';
+    var nameEl = document.getElementById('pdf-preview-name');
+    var pageEl = document.getElementById('pdf-page-info');
+    if (nameEl) nameEl.textContent = '📄 ' + file.name;
+    if (pageEl) pageEl.textContent = '1 / ' + pdfDoc.numPages;
+
+    // Render halaman pertama ke canvas
+    await renderPdfPage(1);
+
+    // Extract cover dari canvas
+    var canvas = document.getElementById('pdf-canvas');
+    if (canvas && canvas.width > 0) {
+      var supWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+      var fmt     = supWebP ? 'image/webp' : 'image/jpeg';
+      pdfCoverDataUrl = canvas.toDataURL(fmt, 0.82);
+      canvas.toBlob(function(blob) {
+        if (blob) autoCoverFromPdf(pdfCoverDataUrl, blob);
+      }, fmt, 0.82);
+    }
+
+    // Kemaskini UI — berjaya
+    setDropAreaUI('done', file.name, formatBytes(file.size) + ' · ' + pdfDoc.numPages + ' muka surat');
+    var hintEl = document.getElementById('pdf-cover-hint');
+    if (hintEl) hintEl.style.display = 'flex';
+
+    // Muat naik ke Cloudinary
+    setFeedback(fb, '⬆️ Memuat naik ke pelayan…', 'info');
+
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      var uploadedUrl = await uploadPdfToCloudinary(file);
+      if (uploadedUrl) {
+        pdfStorageUrl = uploadedUrl;
+        setFeedback(fb, '✅ PDF berjaya dimuat naik ke pelayan!', 'ok');
+      } else {
+        pdfStorageUrl = '__local__:' + file.name;
+        setFeedback(fb, '⚠️ Gagal naik ke pelayan. Draf disimpan tempatan.', 'warn');
+      }
+    } else {
+      pdfStorageUrl = '__local__:' + file.name;
+      setFeedback(fb, '⚠️ Log masuk untuk simpan PDF ke pelayan.', 'warn');
+    }
+
+    if (typeof updateProgress === 'function') updateProgress();
+
+    // Scroll ke preview
+    if (prevW) prevW.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch (err) {
+    console.error('[NexStoria] processPdfFile error:', err);
+    setDropAreaUI('idle');
+    if (prevW) prevW.style.display = 'none';
+    setFeedback(fb, '❌ ' + (err.message || 'Gagal memproses PDF. Cuba lagi.'), 'error');
+  }
+}
+
+/* ═══════════════════════════
+   5. RENDER SATU HALAMAN PDF
+═══════════════════════════ */
+async function renderPdfPage(pageNum) {
+  if (!pdfDoc) return;
+
+  var canvas = document.getElementById('pdf-canvas');
+  if (!canvas) { console.warn('[NexStoria] pdf-canvas tidak dijumpai'); return; }
+
+  try {
+    var page           = await pdfDoc.getPage(pageNum);
+    var containerWidth = Math.min(
+      (canvas.parentElement ? canvas.parentElement.clientWidth : 600) - 24,
+      640
+    );
+    var viewport       = page.getViewport({ scale: 1 });
+    var scale          = Math.min((containerWidth * 2) / viewport.width, 3);
+    var scaledViewport = page.getViewport({ scale: scale });
+
+    canvas.width  = scaledViewport.width;
+    canvas.height = scaledViewport.height;
+    canvas.style.cssText = 'display:block;width:100%;height:auto;max-width:100%;border-radius:6px;';
+
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+
+    var pageInfo = document.getElementById('pdf-page-info');
+    if (pageInfo) pageInfo.textContent = pageNum + ' / ' + pdfDoc.numPages;
+
+  } catch (err) {
+    console.error('[NexStoria] renderPdfPage error:', err);
+  }
+}
+
+/* ═══════════════════════════════════
+   6. NAVIGASI HALAMAN (prev / next)
+═══════════════════════════════════ */
+async function pdfViewerPage(delta) {
+  if (!pdfDoc) return;
+  var newPage = pdfCurrentPage + delta;
+  if (newPage < 1 || newPage > pdfDoc.numPages) return;
+  pdfCurrentPage = newPage;
+  await renderPdfPage(pdfCurrentPage);
+}
+
+/* ═══════════════════════════════════
+   7. AUTO COVER DARI HALAMAN PERTAMA
+═══════════════════════════════════ */
+function autoCoverFromPdf(dataUrl, blob) {
+  var prev    = document.getElementById('cover-preview');
+  var display = document.getElementById('cover-emoji-display');
+  var ctrlPnl = document.getElementById('cover-controls-panel');
+  var rmBtn   = document.getElementById('cover-remove-btn');
+
+  if (!prev) return;
+
+  prev.classList.add('has-image');
+  prev.style.background = '';
+
+  var img = prev.querySelector('img');
+  if (!img) {
+    img = document.createElement('img');
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit;';
+    prev.prepend(img);
+  }
+  img.src = dataUrl;
+
+  // Update state global
+  if (typeof coverImageDataUrl !== 'undefined') coverImageDataUrl = dataUrl;
+
+  if (display) display.style.display = 'none';
+  if (ctrlPnl) ctrlPnl.style.display = 'none';
+  if (rmBtn)   rmBtn.style.display   = 'block';
+
+  // Upload cover ke Cloudinary
+  if (typeof currentUser !== 'undefined' && currentUser && blob) {
+    var coverFile = new File([blob], 'cover.webp', { type: blob.type || 'image/webp' });
+    if (typeof uploadImageToCloudinary === 'function') {
+      uploadImageToCloudinary(coverFile, 'story-covers', 'cover-feedback')
+        .then(function(url) {
+          if (url && typeof coverStorageUrl !== 'undefined') coverStorageUrl = url;
+        });
+    }
+  }
+}
+
+/* ═══════════════════════════
+   8. CLEAR PDF
+═══════════════════════════ */
+function clearPdf() {
+  pdfDoc          = null;
+  pdfStorageUrl   = null;
+  pdfCoverDataUrl = null;
+  pdfCurrentPage  = 1;
+
+  setDropAreaUI('idle');
+
+  var prevW = document.getElementById('pdf-preview-wrap');
+  if (prevW) prevW.style.display = 'none';
+
+  var canvas = document.getElementById('pdf-canvas');
+  if (canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  var fileInput = document.getElementById('pdf-file-input');
+  if (fileInput) fileInput.value = '';
+
+  var fb = document.getElementById('pdf-upload-feedback');
+  if (fb) fb.innerHTML = '';
+
+  var hintEl = document.getElementById('pdf-cover-hint');
+  if (hintEl) hintEl.style.display = 'none';
+
+  if (typeof updateProgress === 'function') updateProgress();
+}
+
+/* ════════════════════════════════════════════════════
+   9. LINK HANDLER — Google Drive / Dropbox / URL terus
+════════════════════════════════════════════════════ */
+function handleLinkInput(val) {
+  val = (val || '').trim();
+
+  var fb         = document.getElementById('pdf-link-feedback');
+  var embedWrap  = document.getElementById('pdf-link-preview-wrap');
+  var directWrap = document.getElementById('pdf-direct-preview-wrap');
+
+  // Reset
+  if (embedWrap)  embedWrap.style.display  = 'none';
+  if (directWrap) directWrap.style.display = 'none';
+  if (fb) { fb.innerHTML = ''; fb.style.color = ''; }
+  pdfExternalLink = null;
+
+  if (!val) return;
+
+  // ── Kesan jenis link ──
+  var isGdrive  = /drive\.google\.com/.test(val);
+  var isDropbox = /dropbox\.com/.test(val);
+  var isHttp    = /^https?:\/\//.test(val);
+
+  if (!isHttp) {
+    if (fb) {
+      fb.textContent = '⚠️ URL mesti bermula dengan https://';
+      fb.style.color = 'var(--coral)';
+    }
+    return;
+  }
+
+  pdfExternalLink = val;
+  if (typeof updateProgress === 'function') updateProgress();
+
+  /* ── Google Drive ── */
+  if (isGdrive) {
+    var fileId = null;
+    var patterns = [
+      /drive\.google\.com\/file\/d\/([^\/\?&]+)/,
+      /\/open\?id=([^&]+)/,
+      /[?&]id=([^&]+)/,
+    ];
+    for (var i = 0; i < patterns.length; i++) {
+      var m = val.match(patterns[i]);
+      if (m && m[1]) { fileId = m[1]; break; }
+    }
+
+    if (!fileId) {
+      if (fb) {
+        fb.textContent = '⚠️ ID fail tidak dijumpai. Pastikan link "Share → Anyone with link" yang betul.';
+        fb.style.color = 'var(--coral)';
+      }
+      pdfExternalLink = null;
+      return;
+    }
+
+    var embedUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
+    if (fb) { fb.textContent = '✅ Google Drive dikesan — pratonton dimuatkan di bawah.'; fb.style.color = 'var(--mint2)'; }
+
+    var iframeEl = document.getElementById('pdf-link-iframe');
+    if (iframeEl) iframeEl.src = embedUrl;
+    if (embedWrap) {
+      embedWrap.style.display = 'block';
+      setTimeout(function() { embedWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+    }
+    return;
+  }
+
+  /* ── Dropbox ── */
+  if (isDropbox) {
+    var embedUrl = val
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace(/[?&]dl=\d/, '');
+
+    if (fb) { fb.textContent = '✅ Dropbox dikesan — pratonton dimuatkan di bawah.'; fb.style.color = 'var(--mint2)'; }
+
+    var iframeEl = document.getElementById('pdf-link-iframe');
+    if (iframeEl) iframeEl.src = embedUrl;
+    if (embedWrap) {
+      embedWrap.style.display = 'block';
+      setTimeout(function() { embedWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+    }
+    return;
+  }
+
+  /* ── URL Lain (PDF terus) ── */
+  if (fb) { fb.textContent = '🔗 Link disimpan — reader akan buka dalam tab baru.'; fb.style.color = 'var(--sky2)'; }
+
+  var urlLabel = document.getElementById('pdf-direct-url-label');
+  var openBtn  = document.getElementById('pdf-direct-open-btn');
+  if (urlLabel) urlLabel.textContent = val;
+  if (openBtn)  openBtn.href         = val;
+
+  if (directWrap) {
+    directWrap.style.display = 'block';
+    setTimeout(function() { directWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+  }
+}
+
+/* ═══════════════════════════
+   10. CLEAR LINK
+═══════════════════════════ */
+function clearPdfLink() {
+  pdfExternalLink = null;
+
+  var input      = document.getElementById('f-pdf-link');
+  var fb         = document.getElementById('pdf-link-feedback');
+  var embedWrap  = document.getElementById('pdf-link-preview-wrap');
+  var directWrap = document.getElementById('pdf-direct-preview-wrap');
+  var iframeEl   = document.getElementById('pdf-link-iframe');
+
+  if (input)      input.value             = '';
+  if (fb)         fb.innerHTML            = '';
+  if (embedWrap)  embedWrap.style.display = 'none';
+  if (directWrap) directWrap.style.display= 'none';
+  if (iframeEl)   iframeEl.src            = '';
+
+  if (typeof updateProgress === 'function') updateProgress();
+}
+
+/* ════════════════════════════════════════
+   HELPER DALAMAN
+════════════════════════════════════════ */
+
+/* Upload PDF ke Cloudinary (resource_type: raw) */
+async function uploadPdfToCloudinary(file) {
+  try {
+    var cloudName    = (typeof CLOUDINARY_CLOUD_NAME    !== 'undefined') ? CLOUDINARY_CLOUD_NAME    : NexStoriaConfig.cloudinary.cloudName;
+    var uploadPreset = (typeof CLOUDINARY_UPLOAD_PRESET !== 'undefined') ? CLOUDINARY_UPLOAD_PRESET : NexStoriaConfig.cloudinary.uploadPreset;
+
+    var formData = new FormData();
+    formData.append('file',           file);
+    formData.append('upload_preset',  uploadPreset);
+    formData.append('folder',         'nexstoria/story-pdfs');
+
+    var res = await fetch(
+      'https://api.cloudinary.com/v1_1/' + cloudName + '/raw/upload',
+      { method: 'POST', body: formData }
+    );
+    var data = await res.json();
+    if (data.secure_url) return data.secure_url;
+    console.error('[NexStoria] Cloudinary PDF error:', data.error || data);
+    return null;
+  } catch (err) {
+    console.error('[NexStoria] uploadPdfToCloudinary:', err);
+    return null;
+  }
+}
+
+/* Set UI drop area */
+function setDropAreaUI(state, title, sub) {
+  var area    = document.getElementById('pdf-drop-area');
+  var iconEl  = document.getElementById('pdf-drop-icon');
+  var titleEl = document.getElementById('pdf-drop-title');
+  var subEl   = document.getElementById('pdf-drop-sub');
+  if (!area) return;
+
+  var map = {
+    idle:    { icon: '📄', title: 'Klik atau seret fail PDF ke sini', sub: 'Maksimum 20MB · Format: PDF sahaja' },
+    loading: { icon: '⏳', title: title || 'Memproses…', sub: sub || '' },
+    done:    { icon: '✅', title: title || 'PDF dimuatkan', sub: sub || '' },
+  };
+  var s = map[state] || map.idle;
+  if (iconEl)  iconEl.textContent  = s.icon;
+  if (titleEl) titleEl.textContent = s.title;
+  if (subEl)   subEl.textContent   = s.sub;
+  area.classList.toggle('has-file', state === 'done');
+}
+
+/* Set teks maklumbalas */
+function setFeedback(el, msg, type) {
+  if (!el) return;
+  var colors = { ok: 'var(--mint2)', error: 'var(--coral)', warn: 'var(--sun2)', info: 'var(--sky2)' };
+  el.innerHTML = '<p style="font-size:12px;font-weight:700;margin-top:6px;color:' + (colors[type] || 'var(--muted)') + ';">' + msg + '</p>';
+}
+
+/* Format saiz bytes */
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  if (bytes < 1024)       return bytes + ' B';
+  if (bytes < 1024*1024)  return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+/* ════════════════════════════════════════
+   OVERRIDE updateProgress UNTUK PDF
+════════════════════════════════════════ */
+// Simpan fungsi asal jika ada, kemudian override
+var _origUpdateProgress = typeof updateProgress === 'function' ? updateProgress : null;
+
+function updateProgress() {
+  // Kira PDF ready
+  var pdfReady = (contentMode === 'pdf') && !!(pdfStorageUrl || pdfExternalLink);
+
+  // Panggil asal jika ada
+  if (_origUpdateProgress) {
+    // Tampal pdfReady ke dalam pengiraan asal
+    // (asal sudah handle contentMode === 'panel')
+    _origUpdateProgress();
+    return;
+  }
+
+  // Fallback ringkas jika tiada fungsi asal
+  var panelHasText = typeof panels !== 'undefined'
+    ? panels.some(function(p) { return (p.text || '').replace(/<[^>]*>/g, '').trim().length > 0; })
+    : false;
+
+  var contentReady = contentMode === 'panel' ? panelHasText : pdfReady;
+  var title    = (document.getElementById('f-title')    || {}).value || '';
+  var synopsis = (document.getElementById('f-synopsis') || {}).value || '';
+  var catOk    = typeof selectedCat !== 'undefined' ? selectedCat.length > 0 : false;
+  var ageOk    = typeof selectedAge !== 'undefined' ? !!selectedAge : false;
+
+  var checks = [!!title.trim(), !!synopsis.trim(), catOk, ageOk, contentReady];
+  var pct    = Math.round(checks.filter(Boolean).length / checks.length * 100);
+
+  var fillEl = document.getElementById('progress-fill');
+  if (fillEl) fillEl.style.width = pct + '%';
+}
+
+console.log('[NexStoria] PDF module loaded ✅');
+</script>
+
+<!--
+══════════════════════════════════════════════════════════════
+  CARA GUNA:
+
+  1. Buka nexstoria-submit.html
+  2. Cari SEMUA fungsi berikut dalam <script> lama dan PADAM:
+       - setContentMode()
+       - setPdfTab()
+       - handlePdfDrop()
+       - handlePdfUpload()
+       - processPdfFile()
+       - renderPdfPage()
+       - pdfViewerPage()
+       - autoCoverFromPdf()
+       - clearPdf()
+       - handleLinkInput()
+       - clearPdfLink()
+       - uploadPdfToCloudinary() / uploadFileToStorage() [bahagian PDF]
+       - setDropAreaState() atau setDropAreaUI()
+       
+  3. Tampal semua kandungan dalam <script> di atas
+     betul-betul sebelum tag </body>
+
+  4. Pastikan HTML drop area ada attribute yang betul:
+     ondragover="event.preventDefault();this.classList.add('drag')"
+     ondragleave="this.classList.remove('drag')"
+     ondrop="event.preventDefault();handlePdfDrop(event)"
+     onclick="document.getElementById('pdf-file-input').click()"
+
+  5. Pastikan butang tab memanggil:
+     onclick="setPdfTab('upload')"
+     onclick="setPdfTab('link')"
+
+  6. Pastikan file input ada:
+     onchange="handlePdfUpload(event)"
+
+  7. Pastikan input link ada:
+     oninput="handleLinkInput(this.value)"
+══════════════════════════════════════════════════════════════
+-->
 </script>
 </body>
 </html>
