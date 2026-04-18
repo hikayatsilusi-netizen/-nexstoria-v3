@@ -1766,28 +1766,78 @@
     }
 
     // ======================= WRITER STATS & KARYA =======================
-    async function loadWriterStats() {
-        const { data: stories } = await sb.from('stories')
-            .select('id,title,cover_emoji,cover_bg,status,category,total_reads,stars,created_at')
-            .eq('author_id', currentUser.id)
-            .order('created_at', { ascending: false }).limit(20);
-        const list = stories || [];
-        const totalViews = list.reduce((s, x) => s + (x.total_reads || 0), 0);
-        const totalStars = list.reduce((s, x) => s + (x.stars || 0), 0);
-        const totalCompleted = list.filter(s => s.status === 'completed').length;
-        setEl('wstat-stories', list.length);
-        setEl('wstat-views', fmt(totalViews));
-        setEl('wstat-stars', fmt(totalStars));
-        setEl('wstat-completed', totalCompleted);
-        setEl('karya-count', list.length);
-        setEl('karya-count-badge', list.length + ' cerita');
-        const kEl = document.getElementById('karya-list');
-        if (!list.length) return;
-        const stCol = { published: 'var(--teal)', draft: 'var(--amber)', pending: 'var(--brown)', completed: 'var(--teal2)' };
-        const stLabel = { published: '✅ Diterbit', draft: '📝 Draf', pending: '⏳ Semakan', completed: '🏁 Siap' };
-        kEl.innerHTML = list.map(s => `<div class="library-item" onclick="window.location.href='nexstoria-submit.html?edit=${s.id}'"><div class="library-thumb" style="background:${s.cover_bg || covBg(s.category)}">${s.cover_emoji || '📖'}</div><div class="library-info"><div class="library-series">${s.title}</div><div class="library-chapter" style="color:${stCol[s.status] || 'var(--text3)'};font-weight:700;">${stLabel[s.status] || s.status}&nbsp;·&nbsp;👁️ ${fmt(s.total_reads || 0)}&nbsp;·&nbsp;⭐ ${fmt(s.stars || 0)}</div></div></div>`).join('');
+async function loadWriterStats() {
+    const { data: stories, error } = await sb.from('stories')
+        .select('id,title,cover_emoji,cover_bg,status,category,reads_count,stars_count,likes_count,created_at,emoji')
+        .eq('author_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+    if (error) {
+        console.error('loadWriterStats error:', error);
+        return;
     }
 
+    const list = stories || [];
+    const totalViews = list.reduce((s, x) => s + (x.reads_count || 0), 0);
+    const totalStars = list.reduce((s, x) => s + (x.stars_count || 0), 0);
+    const totalCompleted = list.filter(s => s.status === 'completed').length;
+
+    setEl('wstat-stories', list.length);
+    setEl('wstat-views', fmt(totalViews));
+    setEl('wstat-stars', fmt(totalStars));
+    setEl('wstat-completed', totalCompleted);
+    setEl('karya-count', list.length);
+    setEl('karya-count-badge', list.length + ' cerita');
+
+    const kEl = document.getElementById('karya-list');
+    if (!kEl) return;
+
+    if (!list.length) {
+        kEl.innerHTML = '<div class="empty-state"><div class="es-icon">✍️</div><div class="es-title">Belum ada karya</div><div class="es-sub">Mula tulis cerita pertama! <a href="nexstoria-submit.html">Tulis →</a></div></div>';
+        return;
+    }
+
+    const stCol = {
+        published: 'var(--teal)',
+        draft: 'var(--amber)',
+        pending: 'var(--brown)',
+        completed: 'var(--teal2)'
+    };
+    const stLabel = {
+        published: '✅ Diterbit',
+        draft: '📝 Draf',
+        pending: '⏳ Semakan',
+        completed: '🏁 Siap'
+    };
+
+    kEl.innerHTML = list.map(s => {
+        const thumbBg = s.cover_bg || covBg(s.category);
+        const thumbEmoji = s.cover_emoji || s.emoji || '📖';
+        return `
+            <div class="library-item">
+                <div class="library-thumb" style="background:${thumbBg}">${thumbEmoji}</div>
+                <div class="library-info">
+                    <div class="library-series">${s.title}</div>
+                    <div class="library-chapter" style="color:${stCol[s.status] || 'var(--text3)'};font-weight:700;">
+                        ${stLabel[s.status] || s.status}
+                        &nbsp;·&nbsp; 👁️ ${fmt(s.reads_count || 0)}
+                        &nbsp;·&nbsp; ⭐ ${fmt(s.stars_count || 0)}
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
+                    <button onclick="window.location.href='nexstoria-submit.html?edit=${s.id}'" 
+                        style="font-size:11px;padding:4px 10px;border-radius:8px;border:1.5px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;font-family:var(--font);font-weight:700;">
+                        ✏️ Edit
+                    </button>
+                    <button onclick="window.location.href='nexstoria-reader.html?id=${s.id}'"
+                        style="font-size:11px;padding:4px 10px;border-radius:8px;border:1.5px solid var(--teal);background:transparent;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:700;">
+                        👁️ Lihat
+                    </button>
+                </div>
+            </div>`;
+    }).join('');
+}
     // ======================= LIBRARY, FOLLOWING, ACHIEVEMENTS, NOTIF, LEADERBOARD =======================
     async function loadLibrary() {
         const [pRes, lRes, bRes] = await Promise.all([
